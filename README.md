@@ -59,8 +59,8 @@ elmo-hikes/
 
 
 ## Contributors
-- **Your Name** - BCIT CST Student with a passion for outdoor adventures and user-friendly applications. Fun fact: Loves solving Rubik's Cubes in under a minute.
-- **Teammate Name** - BCIT CST Student, Frontend enthusiast with a knack for creative design. Fun fact: Has a collection of over 50 houseplants.
+- **Your Name** - Kian Castro, BCIT CST Student with a passion for learning. Fun fact: Loves solving Rubik's Cubes in around 2 minutes and 30 seconds.
+- **Teammate Name** - Morris Li, Sofia
 
 ---
 
