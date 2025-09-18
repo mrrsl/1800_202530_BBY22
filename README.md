@@ -59,10 +59,10 @@ elmo-hikes/
 
 
 ## Contributors
-- **Your Name** - Kian Castro, BCIT CST Student with a passion for learning. Fun fact: Loves solving Rubik's Cubes in around 2 minutes and 30 seconds.
-- **Teammate Name** - Morris Li, Sofia
+- **Kian Castro** BCIT CST Student with a passion for learning. Fun fact: Loves solving Rubik's Cubes in around 2 minutes and 30 seconds.
+- **Morris Li** BCIT CST Student.
+- **Sofia L.** BCIT CST Student.
 
----
 
 
 ## Acknowledgments
