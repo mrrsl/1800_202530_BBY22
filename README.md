@@ -59,9 +59,10 @@ elmo-hikes/
 
 
 ## Contributors
+- **Sofia** - BCIT CST Student with a passion for design, reading, and music :P Fun fact about me: I love sci-fi novels & Depeche Mode!
 - **Kian Castro** BCIT CST Student with a passion for learning. Fun fact: Loves solving Rubik's Cubes in around 2 minutes and 30 seconds.
-- **Morris Li** BCIT CST Student.
-- **Sofia L.** BCIT CST Student.
+- **Morris Li** BCIT CST Student living and breathing number puzzles.
+
 
 
 
