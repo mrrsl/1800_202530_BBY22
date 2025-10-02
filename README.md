@@ -78,14 +78,11 @@ elmo-hikes/
 ## Limitations and Future Work
 ### Limitations
 
-- Limited trail details (e.g., no live trail conditions).
-- Accessibility features can be further improved.
+- Only landing page is present
 
 ### Future Work
 
-- Implement map view and trailhead directions.
-- Add filtering and sorting options (e.g., by difficulty, distance).
-- Create a dark mode for better usability in low-light conditions.
+- Implement the rest
 
 ---
 
