@@ -90,6 +90,7 @@ div#brand-icon {
     }
     #menu-icon > img:active {
         color: blue;
+        filter: invert(0.95)
     }
 
 }
@@ -108,7 +109,6 @@ div#brand-icon {
         display: flex;
         flex-direction: row;
     }
-
     .nav-button {
         width: 100px;
     }
