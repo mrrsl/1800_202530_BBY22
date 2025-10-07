@@ -16,6 +16,7 @@ div#top-nav-bar {
     display: flex;
     flex-direction: row;
     height: fit-content;
+    position: relative;
 }
 
 div#brand-icon {
@@ -56,7 +57,7 @@ div#brand-icon {
     color:white;
     width: auto;
     text-align: center;
-    font-size: x-large;
+    font-size: 60px;
     font-weight: 500;
     text-shadow: 2px 2px 5px #000
 }
@@ -69,7 +70,7 @@ div#brand-icon {
         display: none;
     }
 
-    .top-button-group {
+    #top-button-group {
         position: absolute;
         display: none;
     }
@@ -92,7 +93,18 @@ div#brand-icon {
         color: blue;
         filter: invert(0.95)
     }
-
+    #top-login-button {
+        flex-grow: 2;
+        display: flex;
+        padding-right: 10px;
+        flex-direction: row-reverse;
+    }
+    #top-login-button > p {
+        text-align: right;
+        width: fit-content;
+        padding: 20px;
+        align-self: center;
+    }
 }
 
 /* Desktop only changes here */
@@ -105,7 +117,7 @@ div#brand-icon {
     #top-nav-bar {
         background-color: aliceblue;
     }
-    .top-button-group {
+    #top-button-group {
         display: flex;
         flex-direction: row;
     }
