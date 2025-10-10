@@ -1,127 +1,66 @@
+@import "tailwindcss";
 /*
 Media queries at the bottom. Keep layout visibility properties within them.
 */
-
 body {
-    margin: 0px;
-    padding: 0px;
+    background-image: url('/images/graphpaper.webp');
+    background-size: 200px auto;
+    background-repeat: repeat;
 }
-
-p {
-    margin: 0px;
+.indie-flower-regular {
+  font-family: "Indie Flower", cursive;
+  font-weight: 400;
+  font-style: normal;
 }
-
-/* Nav bar styles here ----------------------- */
-div#top-nav-bar {
-    display: flex;
-    flex-direction: row;
-    height: fit-content;
-    position: relative;
+.drawn-border {
+    border-image-source: url('/images/graphite.jpg');
+    border-image-width: 2px;
+    border-image-repeat: repeat;
+    border-image-slice: 20%;
 }
-
-div#brand-icon {
-    margin-right: 7px;
-    padding: 5px;
+div#hero-text {
+    font-size: 56px;
+    margin-bottom: -50px;
 }
-
-#brand-icon > img {
-    width: 50px;
-    height: 50px;
+.button-text {
+    font-family:'Patrick Hand';
+    font-size: 28px;
+    fill: rgba(20, 20, 20, .9);
 }
-
-.button-row-group {
-    height: 100%;
+.hidden {
+    display: none;
 }
-
-.nav-button > p {
-    text-align: center;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    position: relative;
-    top: 50%;
-    transform: translate(0, -50%);
+.content-text-heading-left {
+    font-family: 'Patrick Hand';
+    color:rgba(20, 20, 20, .9);
+    font-size: 30px;
+    border-image: radial-gradient(ellipse at left, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
+    border-top-style: none;
+    border-bottom-style: outset;
+    border-left-style: none;
+    border-right-style: none;
+    border-width: 2px;
 }
-/* Hero styles here -----------------------------*/
-#hero {
-    /* Placeholder image used here */
-    background-image: url("https://fastly.picsum.photos/id/316/2400/1200.jpg?hmac=Np4mjy4RYnIpOKxs_PSYumzzwVkCbJQxgG6BaOax58M");
-    background-position: center;
-
-    display:flex;
+.content-text-heading-right {
+    text-align: right;
+    font-family: 'Patrick Hand';
+    color:rgba(20, 20, 20, .9);
+    font-size: 30px;
+    border-image: radial-gradient(ellipse at right, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
+    border-top-style: none;
+    border-bottom-style: outset;
+    border-left-style: none;
+    border-right-style: none;
+    border-width: 2px;
+}
+.content-body {
+    font-family: 'Coming Soon';
+    font-size: 20px;
+}
+.content-img{
+    padding: 8px;
+}
+.content-img > img {
     width: 100%;
-    height: 40vh;
-    align-items: center;
-    justify-content: center;
-}
-
-#hero-text {
-    color:white;
-    width: auto;
-    text-align: center;
-    font-size: 60px;
-    font-weight: 500;
-    text-shadow: 2px 2px 5px #000
-}
-/* Content styles here ------------------------- */
-
-/* Mobile only changes here */
-@media (max-width: 500px) {
-
-    .desktop-only {
-        display: none;
-    }
-
-    #top-button-group {
-        position: absolute;
-        display: none;
-    }
-
-    /* Menu Icon */
-    #menu-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 64px;
-    }
-    #menu-icon > img {
-        height: 80%;
-    }
-    #menu-icon:active {
-        color: blue;
-        background-color: rgba(50,50,20, 0.6);
-    }
-    #menu-icon > img:active {
-        color: blue;
-        filter: invert(0.95)
-    }
-    #top-login-button {
-        flex-grow: 2;
-        display: flex;
-        padding-right: 10px;
-        flex-direction: row-reverse;
-    }
-    #top-login-button > p {
-        text-align: right;
-        width: fit-content;
-        padding: 20px;
-        align-self: center;
-    }
-}
-
-/* Desktop only changes here */
-@media (min-width: 501px) {
-    .mobile-only {
-        display: none;
-    }    
-
-    /* Nav bar styles */
-    #top-nav-bar {
-        background-color: aliceblue;
-    }
-    #top-button-group {
-        display: flex;
-        flex-direction: row;
-    }
-    .nav-button {
-        width: 100px;
-    }
+    height: auto;
 }
