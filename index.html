@@ -9,6 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Other libraries go here -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&display=swap" rel="stylesheet">
 
     <!-- CSS Sheets-->
     <link rel="stylesheet" href="./styles/index.css">
@@ -20,42 +23,27 @@
 
 <body>
 
-    <div id="top-nav-bar">
-        <div id="menu-icon" class="mobile-only">
-            <img src="images/menu_logo.svg" alt="borger"/>
-        </div>
-        <div id="brand-icon">
-            <!-- Placeholder icon here, treat as optional -->
-            <img src="images/placehold-brand.png" alt="Branding"/>
-        </div>
-        <div id="top-button-group">
-            <div class="nav-button">
-                <p>Settings</p>
-            </div>
-            <div class="nav-button">
-                <p>
-                    Login
-                </p>
-            </div>
-            <div class="nav-button desktop-only">
-                <p>
-                    Browse
-                </p>
-            </div>
-        </div>
-        <div class="mobile-only nav-button" id="top-login-button">
-            <p>Login</p>
-        </div>
-    </div>
-
-    <div id="hero">
-        <div id="hero-text">
+    <div id="hero" class="w-full h-96 flex flex-col items-center justify-center">
+        <div id="hero-text" class="w-fit h-fit indie-flower-regular text-center">
             Plan your life
+        </div>       
+        <div id="login-button" class="w-[250px] h-[40px] mt-[25px] text-center bg-amber-400 drawn-border">
+            Login
         </div>
     </div>
+    <div id="hero-divider" class="w-full h-0 border-2 divider drawn-border">
 
-    <div id="content">
+    </div>
+    <div id="login-window">
+        <div id="logo">
 
+        </div>
+        <div id="login-message">
+
+        </div>
+        <form>
+
+        </form>
     </div>
 
     <div id="bottom-nav-bar" class="mobile-only">

@@ -1,6 +1,4 @@
 //import 'bootstrap/dist/css/bootstrap.min.css';
 //import 'bootstrap';
 
-function generateFeaturedTask(taskObj) {
-
-}
+const loginWindow = document.querySelector('#login-window');
