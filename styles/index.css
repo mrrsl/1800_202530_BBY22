@@ -2,7 +2,11 @@
 /*
 Media queries at the bottom. Keep layout visibility properties within them.
 */
-
+body {
+    background-image: url('/images/graphpaper.webp');
+    background-size: 200px auto;
+    background-repeat: repeat;
+}
 .indie-flower-regular {
   font-family: "Indie Flower", cursive;
   font-weight: 400;
@@ -14,15 +18,49 @@ Media queries at the bottom. Keep layout visibility properties within them.
     border-image-repeat: repeat;
     border-image-slice: 20%;
 }
-div#hero {
-    background-image: url('/images/graphpaper.jpg');
-    background-size: 700px auto;
-    background-repeat: repeat;
-}
 div#hero-text {
     font-size: 56px;
+    margin-bottom: -50px;
 }
-
-div#login-button-inner {
-    font-size: 24px;
+.button-text {
+    font-family:'Patrick Hand';
+    font-size: 28px;
+    fill: rgba(20, 20, 20, .9);
+}
+.hidden {
+    display: none;
+}
+.content-text-heading-left {
+    font-family: 'Patrick Hand';
+    color:rgba(20, 20, 20, .9);
+    font-size: 30px;
+    border-image: radial-gradient(ellipse at left, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
+    border-top-style: none;
+    border-bottom-style: outset;
+    border-left-style: none;
+    border-right-style: none;
+    border-width: 2px;
+}
+.content-text-heading-right {
+    text-align: right;
+    font-family: 'Patrick Hand';
+    color:rgba(20, 20, 20, .9);
+    font-size: 30px;
+    border-image: radial-gradient(ellipse at right, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
+    border-top-style: none;
+    border-bottom-style: outset;
+    border-left-style: none;
+    border-right-style: none;
+    border-width: 2px;
+}
+.content-body {
+    font-family: 'Coming Soon';
+    font-size: 20px;
+}
+.content-img{
+    padding: 8px;
+}
+.content-img > img {
+    width: 100%;
+    height: auto;
 }
