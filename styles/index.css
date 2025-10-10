@@ -2,6 +2,16 @@
 /*
 Media queries at the bottom. Keep layout visibility properties within them.
 */
+.navbar {
+    background-image: url('/images/paintfill.svg');
+    background-repeat: repeat-x;
+}
+.navbar img {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1/1;
+    margin: 15px;
+}
 body {
     background-image: url('/images/graphpaper.webp');
     background-size: 200px auto;
