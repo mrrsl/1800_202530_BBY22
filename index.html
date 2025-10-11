@@ -28,7 +28,10 @@
         <div id="hero-text" class="w-fit h-fit indie-flower-regular text-center">
             Plan your life
         </div>
-        <!-- Collapse this, SVG file produced by image editing software -->    
+        <!--Collapse
+            Using an SVG here so we can apply :hover and :active styles
+            Access text through "svg#login-button text.button-text"
+        -->    
         <svg
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         xmlns:cc="http://creativecommons.org/ns#"
@@ -209,12 +212,16 @@
             </text>
         </g>
         </svg>
-        <!-- Collapse this -->
+        <!-- Collapse -->
 
     </div>
     <div id="hero-divider" class="w-full h-0 border-2 divider drawn-border">
     </div>
+
+    <!-- After-hero content, Product info here -->
     <div id="content-container" class="w-full w-max-[800px] px-6 pt-3 flex flex-col">
+
+        <!-- Info Box 1, Left Aligned -->
         <div class="w-full p-1 flex flex-row justify-evenly">
             <div class="content-text w-[66%]">
                 <div class="content-text-heading-left w-full">
@@ -228,6 +235,8 @@
                 <img src="/images/wrench.svg" alt="wrench"/>
             </div>
         </div>
+
+        <!-- Info Box 2, Right Aligned -->
         <div class="w-full p-2 flex flex-row justify-evenly">
             <div class="content-img w-[33%] flex justify-center items-center">
                 <img src="/images/handshake.svg" alt="handshake"/>
@@ -240,8 +249,9 @@
                     Let everyone else know how busy you are with task sharing and friend groups.
                 </div>
             </div>
-
         </div>
+
+        <!-- Info Box 3, Left Aligned -->
         <div class="w-full p-2 flex flex-row justify-evenly">
             <div class="content-text w-[66%]">
                 <div class="content-text-heading-left w-full">
@@ -256,25 +266,22 @@
             </div>
         </div>
     </div>
-    <div id="login-window">
-        <div id="logo">
 
+    <!-- Login items, create a full screen frame when the button is clicked. -->
+    <div id="login-frame" class="w-lvw h-lvh fixed">
+        
+        <div id="login-window">
+            <div id="logo">
+
+            </div>
+            <div id="login-message" class="hidden">
+
+            </div>
+            <form>
+
+            </form>
         </div>
-        <div id="login-message" class="hidden">
-
-        </div>
-        <form>
-
-        </form>
     </div>
-
-    <!------------------------------>
-    <!-- Your HTML Layout go here -->
-    <!------------------------------>
-    <!-- Stuff for body goes here -->
-
-
-
 
 </body>
 
