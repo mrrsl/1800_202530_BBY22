@@ -97,12 +97,22 @@ export const getMonthGrid = function(month, year) {
     if (year)
         first.setFullYear(year);
 
-    for(let a = 0; a < first.getDay(); a++) {
-        dateGrid[a] = -1;
-    }
+    let prevMonth = (first.getMonth() - 1 >= 0) ? first.getMonth() - 1: 11;
+    let prevMonthDayCount = numDays(prevMonth) + 1;
 
-    for(let a = 0; a < numDays(month); a++) {
-        dateGrid[first.getDay() + a] = a + 1;
+    for(let a = 0; a < first.getDay(); a++) {
+        dateGrid[a] = (prevMonthDayCount - (first.getDay() - a)) * -1;
+    }
+    
+    // Tracks the number of days outside the main month
+    let dayCounter = 1;
+    for(let a = first.getDay(); a < dateGrid.length; a++) {
+        if (dayCounter <= numDays(first.getMonth())) {
+            dateGrid[a] = dayCounter++;
+        } else {
+            if (dayCounter > 0) dayCounter = -1;
+            dateGrid[a] = dayCounter--;
+        }
     }
 
     return dateGrid;
