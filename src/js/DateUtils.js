@@ -15,7 +15,7 @@ const monthNames = [
  * @param {Number} year year as returned by Date.getFullYear.
  * @returns {boolean} True if year has 366 days.
  */
-function isLeapYear(year)
+export const isLeapYear = function(year)
 {
     return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
@@ -25,7 +25,7 @@ function isLeapYear(year)
  * @param {Number} monthNum Number as returned by Date.getMonth.
  * @returns {Number} Value between [0 - 31]
  */
-function numDays(monthNum) {
+export const numDays = function(monthNum) {
     const numDaysMap = [
         31,
         (isLeapYear(new Date(Date.now()).getFullYear)) ? 29 : 28,
@@ -52,7 +52,7 @@ function numDays(monthNum) {
  * Returns a week object that associates a day in the current week with the days of the current month.
  * @returns {Object}
  */
-function getCurrentWeek() {
+export const getCurrentWeek = function() {
     let today = new Date(Date.now());
     
     let sundayDate = today.getDate() - today.getDay();
@@ -80,17 +80,22 @@ function getCurrentWeek() {
 }
 
 /**
- * Generates an array of days for a given month and year.
- * @param {Number} month Value returned by Date.getMonth()
- * @param {Number} year Value returned by Date.getFullYear()
+ * Generates an array of week-aligned days for a given month and year. Defaults to current date if no month/year given.
+ * @param {Number?} month Value returned by Date.getMonth()
+ * @param {Number?} year Value returned by Date.getFullYear()
+ * @return {Array} An array of length 42 where index-0 is on a Saturday and 41 is on a Sunday. Elements < 0 indicate days on different months.
  */
-function getMonthGrid(month, year) {
+export const getMonthGrid = function(month, year) {
     let dateGrid = new Array(42);
 
     let first = new Date(Date.now());
     first.setDate(1);
-    first.setMonth(month);
-    first.setFullYear(year);
+    
+    // Check optional args
+    if (month)
+        first.setMonth(month);
+    if (year)
+        first.setFullYear(year);
 
     for(let a = 0; a < first.getDay(); a++) {
         dateGrid[a] = -1;
