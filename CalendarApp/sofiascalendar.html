@@ -1,0 +1,578 @@
+<html>
+  <head>
+    <style>
+      :root {
+        --accent-color: #fff5fa; /* default accent color */
+      }
+
+      body {
+        background-color: #fbf7f8;
+        background-blend-mode: lighten;
+        text-align: center;
+        font-family: "Oooh Baby", sans-serif;
+        font-size: 30pt;
+      }
+
+      header {
+        background-image: url("lightcoloredbackdrop.png");
+        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
+        padding: 2.5rem 0 0.5rem 0; /* top right bottom left padding*/
+      }
+
+      #navIcons {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1rem;
+        padding: 2rem;
+        margin-top: -14rem;
+      }
+
+      #backarrow {
+        position: absolute;
+        top: 4rem;
+        left: 2rem;
+        z-index: 10;
+        width: 2rem;
+        height: auto;
+        cursor: pointer;
+      }
+
+      #title {
+        margin-top: 2rem;
+        margin-left: 2rem;
+        line-height: 1;
+        text-align: left;
+        font-size: 50pt;
+        color: rgb(54, 40, 48);
+      }
+
+      #subtitle {
+        display: none; /* leaving this hidden because I'm not sure if I want to use it; may delete later */
+        opacity: 0.7;
+        font-size: 18pt;
+        margin-bottom: 20px;
+        font-size: 30pt;
+        text-align: left;
+      }
+
+      #calendarContainer {
+        display: flex;
+        justify-content: center;
+      }
+
+      #calendarDiv {
+        background-color: white;
+        border-radius: 10px;
+        margin: auto;
+        align-content: center;
+        text-align: center;
+      }
+
+      #calendarHeading {
+        display: flex;
+        border-radius: 10px;
+        padding: 1rem;
+        background-color: var(--accent-color);
+        line-height: 0;
+        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
+      }
+
+      /* css for the day name to align with the columns of the calendar */
+      #calendarHeading p {
+        width: 4rem;
+        margin: 30px;
+        text-align: center;
+        font-size: 30pt;
+        font-family: "Inria Serif", sans-serif;
+      }
+
+      #calendarContent {
+        z-index: 1;
+        padding: 3vw;
+        justify-content: center;
+        border: 2px; /* optional: add a temporary border here (or don't) */
+        font-size: 80pt;
+      }
+      .day {
+        width: 4rem;
+        height: 4rem;
+        margin: 20px; /* controls the size of the white padding surrounding the days */
+        padding: 10px;
+        font-size: 30pt;
+        font-weight: bold;
+        border-radius: 20px;
+        background-color: var(--accent-color);
+        box-shadow: 0 0 30px rgba(78, 22, 45, 0.2);
+      }
+
+      .days {
+        display: flex; /* super important that you don't remove this, controls the entire layout of the calendar days */
+      }
+
+      #collapseButton {
+        z-index: 0;
+        padding-top: 10px;
+        margin-top: -2rem;
+        cursor: pointer;
+      }
+
+      #collapseButton img {
+        width: 3rem;
+        transition: transform 0.3s ease;
+      }
+
+      #gridbg {
+        z-index: 4;
+      }
+
+      /* this is for the task-list container */
+      .todo-container {
+        background-image: url("gridbackground.png");
+        background-repeat: repeat-y; /* repeats vertically */
+        background-size: cover;
+        background-position: top center;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgb(130, 98, 98);
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        min-height: 1000px; /* gives the grid background a long canvas feel */
+      }
+
+      /* styles the task list container that holds all the tasks */
+      #taskList {
+        max-width: 80rem;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+        font-size: 40pt;
+      }
+
+      /* styles the input box for entering new tasks */
+      input[type="text"] {
+        font-family: "Oooh Baby", sans-serif;
+        font-size: 40pt;
+        padding: 10px;
+        border: 2px solid #3615299b;
+        border-radius: 12px;
+        background-color: #f9f9f9;
+        width: 100%;
+        max-width: 80rem;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+      }
+
+      /* css for the placeholder text in the input box */
+      input[type="text"]::placeholder {
+        font-family: "Oooh Baby", sans-serif;
+        font-size: 40pt;
+        color: #807777;
+        opacity: 0.7;
+      }
+
+      /* controls the X button beside each task */
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      /* styles each individual task box */
+      #taskList li {
+        background: #fffdfcb5;
+        margin-bottom: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1.5px solid rgb(74, 43, 48);
+      }
+
+      /* styles the task after it's been completed; note: the line-through is not currently being used */
+      #taskList li.done {
+        text-decoration: line-through;
+        color: #b5b5b5;
+        background: #f2f2f2;
+        opacity: 0.7;
+      }
+
+      /* controls the X button beside each task */
+      button {
+        background: none;
+        border: none;
+        font-size: 4rem;
+        cursor: pointer;
+        color: #b57268;
+      }
+
+      /* styles the note about the maximum number of tasks allowed */
+      .limit-note {
+        font-size: 0.9rem;
+        color: #b57268;
+        margin-top: 8px;
+        text-align: center;
+      }
+
+      /* styles the bottom navbar */
+      .bottomnav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--accent-color);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        padding: 1rem 0;
+      }
+
+      .bottomnav ul {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .bottomnav li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: "Inria Serif", sans-serif;
+        font-size: 25pt;
+        color: #362830;
+      }
+
+      .bottomnav img {
+        width: 100px;
+        height: auto;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+    <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
+    <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- HEADER AREA -->
+    <header>
+      <h1 id="plannerName">Spencer's Planner</h1>
+      <div id="navIcons">
+        <a href="sofiassettings.html" class="settingsicon"
+          ><img src="settingsgear.png" width="70px"
+        /></a>
+        <a href="#" class="calendaricon"
+          ><img src="calendaricon.png" width="70px"
+        /></a>
+      </div>
+      <div
+        id="backarrow"
+        onclick="window.history.back()"
+        style="cursor: pointer"
+      >
+        <img src="up-arrow.png" width="110px" />
+      </div>
+    </header>
+
+    <!-- TITLE AND SUBTITLE -->
+    <h1 id="title">Month</h1>
+    <h2 id="subtitle">Today</h2>
+
+    <!-- CALENDAR AREA -->
+    <div id="calendarContainer">
+      <div id="calendarDiv">
+        <div id="calendarHeading">
+          <p id="dayTitle"><b>Sun</b></p>
+          <p id="dayTitle"><b>Mon</b></p>
+          <p id="dayTitle"><b>Tue</b></p>
+          <p id="dayTitle"><b>Wed</b></p>
+          <p id="dayTitle"><b>Thu</b></p>
+          <p id="dayTitle"><b>Fri</b></p>
+          <p id="dayTitle"><b>Sat</b></p>
+        </div>
+
+        <div id="calendarContent">
+          <div id="tracker">
+            <div class="days">
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+            </div>
+
+            <div class="days">
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+            </div>
+
+            <div class="days">
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+            </div>
+
+            <div class="days">
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+            </div>
+
+            <div class="days">
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+              <div class="day">1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="collapseButton">
+      <img src="uparrow.png" />
+    </div>
+
+    <!-- TASK + GRID SECTION -->
+    <div class="todo-container">
+      <input id="taskInput" type="text" placeholder="Add new task..." />
+      <ul id="taskList"></ul>
+      <div id="note" style="display: none">
+        Max 20 tasks for now, take it easy!
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVBAR -->
+    <div class="bottomnav">
+      <ul>
+        <li>
+          <a href="friends.html"><img src="friendsicon.png" alt="Friends" /></a>
+          <span>Friends</span>
+        </li>
+        <li>
+          <a href="sofiascalendar.html"
+            ><img src="scheduleicon.png" alt="Schedule"
+          /></a>
+          <span>Schedule</span>
+        </li>
+      </ul>
+    </div>
+
+    <script>
+      var date = new Date();
+      console.log(date);
+
+      var currentMonth = date.getMonth();
+      var currentDay = date.getDay();
+      var currentDate = date.getDate();
+      var currentYear = date.getFullYear();
+
+      console.log(currentMonth);
+      console.log(currentDay);
+      console.log(currentDate);
+      console.log(currentYear);
+
+      var months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+
+      // currently unused, belongs to the subtitle
+      var daysOfWeek = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+
+      // this subtitle part is currently unused; I was originally going to display the full date
+      var subtitle = document.getElementById("subtitle");
+      subtitle.innerHTML =
+        daysOfWeek[date.getDay()] +
+        ", " +
+        months[currentMonth] +
+        " " +
+        currentDate +
+        ", " +
+        currentYear;
+
+      // used to display the current month as a title
+      var title = document.getElementById("title");
+      title.innerHTML = `${months[currentMonth]} ${currentDate}`; //switch back to months[currentMonth] if needed
+
+      var daysInTheMonthList = [
+        31, 28, 31, 30, 31, 30, 31, 30, 31, 31, 30, 31, 30,
+      ];
+
+      var daysInThisMonth = daysInTheMonthList[currentMonth];
+
+      var firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+
+      var dayCount = 0;
+      var rowCount = 0;
+      var days = document.getElementsByClassName("days");
+
+      var dayCount = 0;
+      var rowCount = 0;
+      var days = document.getElementsByClassName("days");
+
+      // creates the empty space at the beginning of the calendar so that sundays display first
+      var totalCells = days.length * 7;
+      var firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // gets sunday
+
+      for (var i = 0; i < totalCells; i++) {
+        var row = Math.floor(i / 7);
+        var col = i % 7;
+        var day = days[row].getElementsByClassName("day")[col];
+
+        if (i < firstDayOfMonth) {
+          day.innerHTML = "";
+          day.setAttribute("style", "visibility: hidden"); //to make these empty boxes visible, just change it to background-color: white
+        } else if (dayCount < daysInThisMonth) {
+          day.innerHTML = dayCount + 1;
+          day.setAttribute("id", "day" + (dayCount + 1));
+          if (dayCount == currentDate - 1) {
+            day.setAttribute(
+              "style",
+              "border: 2px solid gray; border-radius: 10px; box-shadow: 0px 0px 0px 3px rgba(47, 23, 4, 0.3)"
+            );
+          }
+          dayCount++;
+        } else {
+          day.innerHTML = "";
+          day.setAttribute("style", "visibility: hidden");
+        }
+      }
+
+      // js for the collapsible calendar arrow
+      document
+        .getElementById("collapseButton")
+        .addEventListener("click", function () {
+          const tracker = document.getElementById("tracker");
+          const arrow = document.querySelector("#collapseButton img");
+          const allWeeks = tracker.getElementsByClassName("days");
+
+          const date = new Date();
+          const currentDate = date.getDate();
+          const currentMonth = date.getMonth();
+          const currentYear = date.getFullYear();
+          const firstDayOfMonth = new Date(
+            currentYear,
+            currentMonth,
+            1
+          ).getDay();
+
+          const currentWeekIndex = Math.floor(
+            (currentDate + firstDayOfMonth - 1) / 7
+          );
+          const isCollapsed = allWeeks[0].style.display === "none";
+
+          for (let i = 0; i < allWeeks.length; i++) {
+            allWeeks[i].style.display =
+              isCollapsed || i === currentWeekIndex ? "flex" : "none";
+          }
+
+          arrow.style.transform = isCollapsed
+            ? "rotate(0deg)"
+            : "rotate(180deg)";
+        });
+
+      //js for adding tasks
+      const taskInput = document.getElementById("taskInput");
+      const taskList = document.getElementById("taskList");
+      const note = document.getElementById("note");
+
+      // adds a task to the list
+      function addTask(text) {
+        if (taskList.children.length >= 20) return;
+
+        const li = document.createElement("li");
+        li.textContent = text;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "X";
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          li.remove();
+          updateNote(); // re-checks the task count after removing one
+        };
+
+        li.appendChild(removeBtn);
+        taskList.appendChild(li);
+        updateNote(); // re-checks the number of tasks after adding a new one
+
+        li.addEventListener("click", () => {
+          li.classList.add("done");
+
+          // moves each task to the bottom after it's been crossed out
+          taskList.appendChild(li);
+
+          // fades out after 3 minutes
+          setTimeout(() => {
+            li.remove();
+            updateNote();
+          }, 180000);
+        });
+      }
+
+      // updates the visibility of the note/message to the user
+      function updateNote() {
+        if (taskList.children.length >= 20) {
+          note.style.display = "block";
+          taskInput.disabled = true;
+        } else {
+          note.style.display = "none";
+          taskInput.disabled = false;
+        }
+      }
+
+      // deals with the enter key for adding tasks
+      taskInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && taskInput.value.trim()) {
+          addTask(taskInput.value.trim());
+          taskInput.value = "";
+        }
+      });
+
+      // changes the accent color on the page based on the user's settings
+      const savedColor = localStorage.getItem("accentColor");
+      if (savedColor) {
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          savedColor
+        );
+      }
+    </script>
+  </body>
+</html>
