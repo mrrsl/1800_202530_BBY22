@@ -3,9 +3,9 @@
 Media queries at the bottom. Keep layout visibility properties within them.
 */
 body {
-    background-image: url('/images/graphpaper.webp');
-    background-size: 200px auto;
-    background-repeat: repeat;
+  background-image: url("/images/graphpaper.webp");
+  background-size: 200px auto;
+  background-repeat: repeat;
 }
 .indie-flower-regular {
   font-family: "Indie Flower", cursive;
@@ -13,68 +13,80 @@ body {
   font-style: normal;
 }
 .drawn-border {
-    border-image-source: url('/images/graphite.jpg');
-    border-image-width: 2px;
-    border-image-repeat: repeat;
-    border-image-slice: 20%;
+  border-image-source: url("/images/graphite.jpg");
+  border-image-width: 2px;
+  border-image-repeat: repeat;
+  border-image-slice: 20%;
 }
 div#hero-text {
-    font-size: 56px;
-    margin-bottom: -50px;
+  font-size: 56px;
+  margin-bottom: -50px;
 }
 .button-text {
-    font-family:'Patrick Hand';
-    font-size: 28px;
-    fill: rgba(20, 20, 20, .9);
+  font-family: "Patrick Hand";
+  font-size: 28px;
+  fill: rgba(20, 20, 20, 0.9);
 }
 .content-text-heading-left {
-    font-family: 'Patrick Hand';
-    color:rgba(20, 20, 20, .9);
-    font-size: 30px;
-    border-image: radial-gradient(ellipse at left, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
-    border-top-style: none;
-    border-bottom-style: outset;
-    border-left-style: none;
-    border-right-style: none;
-    border-width: 2px;
+  font-family: "Patrick Hand";
+  color: rgba(20, 20, 20, 0.9);
+  font-size: 30px;
+  border-image: radial-gradient(ellipse at left, rgb(2, 0, 100) 0, #dfdfdf 100%)
+    1;
+  border-top-style: none;
+  border-bottom-style: outset;
+  border-left-style: none;
+  border-right-style: none;
+  border-width: 2px;
 }
 .content-text-heading-right {
-    text-align: right;
-    font-family: 'Patrick Hand';
-    color:rgba(20, 20, 20, .9);
-    font-size: 30px;
-    border-image: radial-gradient(ellipse at right, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
-    border-top-style: none;
-    border-bottom-style: outset;
-    border-left-style: none;
-    border-right-style: none;
-    border-width: 2px;
+  text-align: right;
+  font-family: "Patrick Hand";
+  color: rgba(20, 20, 20, 0.9);
+  font-size: 30px;
+  border-image: radial-gradient(
+      ellipse at right,
+      rgb(2, 0, 100) 0,
+      #dfdfdf 100%
+    )
+    1;
+  border-top-style: none;
+  border-bottom-style: outset;
+  border-left-style: none;
+  border-right-style: none;
+  border-width: 2px;
 }
 .content-body {
-    font-family: 'Coming Soon';
-    font-size: 20px;
+  font-family: "Coming Soon";
+  font-size: 20px;
 }
-.content-img{
-    padding: 8px;
+.content-img {
+  padding: 8px;
 }
 .content-img > img {
-    width: 100%;
-    height: auto;
+  width: 100%;
+  height: auto;
 }
 #login-frame {
-    position: fixed;
-    top: 0%;
-    left: 0%;
-    background-color: rgb(50,50,50,.60);
+  position: fixed;
+  top: 0%;
+  left: 0%;
+  background-color: rgb(50, 50, 50, 0.6);
 }
 #login-window {
-    background-image: url('/images/graphpaper.webp');
-    background-size: 100px auto;
+  background-image: url("/images/graphpaper.webp");
+  background-size: 100px auto;
 }
-#login-window input[type="text"], #login-window input[type="password"] {
-    border-style: solid;
-    border-radius: 5px;
-    border-color:#DFDFDF;
-    border-width: 4px;
-    background-color: aliceblue;
+#login-window input[type="text"],
+#login-window input[type="password"] {
+  border-style: solid;
+  border-radius: 5px;
+  border-color: #dfdfdf;
+  border-width: 4px;
+  background-color: aliceblue;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
 }
