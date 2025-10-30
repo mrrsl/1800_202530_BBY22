@@ -21,8 +21,7 @@ Developed for the COMP 1800 course, this project applies User-Centred Design pra
 
 ## Technologies Used
 
-Example:
-- **Frontend**: HTML, CSS, JavaScript
+- **Frontend**: HTML, CSS, JavaScript, Svelte
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Backend**: Firebase for hosting
 - **Database**: Firestore
@@ -84,6 +83,55 @@ elmo-hikes/
 
 - Implement the rest
 
+---
+
+## Implementation Notes
+---
+### Firestore Schemes
+#### `users`Collection
+```ts
+users = [
+	userId: {
+		// Collection of other userIds
+		friends: Array<Number|string>,
+		name: string,
+		completions: Number
+	}
+]
+```
+#### Task Collections
+Stores both personal and shared tasks collections.
+###### `shared-tasks`collection
+```ts
+shared_task = [
+	userId: {
+		friends: [
+			userId1,
+			userId2
+		],
+		task: {
+			date: Date,
+			title: string,
+			desc: string
+		}
+	}
+]
+```
+###### `personal-tasks`collection
+```ts
+personal_task = [
+	userId: {
+		// Document ID will take the form {YYYYMMDD}{title}
+		tasks: [
+			{
+				date: Date,
+				title: string,
+				desc: string
+			}
+		]
+	}
+]
+```
 ---
 
 
