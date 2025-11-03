@@ -11,20 +11,26 @@
     import CalendarHideButton from './CalendarHideButton.svelte';
 
     /**
-     * Component properties
+     * Component properties.
+     * @property {Array<Number>} displayedMonth Array of numbers representing a month grid.
+     * @property {String} accentColor CSS-compatible color string for calendar day backgrounds.
+     * @property {Boolean} initCollapse Whether the calendar should be initially collapsed.
      */
     let {
         displayedMonth,
         accentColor,
-        initCollapse = true
+        initCollapse = true,
     } = $props();
     
-    /** Special note: the calendar will be initially rendered in a expanded state so intialize to false first.*/
+    /** 
+     * Whether the main calendar is currently collapsed.
+     * Special note: the calendar will be initially rendered in a expanded state so intialize to false first.
+     * */
     let collapseState = $state(false);
     /**
      * Component state
      */
-    let monthView = getMonthGrid(displayedMonth);
+    let monthView = $state(getMonthGrid(displayedMonth));
     let weekSpan = getWeekSpan(monthView);
     /**
      * Shorter function declutter HTML
@@ -40,7 +46,7 @@
      */
     let monthIterator = {
         indexState: 0,
-        yield: function() {
+        yieldMonth: function() {
             if (this.indexState >= monthView.length) {
                 this.indexState = 0;
             }
@@ -51,6 +57,9 @@
         }
     }
 
+    /**
+     * Collapse/Expands rows within the month table except for current week.
+     */
     function collapseExpand() {
         let weekIndex = getWeekRow(displayedMonth, new Date().getDate());
         let weekRows = document.querySelectorAll("table#month-table > tbody > tr");
@@ -68,6 +77,9 @@
         collapseState = !collapseState;
     }
 
+    /**
+     * Sets the intial direction of the arrow on the collapse/expand button.
+     */
     onMount(() => {
         if (initCollapse) {
             collapseExpand();
@@ -139,7 +151,7 @@ div.calendar-day > p {
                         {#each {length: 7} as _, b}
                             <td class="{determineDayFade(monthIterator.peek())}">
                                 <div class="calendar-day" style="background-color: {accentColor}">
-                                    <p>{Math.abs(monthIterator.yield())}</p>
+                                    <p>{Math.abs(monthIterator.yieldMonth())}</p>
                                 </div>
                             </td>
                         {/each}
