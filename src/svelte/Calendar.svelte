@@ -1,18 +1,29 @@
 <script>
     import {
         getMonthGrid,
-        numDays,
         getMonthName,
-        getWeekSpan
+        getWeekSpan,
+        getWeekRow,
     } from '../js/DateUtils.js';
+
+    import { onMount } from 'svelte';
+
+    import CalendarHideButton from './CalendarHideButton.svelte';
 
     /**
      * Component properties
      */
     let {
-        displayedMonth
+        displayedMonth,
+        accentColor,
+        initCollapse = true
     } = $props();
-
+    
+    /** Special note: the calendar will be initially rendered in a expanded state so intialize to false first.*/
+    let collapseState = $state(false);
+    /**
+     * Component state
+     */
     let monthView = getMonthGrid(displayedMonth);
     let weekSpan = getWeekSpan(monthView);
     /**
@@ -40,56 +51,77 @@
         }
     }
 
+    function collapseExpand() {
+        let weekIndex = getWeekRow(displayedMonth, new Date().getDate());
+        let weekRows = document.querySelectorAll("table#month-table > tbody > tr");
+
+        weekRows.forEach((row, index) => {
+            if (index !== weekIndex) {
+                if (row.style.display === "none") {
+                    row.style.display = "flex";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        });
+
+        collapseState = !collapseState;
+    }
+
+    onMount(() => {
+        if (initCollapse) {
+            collapseExpand();
+            collapseState = true;
+        }
+    });
+
 </script>
 
 <style>
 @import 'tailwindcss';
 div#calendar-superelement {
-    width: 100vw;
+    width: 100%;
     height: 300px;
-}
-/* Encloses the date grid. */
-div#calendar-container {
-    mask-image: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 1) 0%,
-        rgba(0, 0, 0, 1) 80%,
-        rgba(0, 0, 0, 0) 100%
-    )
+    max-width: 450px;
 }
 
 table#month-table {
     border-collapse: collapse;
-}
-table#month-table td {
-    border-style: solid;
-    border-width: 1px;
-    border-color: #efefef;
 }
 tr {
     display: flex;
     flex-direction: row;
 }
 td {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
     width: 100%;
     height: auto;
     aspect-ratio: 1/1;
-    padding: 4px;
-}
-td.on-month {
+    padding: 3px;
     color: #222222;
 }
 td.off-month {
-    color: #dddddd;
+    color: #AAAAAA;
+    filter: opacity(0.45);
 }
 div.calendar-day {
-    width: auto;
-    text-align: right;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border-radius: 5px;
+    
+}
+div.calendar-day > p {
+    text-align: center;
+
 }
 
+@media (min-width: 600px) {
+    div.calendar-day > p {
+        font-size: 30px;
+    }
+}
 </style>
 
 <div id="calendar-superelement">
@@ -106,8 +138,8 @@ div.calendar-day {
                     <tr>
                         {#each {length: 7} as _, b}
                             <td class="{determineDayFade(monthIterator.peek())}">
-                                <div class="calendar-day">
-                                    {Math.abs(monthIterator.yield())}
+                                <div class="calendar-day" style="background-color: {accentColor}">
+                                    <p>{Math.abs(monthIterator.yield())}</p>
                                 </div>
                             </td>
                         {/each}
@@ -116,7 +148,5 @@ div.calendar-day {
             </tbody>
         </table>
     </div>
-    <div id="expand-container">
-
-    </div>
+    <CalendarHideButton parentClickFunc={collapseExpand} collapsed={initCollapse}/>
 </div>
