@@ -9,29 +9,42 @@
     import { onMount } from 'svelte';
 
     import CalendarHideButton from './CalendarHideButton.svelte';
+    import TodoList from "./TodoList.svelte";
 
     /**
      * Component properties.
-     * @property {Array<Number>} displayedMonth Array of numbers representing a month grid.
+     * @property {Date} displayedDateInit Array of numbers representing a month grid.
+     * @property {Number} selectedDayInit Selected date on the calendar.
      * @property {String} accentColor CSS-compatible color string for calendar day backgrounds.
      * @property {Boolean} initCollapse Whether the calendar should be initially collapsed.
      */
     let {
-        displayedMonth,
+        displayedDateInit,
         accentColor,
         initCollapse = true,
     } = $props();
-    
+
     /** 
      * Whether the main calendar is currently collapsed.
      * Special note: the calendar will be initially rendered in a expanded state so intialize to false first.
      * */
     let collapseState = $state(false);
+
+    /**
+     * Date currently selected.
+     */
+    let currentDate = $state(displayedDateInit);
+
+    /**
+     * Currently selected day cell, used to remove styling.
+     */
+    let currentDateElement = null;
+
     /**
      * Component state
      */
-    let monthView = $state(getMonthGrid(displayedMonth));
-    let weekSpan = getWeekSpan(monthView);
+    let monthView = $state(getMonthGrid(displayedDateInit.getMonth()));
+
     /**
      * Shorter function declutter HTML
      * @param num Value within monthView array.
@@ -61,7 +74,7 @@
      * Collapse/Expands rows within the month table except for current week.
      */
     function collapseExpand() {
-        let weekIndex = getWeekRow(displayedMonth, new Date().getDate());
+        let weekIndex = getWeekRow(monthView, displayedDateInit.getDate());
         let weekRows = document.querySelectorAll("table#month-table > tbody > tr");
 
         weekRows.forEach((row, index) => {
@@ -77,6 +90,44 @@
         collapseState = !collapseState;
     }
 
+    /** 
+     * Generates individual event handlers for clicking the day cells in the month table.
+     * @param {Number} date 
+     */
+    function generateDayHandler(date) {
+        if (date > 0) {
+
+            return function(event) {
+                currentDate.setDate(date);
+                event.target.classList.add("selected");
+                if (currentDateElement)
+                    currentDateElement.classList.remove("selected");
+                currentDateElement = event.target;
+            }
+
+        } else {
+            if (date > -7) {
+
+                return function(event) {
+                    currentDate.setDate(1);
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    currentDate.setDate(Math.abs(date));
+                    monthView = getMonthGrid(currentDate.getMonth(), currentDate.getFullYear());
+                }
+
+            } else {
+
+                return function(event) {
+                    currentDate.setDate(1);
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    currentDate.setDate(Math.abs(date));
+                    monthView = getMonthGrid(currentDate.getMonth(), currentDate.getFullYear());
+                }
+                
+            }
+        }
+    }
+
     /**
      * Sets the intial direction of the arrow on the collapse/expand button.
      */
@@ -84,6 +135,9 @@
         if (initCollapse) {
             collapseExpand();
             collapseState = true;
+        }
+        if (currentDateElement == null) {
+            currentDateElement == document.querySelector("td.selected");
         }
     });
 
@@ -93,7 +147,7 @@
 @import 'tailwindcss';
 div#calendar-superelement {
     width: 100%;
-    height: 300px;
+    height: fit-content;
     max-width: 450px;
 }
 
@@ -139,20 +193,23 @@ div.calendar-day > p {
 <div id="calendar-superelement">
     <div id="calendar-container" class="p-2">
         <div id="month-name" class="py-1 text-center text-xl font-serif font-bold">
-            {getMonthName(displayedMonth)}
+            {getMonthName(displayedDateInit)}
         </div>
         <!--
         Building up the month calendar by row.
         -->
         <table id="month-table" class="container">
             <tbody>
-                {#each {length: weekSpan} as _, a}
+                {#each {length: getWeekSpan(monthView)} as _, a}
                     <tr>
                         {#each {length: 7} as _, b}
-                            <td class="{determineDayFade(monthIterator.peek())}">
+                            <td class="{determineDayFade(monthIterator.peek())}"
+                                onclick={generateDayHandler(monthIterator.peek())}>
+
                                 <div class="calendar-day" style="background-color: {accentColor}">
                                     <p>{Math.abs(monthIterator.yieldMonth())}</p>
                                 </div>
+
                             </td>
                         {/each}
                     </tr>
@@ -162,3 +219,4 @@ div.calendar-day > p {
     </div>
     <CalendarHideButton parentClickFunc={collapseExpand} collapsed={initCollapse}/>
 </div>
+<TodoList date={selectedDayInit} />
