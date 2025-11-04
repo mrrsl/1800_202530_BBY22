@@ -3,7 +3,7 @@
 Media queries at the bottom. Keep layout visibility properties within them.
 */
 body {
-    background-image: url('/images/graphpaper.webp');
+    background-image: url('/images/backgrounds/graphpaper.webp');
     background-size: 200px auto;
     background-repeat: repeat;
 }
@@ -68,7 +68,7 @@ div#hero-text {
     background-color: rgb(50,50,50,.60);
 }
 #login-window {
-    background-image: url('/images/graphpaper.webp');
+    background-image: url('/images/backgrounds/graphpaper.webp');
     background-size: 100px auto;
 }
 #login-window input[type="text"], #login-window input[type="password"] {

@@ -69,14 +69,14 @@
         id="backarrow"
         onclick={window.history.back}
         aria-label="back">
-        <img src="/images/up-arrow.png" alt="backarrow" />
+        <img src="/images/icons/up-arrow.png" alt="backarrow" />
     </button>
     <div id="planner-name">
         <h1>Spencer's Planner</h1>
     </div>
     <div id="navIcons">
         <a href="settings.html" class="icon">
-            <img src="/images/settingsgear.png" alt="settings gear"/>
+            <img src="/images/icons/settingsgear.png" alt="settings gear"/>
         </a>
         <a href="#" class="icon">
             <img src="/images/calendaricon.png" alt="calendar" />

@@ -47,5 +47,5 @@ button {
 </style>
 
 <button onclick={handleClick}>
-    <img id="btn-img" src="/images/uparrow.png" alt="hide calendar"/>
+    <img id="btn-img" src="/images/icon/uparrow.png" alt="hide calendar"/>
 </button>

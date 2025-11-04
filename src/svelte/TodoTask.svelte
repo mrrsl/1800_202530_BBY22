@@ -6,7 +6,7 @@
      * @property {String} description Task description.
      * @property {Boolean} completed Whether to mark task as completed.
      */
-    let {
+    const {
         title = "Sample Task",
         description = "This is a sample task description.",
         completed = false,

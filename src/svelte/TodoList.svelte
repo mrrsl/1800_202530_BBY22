@@ -25,7 +25,7 @@
      */
     function toggleCompletionFactory(id) {
         return function() {
-            
+            // TODO
         }
     }
 
@@ -37,7 +37,7 @@
         let textInput = document.querySelector("#taskInput");
         if (event.key == "Enter") {
             let taskBody = textInput.value.trim();
-
+            // TODO
         }
     }
 
@@ -45,7 +45,7 @@
 
 <style>
 .todo-container {
-    background-image: url("/images/gridbackground.png");
+    background-image: url("/images/backgrounds/gridbackground.png");
     background-repeat: repeat-y; /* repeats vertically */
     background-size: 100% auto;
     background-position: top center;
@@ -91,7 +91,8 @@ ul {
                 title={task.title}
                 description={task.description}
                 completed={task.completed}
-                taskId={task.id}/>
+                taskId={task.id}
+                completeHandler={toggleCompletionFactory(task.id)}/>
         {/each}
     </ul>
 </div>
