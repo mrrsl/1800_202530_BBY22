@@ -18,6 +18,12 @@ const PREF_COLLECTION_NAME = "preferences";
 const PERSONAL_COLLECTION_NAME = "personal-tasks";
 const SHARED_COLLECTION_NAME = "shared-tasks";
 
+const DEFAULT_PREFERENCES = {
+    bodyFont: "Inria Serif",
+    titleFont: "Oooh Baby",
+    accentColor: "#fff5fa"
+}
+
 /**
  * Retrieve current user's document entry and pass the data to another function.
  * @param {(DocumentData) => void} success Callback if user retrieval is successful.
@@ -145,32 +151,58 @@ function docFetch(docRef, success, fail, eMessage) {
 
 /**
  * Creates a new entry in the users collection if the uid does not exist yet.
- * @param {User} firebaseUser User object returned by auth functions.
- * @return {Promise<boolean>} Resolves to true if a new user entry was successfully added to Firestore.
+ * @param {UserInfo} firebaseUser User object returned by auth functions.
+ * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
 export const createUniqueUser = async function(firebaseUser) {
     let userDocRef = doc(firebaseDb, TopLevelUserCollection, firebaseUser.uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {
-        return false;
+        return firebaseUser;
     } else {
         let userDocFields = {
             name: firebaseUser.displayName
         };
         await setDoc(userDocRef, userDocFields);
         snapshot = await getDoc(userDocRef);
-        return snapshot.exists();
+
+        if (snapshot.exists()) {
+            // Only populate default entries if the user entry worked
+            defaultEntry();
+            return firebaseUser;
+        } else {
+            throw new Error("Failed to update Firestore");
+        }
     }
 }
 
 
 /**
- * Execute this at the bottom of the script to automatically redirect back to login page if no user is detected.
+ * Execute this at the bottom of the script to automatically redirect back to index page if no user is detected.
  * @return {void}
  */
-function checkAuth() {
-    if (currentUser == null) {
+export const checkAuth = function() {
+    if (firebaseDb.currentUser == null) {
         window.location.href = "index.html";
     }
 }
-checkAuth();
+
+/**
+ * Generates documents with default fields for the authenticated user.
+ */
+export const defaultEntry = function() {
+    let prefRef = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+    let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+
+    getDoc(prefRef).then(snap => {
+        if (!snap.exists()) {
+            setDoc(prefRef, DEFAULT_PREFERENCES);
+        }
+    });
+
+    getDoc(personalRef).then(snap => {
+        if (!snap.exists()) {
+            setDoc(personalRef);
+        }
+    });
+}
