@@ -155,7 +155,7 @@ function docFetch(docRef, success, fail, eMessage) {
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
 export const createUniqueUser = async function(firebaseUser) {
-    let userDocRef = doc(firebaseDb, TopLevelUserCollection, firebaseUser.uid);
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {
         return firebaseUser;
@@ -202,7 +202,27 @@ export const defaultEntry = function() {
 
     getDoc(personalRef).then(snap => {
         if (!snap.exists()) {
-            setDoc(personalRef);
+            setDoc(personalRef, {});
         }
     });
+}
+
+/**
+ * Manually set the username for the user
+ * @param {string} username
+ * @return {void}
+ */
+export const setUsername = function(username) {
+    if (firebaseAuth.currentUser) {
+        let userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+        getDoc(userRef).then(async (snap) => {
+            if (snap.exists()) {
+                let userDocData = snap.data();
+                userDoc.name = username;
+                setDoc(userRef, userDocData);
+            } else {
+                setDoc(userRef, { name: username});
+            }
+        });
+    }
 }
