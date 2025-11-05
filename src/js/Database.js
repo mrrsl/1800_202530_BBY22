@@ -137,7 +137,7 @@ function docFetch(docRef, success, fail, eMessage) {
         if (snapshot.exists())
             success(snapshot.data());
         else
-            fail && fail(new Error("Document not found"));
+            fail && fail(new Error(eMessage));
     }).catch((error) => {
         fail && fail(error);
     });
