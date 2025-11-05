@@ -14,7 +14,7 @@
     /**
      * Component properties.
      * @property {Date} displayedDateInit Array of numbers representing a month grid.
-     * @property {Number} selectedDayInit Selected date on the calendar.
+     * @property {Number} selectedDateInit Selected date on the calendar.
      * @property {String} accentColor CSS-compatible color string for calendar day backgrounds.
      * @property {Boolean} initCollapse Whether the calendar should be initially collapsed.
      */
@@ -39,7 +39,6 @@
      * Currently selected day cell, used to remove styling.
      */
     let currentDateElement = null;
-
     /**
      * Component state
      */
@@ -219,4 +218,4 @@ div.calendar-day > p {
     </div>
     <CalendarHideButton parentClickFunc={collapseExpand} collapsed={initCollapse}/>
 </div>
-<TodoList date={selectedDayInit} />
+<TodoList date={displayedDateInit} />

@@ -52,6 +52,7 @@
     border-radius: 16px;
     box-shadow: 0 4px 12px rgb(130, 98, 98);
     padding: 2rem;
+    margin-top: 10px;
     min-height: 1000px; /* gives the grid background a long canvas feel */
 }
     /* styles the task list container that holds all the tasks */

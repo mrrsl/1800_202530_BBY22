@@ -1,5 +1,7 @@
 <script>
-
+    const {
+        userName
+    } = $props();
 </script>
 <style>
     /* Declare mobile styles first, 700px @media later*/
