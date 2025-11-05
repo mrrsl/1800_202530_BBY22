@@ -28,7 +28,7 @@ export const isLeapYear = function(year)
 export const numDays = function(monthNum) {
     const numDaysMap = [
         31,
-        (isLeapYear(new Date(Date.now()).getFullYear)) ? 29 : 28,
+        (isLeapYear(new Date().getFullYear)) ? 29 : 28,
         31,
         30,
         31,
@@ -53,7 +53,7 @@ export const numDays = function(monthNum) {
  * @returns {Object}
  */
 export const getCurrentWeek = function() {
-    let today = new Date(Date.now());
+    let today = new Date();
     
     let sundayDate = today.getDate() - today.getDay();
     let weekDates = [ 0, 0, 0, 0, 0, 0, 0 ];
@@ -88,7 +88,7 @@ export const getCurrentWeek = function() {
 export const getMonthGrid = function(month, year) {
     let dateGrid = new Array(42);
 
-    let first = new Date(Date.now());
+    let first = new Date();
     first.setDate(1);
     
     // Check optional args
@@ -107,10 +107,12 @@ export const getMonthGrid = function(month, year) {
     // Tracks the number of days outside the main month
     let dayCounter = 1;
     for(let a = first.getDay(); a < dateGrid.length; a++) {
-        if (dayCounter <= numDays(first.getMonth())) {
+        if (dayCounter <= numDays(first.getMonth()) && dayCounter > 0) {
             dateGrid[a] = dayCounter++;
         } else {
-            if (dayCounter > 0) dayCounter = -1;
+            if (dayCounter > 0) {
+                dayCounter = -1
+            };
             dateGrid[a] = dayCounter--;
         }
     }
@@ -139,4 +141,21 @@ export const getWeekSpan = function(monthArray) {
     if (monthArray[35] > 0) return 6;
     if (monthArray[28] > 0) return 5;
     return 4;
+}
+
+/**
+ * Calculates which row of the month grid a given date is on.
+ * @param {Array<Number>} monthArray Array returned by {@link getMonthGrid}.
+ * @param {Number} date
+ * @return {Number} [0 - 5] if the date is valid, -1 otherwise.
+ */
+export const getWeekRow = function(monthArray, date) {
+    let dayIndex = 0;
+    while (monthArray[dayIndex] != monthArray[date] && dayIndex < monthArray.length) {
+        dayIndex++;
+    } 
+    if (dayIndex >= monthArray.length) return -1;
+    else {
+        return Math.floor(dayIndex / 7);
+    }
 }
