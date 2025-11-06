@@ -6,10 +6,11 @@
  * be read from the currentUser property of the @firebase/auth module.
  */
 
+import { prefersReducedMotion } from "svelte/motion";
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 
 import {
-    getDoc, getDocs, doc, setDoc,
+    getDoc, getDocs, doc, setDoc, addDoc,
     collection,
 } from "firebase/firestore";
 
@@ -18,10 +19,22 @@ const PREF_COLLECTION_NAME = "preferences";
 const PERSONAL_COLLECTION_NAME = "personal-tasks";
 const SHARED_COLLECTION_NAME = "shared-tasks";
 
+/**
+ * Default app settings.
+ */
 const DEFAULT_PREFERENCES = {
     bodyFont: "Inria Serif",
     titleFont: "Oooh Baby",
     accentColor: "#fff5fa"
+}
+
+/**
+ * Introductory task.
+ */
+const INTRO_TASK = {
+    date: (new Date()).toDateString(),
+    title: "Welcome",
+    desc: "Work hard and plan harder"
 }
 
 /**
@@ -95,7 +108,7 @@ export const sharedTask = function(success, fail) {
         if (snapshot.exists()) {
 
             let followerCollection = collection(firebaseDb, docRef.path, subscriberPath);
-            let followerData = (await followerCollection.get()).docs();
+            let followerData = (await getDocs(followerCollection)).docs();
 
             let snapData = snapshot.data();
             let curatedData = {
@@ -114,17 +127,14 @@ export const sharedTask = function(success, fail) {
 
 /**
  * Retrieve an array of the user's followed task.
- * @param {(string[]) => void} success Callback for successful data retrieval.
+ * @param {(string[]) => void} success Callback for successful data retrieval. This can pass on an empty array.
  * @param {(Error) => void} fail Callback for failed retrieval.
  */
 export const followedTasks = function(success, fail) {
     const followedCollectionName = "followedTasks";
     let followedCollectionRef = collection(firebaseDb, "users", firebaseAuth.currentUser.uid, followedCollectionName);
-    collection.get().then(async (querySnap) => {
-        if (!querySnap.empty()) {
-            let collectionDocs = querySnap.docs();    
-            return collectionDocs.map(x => x.id);
-        }
+    getDocs(followedCollectionRef).then(async (collectionSnap) => {
+        return collectionSnap.docs().map(x => x.id);
     }).catch(error => {
         fail && fail(error);
     }).then(success);
@@ -150,11 +160,19 @@ function docFetch(docRef, success, fail, eMessage) {
 }
 
 /**
+ * Utility function to generate a collection ID for personal task storage.
+ * @param {Date} date 
+ */
+function generateTaskCollectionName(date) {
+    return `${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}`;
+}
+
+/**
  * Creates a new entry in the users collection if the uid does not exist yet.
- * @param {UserInfo} firebaseUser User object returned by auth functions.
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
-export const createUniqueUser = async function(firebaseUser) {
+export const createUniqueUser = async function() {
+    const firebaseUser = firebaseAuth.currentUser;
     let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {
@@ -168,7 +186,7 @@ export const createUniqueUser = async function(firebaseUser) {
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-            defaultEntry();
+//            defaultEntry();
             return firebaseUser;
         } else {
             throw new Error("Failed to update Firestore");
@@ -185,4 +203,77 @@ export const checkAuth = function() {
     if (firebaseDb.currentUser == null) {
         window.location.href = "index.html";
     }
+}
+
+/**
+ * Populates Firestore with default data for the logged in user, if the documents do not exist.
+ * @return {void}
+ */
+export const defaultEntry = function () {
+    const firebaseUser = firebaseAuth.currentUser;
+
+    let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
+    let userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+    let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
+
+    getDoc(prefRefs).then((snap) => {
+        if (!snap.exists()) {
+            setDoc(prefRefs, DEFAULT_PREFERENCES);
+        }
+    });
+
+    getDoc(userRef).then((snap) => {
+        if (!snap.exists()) {
+            let defaultUsername = firebaseUser.email.split("@")[0];
+            setDoc(userRef, {name: defaultUsername});
+        }
+    });
+
+    getDoc(personalRef).then((snap) => {
+        if (!snap.exists()) {
+            setDoc(userRef)
+        }
+    });
+    
+
+}
+
+/**
+ * Adds a personal task for the current user.
+ * @param {Object} taskObj Object containing date, title, and desc properties.
+ * @param {(DocumentReference) => void | null} success Optional callback for successful database write.
+ * @param {(Error) => void | null} fail Optional callback for failed write.
+ * @return {void}
+ */
+export const addPersonalTask = function(taskObj, success, fail) {
+    const subCollectionName = generateTaskCollectionName(date);
+    const user = firebaseAuth.currentUser;
+
+    if (taskObj.date.toDateString) {
+        taskObj.date = taskObj.date.toDateString();
+    }
+
+    let subCollectionRef = collection(firebaseDb, PERSONAL_COLLECTION_NAME, user.uid, subCollectionName);
+    let writeOperation = addDoc(subCollectionRef, taskObj);
+    success && writeOperation.then(success);
+    fail && writeOperation.catch(fail);  
+}
+
+/**
+ * Changes the display name for the current user.
+ * @param {string} username 
+ * @return {void}
+ */
+export const setUsername = function(username) {
+    const firebaseUser = firebaseAuth.currentUser;
+    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+    getDoc(docRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            let userDocData = snapshot.data();
+            userDocData["name"] = username;
+            setDoc(docRef, userDocData);
+        } else {
+            setDoc(docRef, {name: username});
+        }
+    });
 }

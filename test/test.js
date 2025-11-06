@@ -5,7 +5,6 @@ import {
 
 import {
     createUniqueUser,
-    defaultEntry
 }from "../src/js/Database.js";
 
 import {
@@ -17,7 +16,7 @@ import {
 import { mount } from "svelte";
 
 /** Test account email. */
-const testEmail = "boatfan@buoyswillbebuoys.com";
+const testEmail = "waterlover@hydrateyourself.h20";
 /** Test account password. */
 const testPassword = "password";
 
@@ -30,7 +29,6 @@ const unsubber = onAuthStateChanged(firebaseAuth, authHandler);
 function authHandler(user) {
     if (user) {
         console.log("User is logged in");
-        defaultEntry();
         createUniqueUser(user);
     } else {
         console.log("No user detected, attempting to log in..")
@@ -42,7 +40,7 @@ function authHandler(user) {
             })
             .then((usercred) => {
                 createUniqueUser(usercred.user)
-                defaultEntry();
+                //defaultEntry();
             })
             .then((u) => {
                 authHandler(u);
