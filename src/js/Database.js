@@ -173,4 +173,3 @@ function checkAuth() {
         window.location.href = "index.html";
     }
 }
-checkAuth();
