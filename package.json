@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "(firefox localhost:5173/test/test.html || chrome localhost:5173/tesst/test.html) && vite"
   },
   "devDependencies": {
     "vite": "^7.0.0"
