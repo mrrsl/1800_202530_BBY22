@@ -208,7 +208,7 @@ export const defaultEntry = function() {
 }
 
 /**
- * Manually set the username for the user
+ * Manually set the username for the user.
  * @param {string} username
  * @return {void}
  */
