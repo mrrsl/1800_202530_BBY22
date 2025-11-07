@@ -261,19 +261,31 @@ export const addPersonalTask = function(taskObj, success, fail) {
 
 /**
  * Changes the display name for the current user.
+ * (Internally calls {@link appendUserInfo}).
  * @param {string} username 
- * @return {void}
+ * @return {Promise<void>}
  */
-export const setUsername = function(username) {
+export const setUsername = async function(username) {
+    return appendUserInfo({name: username})
+}
+
+/**
+ * Writes information to the `users` document for the current user.
+ * @param {{[key: string]: string}} profileObj Object containing optional `name` and `email` fields.
+ * @return {Promise<void>}
+ */
+export const appendUserInfo = async function(profileObj) {
     const firebaseUser = firebaseAuth.currentUser;
-    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+    let docRef = doc(firebaseDb, USER_COLLECTION_NAME,firebaseUser.uid);
     getDoc(docRef).then((snapshot) => {
         if (snapshot.exists()) {
             let userDocData = snapshot.data();
-            userDocData["name"] = username;
-            setDoc(docRef, userDocData);
+            for (const key of Objects.key(profileObj)) {
+                userDocData[key] = profileObj[key];
+            }
+            return setDoc(docRef, userDocData);
         } else {
-            setDoc(docRef, {name: username});
+            return setDoc(docRef, profileObj);
         }
     });
 }

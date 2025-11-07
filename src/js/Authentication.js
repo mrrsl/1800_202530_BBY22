@@ -1,7 +1,8 @@
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signOut
+    signOut,
+    onAuthStateChanged
 } from "firebase/auth";
 
 import { firebaseAuth } from "./FirebaseInstances.js";
@@ -17,7 +18,7 @@ export const loginUser = function(email, pw, redirect) {
         .then(() => {
             // Keep window in place if no redirect is given
             window.location.href = (redirect) ? redirect : window.location.href;
-        })
+        });
 }
 
 /**
@@ -32,11 +33,18 @@ export const logoutUser = function(redirectUrl) {
 }
 
 /**
- * Execute this at the bottom of the script to automatically redirect back to index page if no user is detected.
+ * Runs an authentication check once the Firebase auth instance is fully resolved.
+ * * The `auth.currentUser` field is initially set to null until script load, so the user's actual status isn't accurately reflected until `auth` is fully resolved.
+ * @param {() => void} success Callback if the client is logged in.
+ * @param {() => void} fail Callback if no user.
  * @return {void}
  */
-export const checkAuth = function() {
-    if (firebaseDb.currentUser == null) {
-        window.location.href = "index.html";
-    }
+export const checkAuth = function(success, fail) {
+    onAuthStateChanged(firebaseAuth, (user) => {
+        if (user) {
+            success();
+        } else {
+            fail();
+        }
+    });
 }

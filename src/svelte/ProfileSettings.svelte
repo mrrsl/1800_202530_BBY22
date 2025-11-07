@@ -1,23 +1,69 @@
 <script>
+    import { checkAuth } from "../js/Authentication.js";
+    import { onMount } from "svelte";
 
     import {
         user,
-        userPreferences,
+        appendUserInfo
     } from "../js/Database.js";
 
-    import { checkAuth } from "../js/Authentication.js";
-
     const {
+        /** Font family used in body text. */
         bodyFont = "Inria Serif, serif",
     } = $props();
 
+    /** User's displayed name. */
     let username = $state("Name");
+    /** User's email. */
     let useremail = $state("Email");
+    
+    /** Fetches user profile from Firestore and loads it into the component. */
+    function loadUserInfo() {
+        user((userInfo) => {
+            username = userInfo.name;
+            useremail = userInfo.email;
+        });
+    }
 
-    user((userInfo) => {
-        username = userInfo.name;
-        useremail = userInfo.email;
+    /**
+     * Compares current user info with data in the input boxes and upates firestore to new values for any that don't match.
+     * @param {KeyboardEvent} event
+     * @return {void}
+     */
+    function editListener(event) {
+        if (event.key != "enter") return;
+        const usernameInput = document.querySelector("input#username-input");
+        const emailInput = document.querySelector("input#email-input");
+
+        if (usernameInput.value != username || emailInput.value != useremail) {
+            appendUserInfo({name: usernameInput.value, email: emailInput.value})
+                .then(() => {
+                    username = usernameInput.value;
+                    email = emailInput.value;
+                });
+        }
+    }
+
+    /**
+     * Initialize database retrieval and event listeners.
+     */
+    function init() {
+        loadUserInfo();
+        const inputs = document.querySelectorAll("input");
+        for (const i of inputs) {
+            i.addEventListener(editListener);
+        }
+    }
+
+    onMount(() => {
+        checkAuth(
+            init,
+            () => {
+                window.location.href = "/";
+            }
+        );
     });
+
     
 </script>
 
@@ -91,10 +137,19 @@
 </div>
 <div class="profilebox" style="font-family: {bodyFont}">
     <p id="settingstitle" class="mt-2">Edit Name:</p>
-    <input type="text" placeholder="{username}" class="mt-0.5" />
+    <input
+        type="text"
+        id="username-input"
+        placeholder="{username}"
+        class="mt-0.5"/>
 
     <p id="settingstitle" class="mt-2">Edit Email:</p>
-    <input type="text" placeholder="{useremail}" class="mt-0.5"/>
+    <input
+        type="text"
+        id="email-input"
+        placeholder="{useremail}"
+        class="mt-0.5"
+        pattern=".+@.+\..+"/>
 
     <button id="logoutbutton" style="font-family: {bodyFont}" class="mt-3">Log Out</button>
 </div>

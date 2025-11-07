@@ -4,8 +4,10 @@ import { firebaseAuth } from "./FirebaseInstances.js";
 
 const homePageUrl = "/home.html";
 
-if (firebaseAuth.currentUser)
+if (firebaseAuth.currentUser) {
+    debugger;
     window.location.href = homePageUrl;
+}
 
 function loginInit () {
     let form = document.querySelector("form");

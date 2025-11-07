@@ -3,7 +3,6 @@ import tailwindcss from '@tailwindcss/vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src/");
