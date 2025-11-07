@@ -252,6 +252,9 @@ export const addPersonalTask = function(taskObj, success, fail) {
     if (taskObj.date.toDateString) {
         taskObj.date = taskObj.date.toDateString();
     }
+    if (taskObj.complete == null) {
+        taskObj.complete = false;
+    }
 
     let subCollectionRef = collection(firebaseDb, PERSONAL_COLLECTION_NAME, user.uid, subCollectionName);
     let writeOperation = addDoc(subCollectionRef, taskObj);

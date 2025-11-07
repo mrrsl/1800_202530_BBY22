@@ -16,7 +16,5 @@ const calendarMountArgs = {
   },
 };
 
-debugger;
-
 const navRef = mount(Navbar, navMountArgs);
 const calendarRef = mount(Calendar, calendarMountArgs);

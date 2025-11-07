@@ -18,10 +18,12 @@
      * @property {String} accentColor CSS-compatible color string for calendar day backgrounds.
      * @property {Boolean} initCollapse Whether the calendar should be initially collapsed.
      */
-    let {
+    const {
         displayedDateInit,
         accentColor,
         initCollapse = true,
+        bodyFont = "Oooh Baby",
+        headingFont = "Inria Serif"
     } = $props();
 
     /** 
@@ -149,6 +151,20 @@ div#calendar-superelement {
     height: fit-content;
     max-width: 450px;
 }
+#month-name {
+    font-size: 20pt;
+}
+
+div#weeks {
+    box-shadow: 0 0 20px rgba(78, 22, 45, 0.3);
+    padding: 5px;
+    margin-bottom: 5px;
+}
+div#weeks > div {
+    width: 13%;
+    text-align: center;
+    font-family: inherit;
+}
 
 table#month-table {
     border-collapse: collapse;
@@ -174,7 +190,8 @@ div.calendar-day {
     flex-direction: column;
     justify-content: center;
 
-    border-radius: 5px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(78, 22, 45, 0.2);
     
 }
 div.calendar-day > p {
@@ -191,8 +208,32 @@ div.calendar-day > p {
 
 <div id="calendar-superelement">
     <div id="calendar-container" class="p-2">
-        <div id="month-name" class="py-1 text-center text-xl font-serif font-bold">
-            {getMonthName(displayedDateInit)}
+        <div id="month-name" class="py-1 text-center text-xl font-bold" style="font-family: {bodyFont}">
+            {getMonthName(displayedDateInit.getMonth())}
+        </div>
+        <div id = "weeks" class="w-full flex flex-row justify-between"
+            style="font-family: {headingFont}; background-color: {accentColor}">
+            <div>
+                Sun
+            </div>
+            <div>
+                Mon
+            </div>
+            <div>
+                Tues
+            </div>
+            <div>
+                Wed
+            </div>
+            <div>
+                Thurs
+            </div>
+            <div>
+                Fri
+            </div>
+            <div>
+                Sat
+            </div>
         </div>
         <!--
         Building up the month calendar by row.

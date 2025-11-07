@@ -8,7 +8,8 @@
     #super-wrapper {
         display: flex;
         flex-direction: row;
-        height: 100px;
+        height: 200px;
+        margin: 5px;
     }
     #navIcons {
         display: flex;
@@ -23,7 +24,7 @@
     #planner-name > h1 {
         text-align: center;
         width: 100%;
-        font-size: 20px;
+        font-size: 25pt;
     }
     #backarrow {
         width: 8vw;
@@ -43,7 +44,7 @@
     }
     @media (max-width: 599px) {
         #super-wrapper {
-            max-height: 60px;
+            max-height: 85px;
         }
         #navIcons {
             flex-direction: column;
@@ -54,7 +55,7 @@
     }
     @media (min-width: 600px) {
         #planner-name > h1 {
-            font-size: 30px;
+            font-size: 30pt;
         }
         #navIcons {
             flex-direction: row;

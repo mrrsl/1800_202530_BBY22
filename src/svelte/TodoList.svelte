@@ -54,6 +54,7 @@
     padding: 2rem;
     margin-top: 10px;
     min-height: 1000px; /* gives the grid background a long canvas feel */
+    max-width: 700px;
 }
     /* styles the task list container that holds all the tasks */
 #taskList {
