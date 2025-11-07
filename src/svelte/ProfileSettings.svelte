@@ -1,9 +1,24 @@
 <script>
+
+    import {
+        user,
+        userPreferences,
+    } from "../js/Database.js";
+
+    import { checkAuth } from "../js/Authentication.js";
+
     const {
         bodyFont = "Inria Serif, serif",
-        placeholderEmail = "boatfan@buoyswillbebouys.com",
-        placeholderName = "Lil' Yachty"
     } = $props();
+
+    let username = $state("Name");
+    let useremail = $state("Email");
+
+    user((userInfo) => {
+        username = userInfo.name;
+        useremail = userInfo.email;
+    });
+    
 </script>
 
 <style>
@@ -76,10 +91,10 @@
 </div>
 <div class="profilebox" style="font-family: {bodyFont}">
     <p id="settingstitle" class="mt-2">Edit Name:</p>
-    <input type="text" placeholder="{placeholderName}" class="mt-0.5" />
+    <input type="text" placeholder="{username}" class="mt-0.5" />
 
     <p id="settingstitle" class="mt-2">Edit Email:</p>
-    <input type="text" placeholder="{placeholderEmail}" class="mt-0.5"/>
+    <input type="text" placeholder="{useremail}" class="mt-0.5"/>
 
     <button id="logoutbutton" style="font-family: {bodyFont}" class="mt-3">Log Out</button>
 </div>

@@ -196,16 +196,6 @@ export const createUniqueUser = async function() {
 
 
 /**
- * Execute this at the bottom of the script to automatically redirect back to index page if no user is detected.
- * @return {void}
- */
-export const checkAuth = function() {
-    if (firebaseDb.currentUser == null) {
-        window.location.href = "index.html";
-    }
-}
-
-/**
  * Populates Firestore with default data for the logged in user, if the documents do not exist.
  * @return {void}
  */
@@ -216,19 +206,26 @@ export const defaultEntry = function () {
     let userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
 
+    // Set default preferences
     getDoc(prefRefs).then((snap) => {
         if (!snap.exists()) {
             setDoc(prefRefs, DEFAULT_PREFERENCES);
         }
     });
 
+    // Make sure user info exists on Firestore as well
     getDoc(userRef).then((snap) => {
         if (!snap.exists()) {
             let defaultUsername = firebaseUser.email.split("@")[0];
+            let userInfo = {
+                name: defaultUsername,
+                email: firebaseUser.email
+            }
             setDoc(userRef, {name: defaultUsername});
         }
     });
 
+    // Populate with a default welcome task
     getDoc(personalRef).then((snap) => {
         if (!snap.exists()) {
             setDoc(userRef)

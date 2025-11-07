@@ -1,31 +1,21 @@
-import {
-    signInWithEmailAndPassword,
-    onAuthStateChanged
-} from "firebase/auth";
+import { loginUser } from "./Authentication.js";
 
 import { firebaseAuth } from "./FirebaseInstances.js";
 
-const homePageUrl = "/sofiascalendar.html";
+const homePageUrl = "/home.html";
 
-onAuthStateChanged(firebaseAuth, (user) => {
-    if (user)
-        window.location.href = homePageUrl;
-    
-});
+if (firebaseAuth.currentUser)
+    window.location.href = homePageUrl;
 
 function loginInit () {
-
     let form = document.querySelector("form");
     form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
         let email = document.querySelector("input[type='text']");
         let password = document.querySelector("input[type='password']");
-        window.location.href = homePageUrl;
-        debugger;
-        signInWithEmailAndPassword(firebaseAuth, email.value, password.value)
-            .then((cred) => {
-                debugger;
-                window.location.href = homePageUrl;
-        });
+        
+        loginUser(email.value, password.value, homePageUrl);
     });
 }
 

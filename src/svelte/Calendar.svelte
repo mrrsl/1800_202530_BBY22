@@ -226,7 +226,7 @@ div.calendar-day > p {
                 Wed
             </div>
             <div>
-                Thurs
+                Thur
             </div>
             <div>
                 Fri
