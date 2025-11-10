@@ -1,7 +1,14 @@
-<script>
-    import { onMount } from "svelte";
-    
+<script>    
     import TodoTask from "./TodoTask.svelte";
+    import { authInit } from "../js/Authentication.js";
+    import {
+        addPersonalTask,
+        getPersonalTasks,
+        removeTask
+    } from "./../js/Database.js";
+
+    import { onMount } from "svelte";
+
     /**
      * Component properties.
      * @property {Array} todaysList Collection of objects with title, description and completed fields keyed by a unique task ID.
@@ -9,24 +16,34 @@
      * @property {Function<void>} addTaskPostAction Function called at the end of the addTask action.
      */
     const {
-        todaysList = [],
-        renderFinishedInit = false,
-        date = new Date()
+        dateProp = new Date()
     } = $props();
 
     /**
      * Tasks to render.
      */
-    let taskList = $state(todaysList);
+    let taskList = $state([]);
 
+    /** Quick and dirty method for giving unique ids to the task objects. */
+    let taskRenderId = 0;
     /**
      * Generates handlers for toggling completion status of a task.
-     * @param {Number} id Identifier correlating to its document location in Firestore.
+     * @param {ClickEvent} event Identifier correlating to its document location in Firestore.
      */
-    function toggleCompletionFactory(id) {
-        return function() {
-            // TODO
+    function toggleCompletion(id) { 
+        let removedTask = taskList[0];
+        let removedIndex = 1;
+        while (removedIndex < taskList.length) {
+            if (taskList[removedIndex].id == id) {
+
+                removedTask = taskList.splice(removedIndex, 1)[0];
+                removedIndex = taskList.length + 1;
+            }
         }
+
+        removeTask(removedTask.date, removedTask.docId, () => {
+            getPersonalTasks(dateProp, updateTaskList);
+        });
     }
 
     /**
@@ -34,12 +51,45 @@
      * @param {KeyboardEvent} event
      */
     async function inputListener(event) {
-        let textInput = document.querySelector("#taskInput");
         if (event.key == "Enter") {
+            let textInput = document.querySelector("#taskInput");
             let taskBody = textInput.value.trim();
-            // TODO
+            // Format specifies a date string
+            let time = new Date();
+            time.setFullYear(dateProp.getFullYear());
+            time.setMonth(dateProp.getMonth());
+            time.setDate(dateProp.getDate());
+
+            let taskObj = {
+                date: time,
+                title: "",
+                desc: taskBody,
+                completed: false,
+                id: taskRenderId++
+            };
+
+            addPersonalTask(taskObj,
+                doc => taskList.push(taskObj)
+            );
+
         }
     }
+    /**
+     * Replaces the {@link taskList} state with a newly fetched task array.
+     * @param fetchedTasks
+     */
+    function updateTaskList(fetchedTasks) {
+        taskList = fetchedTasks.forEach(tObj => tObj.id = taskRenderId++);
+        if (taskList == undefined) taskList = [];
+    }
+
+    function init() {
+        authInit(function() {
+            getPersonalTasks(dateProp, updateTaskList);
+        });
+    }
+
+    onMount(init);
 
 </script>
 
@@ -86,15 +136,16 @@ ul {
 </style>
 
 <div class="todo-container">
-    <input id="taskInput" type="text" placeholder="Add new task..." />
+    <input id="taskInput" type="text" placeholder="Add new task..." onkeydown={inputListener}/>
     <ul id="taskList">
-        {#each taskList as task(task.id)}
-            <TodoTask
-                title={task.title}
-                description={task.description}
-                completed={task.completed}
-                taskId={task.id}
-                completeHandler={toggleCompletionFactory(task.id)}/>
+        {#each taskList as task}
+
+                <TodoTask
+                    title={task.title}
+                    description={task.desc}
+                    completed={task.completed}
+                    taskId={task.id}
+                    completeHandler={toggleCompletion}/>
         {/each}
     </ul>
 </div>

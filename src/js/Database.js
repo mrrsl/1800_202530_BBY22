@@ -2,11 +2,8 @@
  * Module for encapsulating Firestore API calls. The intention is to remove the need to
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
  * 
- * All functions here should take a Firestore {@link User} object as the first argument, which can
- * be read from the currentUser property of the @firebase/auth module.
  */
 
-import { prefersReducedMotion } from "svelte/motion";
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 
 import {
@@ -43,7 +40,7 @@ const INTRO_TASK = {
  * @param {(Error) => void | null} fail Callback if user retrieval fails.
  * @return {void}
  */
-export const user = function(success, fail) {
+export const getUser = function(success, fail) {
     let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
     docFetch(docRef, success, fail, "User Info document not found");
 }
@@ -54,7 +51,7 @@ export const user = function(success, fail) {
  * @param {(Error) => void | null} fail Callback if settings retrieval fails.
  * @return {void}
  */
-export const userPreferences = function(success, fail) {
+export const getUserPreferences = function(success, fail) {
     let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid);
     docFetch(docRef, success, fail, "User Preferences document not found");
 }
@@ -64,7 +61,7 @@ export const userPreferences = function(success, fail) {
  * @param {(Array) => void} success Callback if friends array retrieval is successful. Note that the array can be empty.
  * @param {(Error) => void | null} fail Callback if settings retrieval failed.
  */
-export const userFriends = function(success, fail) {
+export const getUserFriends = function(success, fail) {
     const friendField = "friends";
     let friendCollection = collection(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid, friendField);
 
@@ -86,13 +83,53 @@ export const userFriends = function(success, fail) {
 }
 
 /**
- * Retrieves the current user's tasks and pass the document to a callback.
- * @param {(Object) => void} success Callback that processes the task document. See curatedData in the function body for properties.
- * @param {(Error) => void | null} fail Callback if document retrieval failed.
+ * Gets the task collection for a given data. Passes an empty array if no tasks are given.
+ * Array members, in addition to the Firestore fields, will also contain the `docId` field for easy reference is {@link removeTask} calls.
+ * @param {Date} date 
+ * @param {(a: Array<Object>) => void} success
+ * @param {(e: Error) => void | null} fail
+ * @return {Promise<any[]> | null}
  */
-export const personalTasks = function(success, fail) {
-    let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "Personal Task document not found.");
+export const getPersonalTasks = function (date, success, fail) {
+    const uid = firebaseAuth.currentUser.uid;
+    const collectionId = generateTaskCollectionName(date);
+    const dateCollection = collection(firebaseDb, PERSONAL_COLLECTION_NAME, uid, collectionId);
+
+    let gdPromise = getDocs(dateCollection)
+        .then(async (tasksSnapshot) => {
+            let returnValue =[];
+            tasksSnapshot.forEach((dref) => {
+                // Appending additional data to help our front end code.
+                let indivTask = dref.data();
+                indivTask.docId = dref.id;
+                returnValue.push(indivTask);
+            });
+            return returnValue;
+        });
+    
+    // If no callbacks are given, return a promise
+    let returnFlag = success != null || fail != null;
+    if (success) gdPromise = gdPromise.then(success);
+    if (fail) gdPromise.catch(fail);
+    
+    if (returnFlag)
+        return gdPromise;
+    else
+        return null;
+}
+
+/**
+ * Remove the task given its document ID and the date associated with it.
+ * @param {Date} date 
+ * @param {String} docName 
+ * @param { () => void | null} success
+ */
+export const removeTask = function(date, docName, success) {
+    const uid = firebaseAuth.currentUser.uid;
+    const collectionName = generateTaskCollectionName(date);
+    const dref = doc(firebaseDb, PERSONAL_COLLECTION_NAME, uid, collectionName, docName);
+    let dStatus = deleteDoc(dref);
+    if (success) dStatus.then(success);
 }
 
 /**
@@ -100,11 +137,11 @@ export const personalTasks = function(success, fail) {
  * @param {(Object) => void} success Callback for successful retrieval.
  * @param {(Error) => void} fail Callback for failed retrieval.
  */
-export const sharedTask = function(success, fail) {
+export const getSharedTask = function(success, fail) {
     const subscriberPath = "followers";
 
     let docRef = doc(firebaseDb, SHARED_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    getDoc(docRef).then(async (snapshot) => {
+    let gdPromise = getDoc(docRef).then(async (snapshot) => {
         if (snapshot.exists()) {
 
             let followerCollection = collection(firebaseDb, docRef.path, subscriberPath);
@@ -130,7 +167,7 @@ export const sharedTask = function(success, fail) {
  * @param {(string[]) => void} success Callback for successful data retrieval. This can pass on an empty array.
  * @param {(Error) => void} fail Callback for failed retrieval.
  */
-export const followedTasks = function(success, fail) {
+export const getFollowedTasks = function(success, fail) {
     const followedCollectionName = "followedTasks";
     let followedCollectionRef = collection(firebaseDb, "users", firebaseAuth.currentUser.uid, followedCollectionName);
     getDocs(followedCollectionRef).then(async (collectionSnap) => {
@@ -167,6 +204,7 @@ function generateTaskCollectionName(date) {
     return `${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}`;
 }
 
+
 /**
  * Creates a new entry in the users collection if the uid does not exist yet.
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
@@ -186,7 +224,7 @@ export const createUniqueUser = async function() {
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-//            defaultEntry();
+            defaultEntry();
             return firebaseUser;
         } else {
             throw new Error("Failed to update Firestore");
@@ -199,7 +237,7 @@ export const createUniqueUser = async function() {
  * Populates Firestore with default data for the logged in user, if the documents do not exist.
  * @return {void}
  */
-export const defaultEntry = function () {
+export const defaultEntry = async function () {
     const firebaseUser = firebaseAuth.currentUser;
 
     let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
@@ -231,8 +269,6 @@ export const defaultEntry = function () {
             setDoc(userRef)
         }
     });
-    
-
 }
 
 /**
@@ -243,18 +279,18 @@ export const defaultEntry = function () {
  * @return {void}
  */
 export const addPersonalTask = function(taskObj, success, fail) {
-    const subCollectionName = generateTaskCollectionName(date);
+    const subCollectionName = generateTaskCollectionName(taskObj.date);
     const user = firebaseAuth.currentUser;
-
-    if (taskObj.date.toDateString) {
-        taskObj.date = taskObj.date.toDateString();
-    }
-    if (taskObj.complete == null) {
-        taskObj.complete = false;
+    // Send a copy so we can ammend whatever interface information in the original
+    let sentObj = {
+        date: (taskObj.date) ? taskObj.date : (new Date()).toDateString(),
+        title: (taskObj.title) ? taskObj.title : "",
+        desc: (taskObj.desc) ? taskObj.desc : "Nothing right now",
+        completed: taskObj.completed
     }
 
     let subCollectionRef = collection(firebaseDb, PERSONAL_COLLECTION_NAME, user.uid, subCollectionName);
-    let writeOperation = addDoc(subCollectionRef, taskObj);
+    let writeOperation = addDoc(subCollectionRef, sentObj);
     success && writeOperation.then(success);
     fail && writeOperation.catch(fail);  
 }

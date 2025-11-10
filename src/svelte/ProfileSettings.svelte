@@ -1,5 +1,5 @@
 <script>
-    import { checkAuth } from "../js/Authentication.js";
+    import { checkAuth, logoutUser } from "../js/Authentication.js";
     import { onMount } from "svelte";
 
     import {
@@ -44,15 +44,24 @@
         }
     }
 
+    /** Sign out and redirect to login page. */
+    function logoutHandler() {
+        logoutUser("loginpage.html");
+    }
     /**
      * Initialize database retrieval and event listeners.
      */
     function init() {
         loadUserInfo();
+
         const inputs = document.querySelectorAll("input");
+        const logButton = documentquerySelector("button#logoutbutton");
+
         for (const i of inputs) {
             i.addEventListener(editListener);
         }
+        logButton.addEventListener("click", logoutHandler);
+
     }
 
     onMount(() => {

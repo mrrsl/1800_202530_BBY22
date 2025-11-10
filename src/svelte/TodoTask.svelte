@@ -22,7 +22,7 @@
     }
 
     function removeTask() {
-        removeHandler();
+        removeHandler(taskId);
         document.querySelector("li").remove()
     }
 
@@ -55,6 +55,8 @@
         align-items: center;
         justify-content: space-between;
         border: 1.5px solid rgb(74, 43, 48);
+
+        font-family: inherit;
     }
     li.done {
         text-decoration: line-through;

@@ -5,8 +5,7 @@
  * @param {Number | null} depth Level of nested objects the function should dip into
  * @return returns true
  */
-export const objCompare = objcmp;
-function objcmp(obj1, obj2, depth = 0) {
+export const objCompare = function (obj1, obj2, depth = 0) {
 
     if (!obj1 || !obj2) return false;
     let keys = Object.keys(obj1);

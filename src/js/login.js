@@ -1,11 +1,9 @@
 import { loginUser } from "./Authentication.js";
-
 import { firebaseAuth } from "./FirebaseInstances.js";
 
 const homePageUrl = "/home.html";
 
 if (firebaseAuth.currentUser) {
-    debugger;
     window.location.href = homePageUrl;
 }
 

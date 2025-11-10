@@ -7,6 +7,8 @@ import {
 
 import { firebaseAuth } from "./FirebaseInstances.js";
 
+import { defaultEntry } from "./Database.js";
+
 /**
  * Logs the user in and redirects them on successful login attempt.
  * @param {string} email 
@@ -46,5 +48,34 @@ export const checkAuth = function(success, fail) {
         } else {
             fail();
         }
+    });
+}
+
+/**
+ * Creates account on Firebase auth with the given email/password and redirects to the given URL on successful registration.
+ * @param {string} email
+ * @param {string} password
+ * @param {string | null} redirect
+ * @return {Promise<void>}
+ */
+export const register = function(email, password, redirect) {
+    let accountRegStatus = createUserWithEmailAndPassword(firebaseAuth, email, password)
+        .then((cred) => {
+            defaultEntry();
+            if (redirect)
+                window.location.href = redirect;
+        });
+    return accountRegStatus;
+}
+
+/**
+ * Shortener of onAuthStateChanged.
+ * @param {Function} observerFunction 
+ */
+export const authInit = function(observerFunction) {
+    onAuthStateChanged(firebaseAuth, (user) => {
+        if (user)
+            observerFunction();
+
     });
 }

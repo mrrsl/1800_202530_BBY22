@@ -34,15 +34,18 @@
 
     /**
      * Date currently selected.
+     * @type {Date | null}
      */
     let currentDate = $state(displayedDateInit);
 
     /**
      * Currently selected day cell, used to remove styling.
+     * @type {Element | null}
      */
     let currentDateElement = null;
     /**
-     * Component state
+     * Component state.
+     * @type {Array<Number}
      */
     let monthView = $state(getMonthGrid(displayedDateInit.getMonth()));
 
@@ -87,46 +90,40 @@
                 }
             }
         });
-
         collapseState = !collapseState;
     }
 
-    /** 
-     * Generates individual event handlers for clicking the day cells in the month table.
-     * @param {Number} date 
+    /**
+     * Handles clicking on the individual days
+     * @param {MouseEvent} event
      */
-    function generateDayHandler(date) {
-        if (date > 0) {
+    function dayHandler(event) {
+        if (currentDateElement && currentDateElement.isEqualNode(event.target)) return;
 
-            return function(event) {
-                currentDate.setDate(date);
-                event.target.classList.add("selected");
-                if (currentDateElement)
-                    currentDateElement.classList.remove("selected");
-                currentDateElement = event.target;
-            }
+        currentDateElement.classList.remove("selected");
+        currentDateElement = event.target;
+        event.target.classList.add("selected");
 
-        } else {
-            if (date > -7) {
+        // Doing illegal things here
+        let selectedDay = currentDateElement.querySelector("p").textContent;
+        let selectedDate = new Date(currentDate.getTime());
+        selectedDate.setDate()
 
-                return function(event) {
-                    currentDate.setDate(1);
-                    currentDate.setMonth(currentDate.getMonth() + 1);
-                    currentDate.setDate(Math.abs(date));
-                    monthView = getMonthGrid(currentDate.getMonth(), currentDate.getFullYear());
-                }
-
-            } else {
-
-                return function(event) {
-                    currentDate.setDate(1);
-                    currentDate.setMonth(currentDate.getMonth() - 1);
-                    currentDate.setDate(Math.abs(date));
-                    monthView = getMonthGrid(currentDate.getMonth(), currentDate.getFullYear());
-                }
-                
-            }
+        if (selectedDay < -20) {
+            selectedDate.setMonth(currentDate.getMonth() - 1);
+            selectedDate.setDate(
+                Math.abs(Number.parseInt(selectedDay))
+            );
         }
+        else if (selectedDay < 1) {
+            selectedDate.setMonth(currentDate.getMonth() + 1);
+            selectedDate.setDate(
+                Math.abs(Number.parseInt(selectedDay))
+            );
+        } else {
+            selectedDate.setDate(Number.parseInt(selectedDay));
+        }
+        currentDate = selectedDate;
     }
 
     /**
@@ -244,7 +241,7 @@ div.calendar-day > p {
                     <tr>
                         {#each {length: 7} as _, b}
                             <td class="{determineDayFade(monthIterator.peek())}"
-                                onclick={generateDayHandler(monthIterator.peek())}>
+                                onclick={dayHandler}>
 
                                 <div class="calendar-day" style="background-color: {accentColor}">
                                     <p>{Math.abs(monthIterator.yieldMonth())}</p>
