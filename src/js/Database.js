@@ -201,7 +201,13 @@ function docFetch(docRef, success, fail, eMessage) {
  * @param {Date} date 
  */
 function generateTaskCollectionName(date) {
-    return `${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}`;
+    let month = date.getMonth() + 1;
+    let day = date.getDate() + 1;
+    
+    if (month < 10) month = `0${month}`;
+    if (day < 10) day = `0${day}`;
+    
+    return `${date.getFullYear()}${month}${day}`;
 }
 
 
