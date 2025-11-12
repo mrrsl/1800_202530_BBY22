@@ -1,7 +1,11 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     
     import TodoTask from "./TodoTask.svelte";
+
+    // Import from Database.js (adjust path if needed)
+    import { addPersonalTask, subscribeToPersonalTasksForDate, togglePersonalTaskCompletion, removePersonalTask } from "../js/Database.js";
+
     /**
      * Component properties.
      * @property {Array} todaysList Collection of objects with title, description and completed fields keyed by a unique task ID.
@@ -11,21 +15,64 @@
     const {
         todaysList = [],
         renderFinishedInit = false,
-        date = new Date()
+        date = new Date(),
+        addTaskPreAction = () => {},
+        addTaskPostAction = () => {}
     } = $props();
 
     /**
      * Tasks to render.
      */
     let taskList = $state(todaysList);
+    let unsubscribe;  // For real-time listener cleanup
+
+    onMount(() => {
+        // Subscribe to real-time updates for today's tasks
+        unsubscribe = subscribeToPersonalTasksForDate(date, (tasks) => {
+            taskList = tasks.map(task => ({
+                ...task,
+                completed: task.completed ?? false  // Default to false if not set
+            }));
+        }, (error) => {
+            console.error("Error subscribing to tasks:", error);
+        });
+    });
+
+    onDestroy(() => {
+        if (unsubscribe) unsubscribe();
+    });
 
     /**
      * Generates handlers for toggling completion status of a task.
-     * @param {Number} id Identifier correlating to its document location in Firestore.
+     * @param {String} id Firestore document ID.
      */
     function toggleCompletionFactory(id) {
-        return function() {
-            // TODO
+        return async function() {
+            const task = taskList.find(t => t.id === id);
+            if (task) {
+                const newCompleted = !task.completed;
+                togglePersonalTaskCompletion(date, id, newCompleted, () => {
+                    // Update local state for immediate feedback
+                    taskList = taskList.map(t => t.id === id ? { ...t, completed: newCompleted } : t);
+                }, (error) => {
+                    console.error("Error toggling completion:", error);
+                });
+            }
+        }
+    }
+
+    /**
+     * Generates handlers for removing a task.
+     * @param {String} id Firestore document ID.
+     */
+    function removeFactory(id) {
+        return async function() {
+            removePersonalTask(date, id, () => {
+                // Update local state for immediate feedback
+                taskList = taskList.filter(t => t.id !== id);
+            }, (error) => {
+                console.error("Error removing task:", error);
+            });
         }
     }
 
@@ -34,10 +81,26 @@
      * @param {KeyboardEvent} event
      */
     async function inputListener(event) {
-        let textInput = document.querySelector("#taskInput");
-        if (event.key == "Enter") {
+        if (event.key === "Enter") {
+            let textInput = event.target;
             let taskBody = textInput.value.trim();
-            // TODO
+            if (taskBody) {
+                addTaskPreAction();
+                const newTask = {
+                    date: date,  // Pass Date object; addPersonalTask will convert to string
+                    title: taskBody,
+                    desc: "",  // 'desc' instead of 'description' to match Database.js
+                    completed: false
+                };
+                addPersonalTask(newTask, (docRef) => {
+                    // Success: real-time listener will add to taskList
+                    addTaskPostAction();
+                }, (error) => {
+                    console.error("Error adding task:", error);
+                    addTaskPostAction();  // Call post-action even on error if desired
+                });
+                textInput.value = "";
+            }
         }
     }
 
@@ -85,15 +148,17 @@ ul {
 </style>
 
 <div class="todo-container">
-    <input id="taskInput" type="text" placeholder="Add new task..." />
+    <input id="taskInput" type="text" placeholder="Add new task..." onkeydown={inputListener} />
     <ul id="taskList">
-        {#each taskList as task(task.id)}
+        {#each taskList as task (task.id)}
             <TodoTask
                 title={task.title}
-                description={task.description}
+                description={task.desc}
                 completed={task.completed}
                 taskId={task.id}
-                completeHandler={toggleCompletionFactory(task.id)}/>
+                completeHandler={toggleCompletionFactory(task.id)}
+                removeHandler={removeFactory(task.id)}
+                />
         {/each}
     </ul>
 </div>

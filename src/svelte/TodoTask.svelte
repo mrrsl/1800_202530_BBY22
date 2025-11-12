@@ -45,6 +45,7 @@
 
 </script>
 
+<!-- svelte-ignore css_unused_selector -->
 <style>
     li {
         background: #fffdfcb5;
