@@ -7,7 +7,7 @@
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 
 import {
-    getDoc, getDocs, doc, setDoc, addDoc,
+    getDoc, getDocs, doc, setDoc, addDoc, deleteDoc,
     collection,
 } from "firebase/firestore";
 
@@ -125,9 +125,11 @@ export const getPersonalTasks = function (date, success, fail) {
  * @param { () => void | null} success
  */
 export const removeTask = function(date, docName, success) {
+    debugger;
     const uid = firebaseAuth.currentUser.uid;
     const collectionName = generateTaskCollectionName(date);
     const dref = doc(firebaseDb, PERSONAL_COLLECTION_NAME, uid, collectionName, docName);
+    getDoc(dref).then(snap => console.log("status of retrieved docd for removal", snap.exists()));
     let dStatus = deleteDoc(dref);
     if (success) dStatus.then(success);
 }
@@ -201,12 +203,13 @@ function docFetch(docRef, success, fail, eMessage) {
  * @param {Date} date 
  */
 function generateTaskCollectionName(date) {
+    // Keep this call here since SvelteDate works a little differently than the standard Date
+    if (date.toDate) date = date.toDate();
     let month = date.getMonth() + 1;
-    let day = date.getDate() + 1;
+    let day = date.getDate();
     
-    if (month < 10) month = `0${month}`;
-    if (day < 10) day = `0${day}`;
-    
+    if (month < 10) month = `0${Number.toString(month)}`;
+    if (day < 10) day = `0${Number.toString(day)}`;
     return `${date.getFullYear()}${month}${day}`;
 }
 

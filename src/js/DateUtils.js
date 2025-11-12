@@ -151,7 +151,7 @@ export const getWeekSpan = function(monthArray) {
  */
 export const getWeekRow = function(monthArray, date) {
     let dayIndex = 0;
-    while (monthArray[dayIndex] != monthArray[date] && dayIndex < monthArray.length) {
+    while (monthArray[dayIndex] != date && dayIndex < monthArray.length) {
         dayIndex++;
     } 
     if (dayIndex >= monthArray.length) return -1;

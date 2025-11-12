@@ -7,6 +7,7 @@
     } from '../js/DateUtils.js';
 
     import { onMount } from 'svelte';
+    import { SvelteDate } from 'svelte/reactivity';
 
     import CalendarHideButton from './CalendarHideButton.svelte';
     import TodoList from "./TodoList.svelte";
@@ -36,7 +37,7 @@
      * Date currently selected.
      * @type {Date | null}
      */
-    let currentDate = $state(displayedDateInit);
+    let currentDate = $state(new SvelteDate(displayedDateInit));
 
     /**
      * Currently selected day cell, used to remove styling.
@@ -98,16 +99,15 @@
      * @param {MouseEvent} event
      */
     function dayHandler(event) {
-        if (currentDateElement && currentDateElement.isEqualNode(event.target)) return;
-
+        if (currentDateElement && currentDateElement.isEqualNode(this)) return;
         currentDateElement.classList.remove("selected");
-        currentDateElement = event.target;
-        event.target.classList.add("selected");
+        currentDateElement = this;
+        this.classList.add("selected");
 
         // Doing illegal things here
-        let selectedDay = currentDateElement.querySelector("p").textContent;
-        let selectedDate = new Date(currentDate.getTime());
-        selectedDate.setDate()
+        let selectedDay = currentDateElement.querySelector("div > p").textContent;
+        let selectedDate = new SvelteDate(currentDate.getTime());
+        selectedDate.setDate(1);
 
         if (selectedDay < -20) {
             selectedDate.setMonth(currentDate.getMonth() - 1);
@@ -135,7 +135,7 @@
             collapseState = true;
         }
         if (currentDateElement == null) {
-            currentDateElement == document.querySelector("td.selected");
+            currentDateElement = document.querySelector("td.selected");
         }
     });
 
@@ -181,6 +181,11 @@ td.off-month {
     color: #AAAAAA;
     filter: opacity(0.45);
 }
+td.selected > div {
+    border-style: solid;
+    border-width: 1.5px;
+    border-color: rosybrown;
+}
 div.calendar-day {
     height: 100%;
     display: flex;
@@ -208,7 +213,7 @@ div.calendar-day > p {
         <div id="month-name" class="py-1 text-center text-xl font-bold" style="font-family: {bodyFont}">
             {getMonthName(displayedDateInit.getMonth())}
         </div>
-        <div id = "weeks" class="w-full flex flex-row justify-between"
+        <div id="weeks" class="w-full flex flex-row justify-between"
             style="font-family: {headingFont}; background-color: {accentColor}">
             <div>
                 Sun
@@ -240,7 +245,8 @@ div.calendar-day > p {
                 {#each {length: getWeekSpan(monthView)} as _, a}
                     <tr>
                         {#each {length: 7} as _, b}
-                            <td class="{determineDayFade(monthIterator.peek())}"
+                            <!-- Apply fading if date is negative, check for the current selected date here as well -->
+                            <td class="{determineDayFade(monthIterator.peek())} {(monthIterator.peek() == currentDate.getDate()) ? "selected": ""}"
                                 onclick={dayHandler}>
 
                                 <div class="calendar-day" style="background-color: {accentColor}">
@@ -256,4 +262,4 @@ div.calendar-day > p {
     </div>
     <CalendarHideButton parentClickFunc={collapseExpand} collapsed={initCollapse}/>
 </div>
-<TodoList date={displayedDateInit} />
+<TodoList dateProp={currentDate} />

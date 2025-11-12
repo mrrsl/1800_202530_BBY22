@@ -79,3 +79,14 @@ export const authInit = function(observerFunction) {
 
     });
 }
+
+/**
+ * Check current authentication state.
+ * @return {Boolean}
+ */
+export const isAuthenticated = function() {
+    if (firebaseAuth.currentUser)
+        return true;
+    else
+        return false;
+}

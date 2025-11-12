@@ -1,6 +1,6 @@
 <script>    
     import TodoTask from "./TodoTask.svelte";
-    import { authInit } from "../js/Authentication.js";
+    import { authInit, isAuthenticated } from "../js/Authentication.js";
     import {
         addPersonalTask,
         getPersonalTasks,
@@ -16,9 +16,9 @@
      * @property {Function<void>} addTaskPostAction Function called at the end of the addTask action.
      */
     const {
+        /** Tells component which day's tasks to retrieve. */
         dateProp = new Date()
     } = $props();
-
     /**
      * Tasks to render.
      */
@@ -40,7 +40,7 @@
                 removedIndex = taskList.length + 1;
             }
         }
-
+        debugger;
         removeTask(removedTask.date, removedTask.docId, () => {
             getPersonalTasks(dateProp, updateTaskList);
         });
@@ -69,7 +69,10 @@
             };
 
             addPersonalTask(taskObj,
-                doc => taskList.push(taskObj)
+                doc => {
+                    taskList.push(taskObj);
+                    textInput.value = "";
+                }
             );
 
         }
@@ -79,17 +82,31 @@
      * @param fetchedTasks
      */
     function updateTaskList(fetchedTasks) {
-        taskList = fetchedTasks.forEach(tObj => tObj.id = taskRenderId++);
-        if (taskList == undefined) taskList = [];
+        console.log("Fetched the day's tasks:", fetchedTasks);
+        if (fetchedTasks.length == 0) {
+            taskList = [];
+            return;
+        }
+        taskList = fetchedTasks.map(tObj => {
+            tObj.id = taskRenderId++;
+            return tObj;
+        });
     }
 
-    function init() {
+    // Need to make sure currentUser is populated before we start loading data
+    function loadData() {
         authInit(function() {
             getPersonalTasks(dateProp, updateTaskList);
         });
     }
+    onMount(loadData);
 
-    onMount(init);
+    // Apparently just having state as a prop doesn't guaruntee the component re-renders
+    $effect(() => {
+        if (dateProp && isAuthenticated()) {
+            getPersonalTasks(dateProp,updateTaskList);
+        }
+    });
 
 </script>
 
@@ -138,14 +155,13 @@ ul {
 <div class="todo-container">
     <input id="taskInput" type="text" placeholder="Add new task..." onkeydown={inputListener}/>
     <ul id="taskList">
-        {#each taskList as task}
-
+        {#each taskList as taskItem}
                 <TodoTask
-                    title={task.title}
-                    description={task.desc}
-                    completed={task.completed}
-                    taskId={task.id}
-                    completeHandler={toggleCompletion}/>
+                    title={taskItem.title}
+                    desc={taskItem.desc}
+                    completed={taskItem.completed}
+                    taskId={taskItem.id}
+                    removeHandler={toggleCompletion}/>
         {/each}
     </ul>
 </div>

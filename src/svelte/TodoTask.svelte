@@ -7,20 +7,15 @@
      * @property {Boolean} completed Whether to mark task as completed.
      */
     const {
-        title = "Sample Task",
-        description = "This is a sample task description.",
-        completed = false,
-        taskId = null,
+        title,
+        desc,
+        completed,
+        taskId,
         removeHandler = () => {},
         completeHandler = () => {}
     } = $props();
-
     let completeState = $state(completed);
-
-    function taskSort(ta, tb) {
-
-    }
-
+    
     function removeTask() {
         removeHandler(taskId);
         document.querySelector("li").remove()
@@ -69,7 +64,7 @@
 <li>
     <div id="task-text">
         <h4> {title} </h4>
-        <p>{description}</p>
+        <p>{desc}</p>
     </div>
     <button id="remove-button" aria-label="remove task button" onclick={removeTask}>
         X
