@@ -14,7 +14,12 @@
         removeHandler = () => {},
         completeHandler = () => {}
     } = $props();
+
     let completeState = $state(completed);
+    /** Reference for the text block in Task Component. */
+    let taskText;
+    /** Reference for description block of the text. */
+    let liElement;
     
     function removeTask() {
         removeHandler(taskId);
@@ -33,10 +38,6 @@
         }
     }
 
-    onMount(() => {
-        let taskText = document.querySelector("#task-text");
-        taskText.addEventListener("click", toggleCompletion);
-    });
 
 </script>
 
@@ -53,16 +54,24 @@
 
         font-family: inherit;
     }
+    div#task-text > p {
+        font-size: 14pt;
+    }
     li.done {
         text-decoration: line-through;
         color: #b5b5b5;
         background: #f2f2f2;
         opacity: 0.7;
     }
+
+    button {
+        font-size: 14pt;
+        height: 15pt;
+    }
 </style>
 
-<li>
-    <div id="task-text">
+<li bind:this={liElement}>
+    <div id="task-text" role="status" bind:this={taskText}>
         <h4> {title} </h4>
         <p>{desc}</p>
     </div>

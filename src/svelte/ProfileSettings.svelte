@@ -1,9 +1,9 @@
 <script>
-    import { checkAuth, logoutUser } from "../js/Authentication.js";
+    import { checkAuth, logoutUser, authInit } from "../js/Authentication.js";
     import { onMount } from "svelte";
 
     import {
-        user,
+        getUser,
         appendUserInfo
     } from "../js/Database.js";
 
@@ -16,10 +16,12 @@
     let username = $state("Name");
     /** User's email. */
     let useremail = $state("Email");
-    
+    /** Reference for logout button. */
+    let logButton;
+
     /** Fetches user profile from Firestore and loads it into the component. */
     function loadUserInfo() {
-        user((userInfo) => {
+        getUser((userInfo) => {
             username = userInfo.name;
             useremail = userInfo.email;
         });
@@ -52,27 +54,19 @@
      * Initialize database retrieval and event listeners.
      */
     function init() {
+        
         loadUserInfo();
 
         const inputs = document.querySelectorAll("input");
-        const logButton = documentquerySelector("button#logoutbutton");
 
         for (const i of inputs) {
-            i.addEventListener(editListener);
+            i.addEventListener("keypress", editListener);
         }
         logButton.addEventListener("click", logoutHandler);
 
     }
 
-    onMount(() => {
-        checkAuth(
-            init,
-            () => {
-                window.location.href = "/";
-            }
-        );
-    });
-
+    authInit(init);
     
 </script>
 
@@ -160,6 +154,6 @@
         class="mt-0.5"
         pattern=".+@.+\..+"/>
 
-    <button id="logoutbutton" style="font-family: {bodyFont}" class="mt-3">Log Out</button>
+    <button id="logoutbutton" style="font-family: {bodyFont}" class="mt-3" bind:this={logButton}>Log Out</button>
 </div>
 <div id="spacer" class="mb-4"></div>

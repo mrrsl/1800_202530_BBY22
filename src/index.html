@@ -232,7 +232,11 @@
     </p>
   </section>
 
-<script>
+<script type="module">
+  import { authInit } from "./js/Authentication.js";
+
+  authInit(user => { window.location.href = "/home.html"});
+
   var allsections = document.querySelectorAll(".fadesection");
 
   function checkVisibility() {

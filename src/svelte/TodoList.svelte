@@ -40,7 +40,6 @@
                 removedIndex = taskList.length + 1;
             }
         }
-        debugger;
         removeTask(removedTask.date, removedTask.docId, () => {
             getPersonalTasks(dateProp, updateTaskList);
         });

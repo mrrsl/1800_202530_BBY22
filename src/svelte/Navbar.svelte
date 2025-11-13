@@ -1,7 +1,14 @@
 <script>
-    const {
-        userName
-    } = $props();
+    import { authInit } from "../js/Authentication.js";
+    import { getUser } from "../js/Database.js";
+
+    let userName = $state();
+
+    authInit((user) => {
+        getUser((docData) => {
+            userName = docData.name;
+        });
+    });
 </script>
 <style>
     /* Declare mobile styles first, 700px @media later*/
@@ -75,14 +82,14 @@
         <img src="/images/icons/up-arrow.png" alt="backarrow" />
     </button>
     <div id="planner-name">
-        <h1>Spencer's Planner</h1>
+        <h1>{userName}'s Planner</h1>
     </div>
     <div id="navIcons">
         <a href="settings.html" class="icon">
             <img src="/images/icons/settingsgear.png" alt="settings gear"/>
         </a>
         <a href="#" class="icon">
-            <img src="/images/calendaricon.png" alt="calendar" />
+            <img src="/images/icons/calendaricon.png" alt="calendar" />
         </a>
     </div>
 </div>

@@ -70,13 +70,14 @@ export const register = function(email, password, redirect) {
 
 /**
  * Shortener of onAuthStateChanged.
- * @param {Function} observerFunction 
+ * @param {Function} success 
  */
-export const authInit = function(observerFunction) {
+export const authInit = function(success, fail) {
     onAuthStateChanged(firebaseAuth, (user) => {
         if (user)
-            observerFunction();
-
+            success(user);
+        else
+            fail();
     });
 }
 

@@ -125,7 +125,6 @@ export const getPersonalTasks = function (date, success, fail) {
  * @param { () => void | null} success
  */
 export const removeTask = function(date, docName, success) {
-    debugger;
     const uid = firebaseAuth.currentUser.uid;
     const collectionName = generateTaskCollectionName(date);
     const dref = doc(firebaseDb, PERSONAL_COLLECTION_NAME, uid, collectionName, docName);
