@@ -3,13 +3,14 @@
     <style>
       :root {
         --accent-color: #fff5fa; /* default accent color */
+        --header-font: "Oooh Baby", sans-serif;
+        --body-font: "Inria Serif", sans-serif;
       }
 
       body {
         background-color: #fbf7f8;
-        background-blend-mode: lighten;
         text-align: center;
-        font-family: "Oooh Baby", sans-serif;
+        font-family: var(--header-font);
         font-size: 30pt;
       }
 
@@ -35,7 +36,6 @@
         z-index: 10;
         width: 2rem;
         height: auto;
-        cursor: pointer;
       }
 
       #title {
@@ -84,7 +84,7 @@
         margin: 30px;
         text-align: center;
         font-size: 30pt;
-        font-family: "Inria Serif", sans-serif;
+        font-family: var(--body-font);
       }
 
       #calendarContent {
@@ -128,7 +128,7 @@
 
       /* this is for the task-list container */
       .todo-container {
-        background-image: url("gridbackground.png");
+        background-image: url("../img/gridbackground.png");
         background-repeat: repeat-y; /* repeats vertically */
         background-size: cover;
         background-position: top center;
@@ -151,7 +151,7 @@
 
       /* styles the input box for entering new tasks */
       input[type="text"] {
-        font-family: "Oooh Baby", sans-serif;
+        font-family: var(--header-font);
         font-size: 40pt;
         padding: 10px;
         border: 2px solid #3615299b;
@@ -165,7 +165,7 @@
 
       /* css for the placeholder text in the input box */
       input[type="text"]::placeholder {
-        font-family: "Oooh Baby", sans-serif;
+        font-family: var(--header-font);
         font-size: 40pt;
         color: #807777;
         opacity: 0.7;
@@ -239,7 +239,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        font-family: "Inria Serif", sans-serif;
+        font-family: var(--body-font);
         font-size: 25pt;
         color: #362830;
       }
@@ -249,6 +249,43 @@
         height: auto;
         margin-bottom: 0.5rem;
       }
+
+      /* styles the box containing both menu options */
+      .dropdownmenuoptions {
+        display: none;
+        position: absolute;
+        background-color: #f0f0f0;
+        top: 100px;
+        right: 0;
+        border-radius: 20px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+        padding: 0.5rem;
+      }
+
+      /* styles each of the individual options */
+      .options {
+        background-color: #e6e6e6;
+        padding: 10px 40px;
+        color: #362830;
+        margin: 6px 0;
+        font-family: var(--body-font);
+        transition: background-color 0.2 ease;
+      }
+
+      .options a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .calendarmenu {
+        position: relative;
+        display: inline-block;
+      }
+
+      .calendarmenu:hover .dropdownmenuoptions {
+        display: block;
+      }
+
     </style>
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
@@ -259,18 +296,25 @@
       <h1 id="plannerName">Spencer's Planner</h1>
       <div id="navIcons">
         <a href="sofiassettings.html" class="settingsicon"
-          ><img src="settingsgear.png" width="70px"
+          ><img src="../img/settingsgear.png" width="70px"
         /></a>
-        <a href="#" class="calendaricon"
-          ><img src="calendaricon.png" width="70px"
-        /></a>
+        <div class="calendarmenu">
+          <a href="#" class="calendaricon"
+            ><img src="../img/calendaricon.png" width="70px"
+          /></a>
+          <div class="dropdownmenuoptions">
+            <div class="options">
+              <a href="sofiasnewweeklyview.html">Weekly View</a>
+            </div>
+          </div>
+        </div>
       </div>
       <div
         id="backarrow"
         onclick="window.history.back()"
         style="cursor: pointer"
       >
-        <img src="up-arrow.png" width="110px" />
+        <img src="../img/up-arrow.png" width="110px" />
       </div>
     </header>
 
@@ -364,215 +408,19 @@
     <div class="bottomnav">
       <ul>
         <li>
-          <a href="friends.html"><img src="friendsicon.png" alt="Friends" /></a>
+          <a href="friends.html"><img src="../img/friendsicon.png" alt="Friends" /></a>
           <span>Friends</span>
         </li>
         <li>
           <a href="sofiascalendar.html"
-            ><img src="scheduleicon.png" alt="Schedule"
+            ><img src="../img/scheduleicon.png" alt="Schedule"
           /></a>
           <span>Schedule</span>
         </li>
       </ul>
     </div>
 
-    <script>
-      var date = new Date();
-      console.log(date);
-
-      var currentMonth = date.getMonth();
-      var currentDay = date.getDay();
-      var currentDate = date.getDate();
-      var currentYear = date.getFullYear();
-
-      console.log(currentMonth);
-      console.log(currentDay);
-      console.log(currentDate);
-      console.log(currentYear);
-
-      var months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-
-      // currently unused, belongs to the subtitle
-      var daysOfWeek = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-
-      // this subtitle part is currently unused; I was originally going to display the full date
-      var subtitle = document.getElementById("subtitle");
-      subtitle.innerHTML =
-        daysOfWeek[date.getDay()] +
-        ", " +
-        months[currentMonth] +
-        " " +
-        currentDate +
-        ", " +
-        currentYear;
-
-      // used to display the current month as a title
-      var title = document.getElementById("title");
-      title.innerHTML = `${months[currentMonth]} ${currentDate}`; //switch back to months[currentMonth] if needed
-
-      var daysInTheMonthList = [
-        31, 28, 31, 30, 31, 30, 31, 30, 31, 31, 30, 31, 30,
-      ];
-
-      var daysInThisMonth = daysInTheMonthList[currentMonth];
-
-      var firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-
-      var dayCount = 0;
-      var rowCount = 0;
-      var days = document.getElementsByClassName("days");
-
-      var dayCount = 0;
-      var rowCount = 0;
-      var days = document.getElementsByClassName("days");
-
-      // creates the empty space at the beginning of the calendar so that sundays display first
-      var totalCells = days.length * 7;
-      var firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // gets sunday
-
-      for (var i = 0; i < totalCells; i++) {
-        var row = Math.floor(i / 7);
-        var col = i % 7;
-        var day = days[row].getElementsByClassName("day")[col];
-
-        if (i < firstDayOfMonth) {
-          day.innerHTML = "";
-          day.setAttribute("style", "visibility: hidden"); //to make these empty boxes visible, just change it to background-color: white
-        } else if (dayCount < daysInThisMonth) {
-          day.innerHTML = dayCount + 1;
-          day.setAttribute("id", "day" + (dayCount + 1));
-          if (dayCount == currentDate - 1) {
-            day.setAttribute(
-              "style",
-              "border: 2px solid gray; border-radius: 10px; box-shadow: 0px 0px 0px 3px rgba(47, 23, 4, 0.3)"
-            );
-          }
-          dayCount++;
-        } else {
-          day.innerHTML = "";
-          day.setAttribute("style", "visibility: hidden");
-        }
-      }
-
-      // js for the collapsible calendar arrow
-      document
-        .getElementById("collapseButton")
-        .addEventListener("click", function () {
-          const tracker = document.getElementById("tracker");
-          const arrow = document.querySelector("#collapseButton img");
-          const allWeeks = tracker.getElementsByClassName("days");
-
-          const date = new Date();
-          const currentDate = date.getDate();
-          const currentMonth = date.getMonth();
-          const currentYear = date.getFullYear();
-          const firstDayOfMonth = new Date(
-            currentYear,
-            currentMonth,
-            1
-          ).getDay();
-
-          const currentWeekIndex = Math.floor(
-            (currentDate + firstDayOfMonth - 1) / 7
-          );
-          const isCollapsed = allWeeks[0].style.display === "none";
-
-          for (let i = 0; i < allWeeks.length; i++) {
-            allWeeks[i].style.display =
-              isCollapsed || i === currentWeekIndex ? "flex" : "none";
-          }
-
-          arrow.style.transform = isCollapsed
-            ? "rotate(0deg)"
-            : "rotate(180deg)";
-        });
-
-      //js for adding tasks
-      const taskInput = document.getElementById("taskInput");
-      const taskList = document.getElementById("taskList");
-      const note = document.getElementById("note");
-
-      // adds a task to the list
-      function addTask(text) {
-        if (taskList.children.length >= 20) return;
-
-        const li = document.createElement("li");
-        li.textContent = text;
-
-        const removeBtn = document.createElement("button");
-        removeBtn.innerHTML = "X";
-        removeBtn.onclick = (e) => {
-          e.stopPropagation();
-          li.remove();
-          updateNote(); // re-checks the task count after removing one
-        };
-
-        li.appendChild(removeBtn);
-        taskList.appendChild(li);
-        updateNote(); // re-checks the number of tasks after adding a new one
-
-        li.addEventListener("click", () => {
-          li.classList.add("done");
-
-          // moves each task to the bottom after it's been crossed out
-          taskList.appendChild(li);
-
-          // fades out after 3 minutes
-          setTimeout(() => {
-            li.remove();
-            updateNote();
-          }, 180000);
-        });
-      }
-
-      // updates the visibility of the note/message to the user
-      function updateNote() {
-        if (taskList.children.length >= 20) {
-          note.style.display = "block";
-          taskInput.disabled = true;
-        } else {
-          note.style.display = "none";
-          taskInput.disabled = false;
-        }
-      }
-
-      // deals with the enter key for adding tasks
-      taskInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && taskInput.value.trim()) {
-          addTask(taskInput.value.trim());
-          taskInput.value = "";
-        }
-      });
-
-      // changes the accent color on the page based on the user's settings
-      const savedColor = localStorage.getItem("accentColor");
-      if (savedColor) {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          savedColor
-        );
-      }
+    <script type="module" src="scripts/maincalendar.js"></script>
     </script>
   </body>
 </html>
