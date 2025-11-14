@@ -1,4 +1,4 @@
-# Planaria (Working Name)
+# Planoria (Working Name)
 
 
 ## Overview
