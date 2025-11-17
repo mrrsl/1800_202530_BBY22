@@ -214,33 +214,36 @@
     </div>
 
     <div class="friendscontainer">
-      <div class="friendbox">
-        <img src="../img/lachesis.jfif" alt="Friend 1" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Lachesis</div>
-          <div class="friendusername">@lachesis.cat</div>
+      <!-- Template here to remove them from final rendered view -->
+      <template>
+        <div class="friendbox">
+          <img src="../img/lachesis.jfif" alt="Friend 1" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Lachesis</div>
+            <div class="friendusername">@lachesis.cat</div>
+          </div>
+          <div class="leaderboardtasks">12 tasks completed this week</div>
         </div>
-        <div class="leaderboardtasks">12 tasks completed this week</div>
-      </div>
 
-      <div class="friendbox">
-        <img src="../img/zakarya.jpg" alt="Friend 2" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Zakarya</div>
-          <div class="friendusername">@zakblack</div>
+        <div class="friendbox">
+          <img src="../img/zakarya.jpg" alt="Friend 2" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Zakarya</div>
+            <div class="friendusername">@zakblack</div>
+          </div>
+          <div class="leaderboardtasks">9 tasks completed this week</div>
         </div>
-        <div class="leaderboardtasks">9 tasks completed this week</div>
-      </div>
 
-      <div class="friendbox">
-        <img src="../img/rawan.jpg" alt="Friend 3" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Rawan</div>
-          <div class="friendusername">@rawanplans</div>
+        <div class="friendbox">
+          <img src="../img/rawan.jpg" alt="Friend 3" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Rawan</div>
+            <div class="friendusername">@rawanplans</div>
+          </div>
+          <div class="leaderboardtasks">3 tasks completed this week</div>
         </div>
-        <div class="leaderboardtasks">3 tasks completed this week</div>
       </div>
-    </div>
+    </template>
 
     <!-- BOTTOM NAVBAR -->
     <div class="bottomnav">
@@ -261,6 +264,15 @@
     </div>
 
     <script>
+      import {
+        userFriends, addFriend,
+        user, userPreferences,
+      } from "/js/Database.js";
+
+      import {
+        authWrapper
+      } from "/js/FirebaseInstances.js";
+
       const colorPicker = document.getElementById("accentColor");
 
       // loads in the accent color selected by the user
@@ -283,6 +295,62 @@
         localStorage.setItem("accentColor", selectedColor);
       });
 
+      /** Element generator for the each retreived friend. */
+      function friendBox(name, userName, completions) {
+
+        let wrapper = document.createElement("div");
+        wrapper.classList.add("friendbox");
+
+        let dp = document.createElement("img");
+        dp.classList.add("profilepic");
+        wrapper.append(dp);
+
+        let infoBox = document.createElement("div");
+        infoBox.classList.add("friendinfo");
+        wrapper.append(infoBox);
+
+        let friendName = document.createElement("div");
+        friendName.classList.add("friendname");
+        friendName.innerText = name;
+
+        let friendUsername = document.createElement("div");
+        friendUsername.classList.add("friendusername");
+        friendUsername.innerText = userName;
+        infoBox.append(friendName, friendUsername);
+
+        let taskCount = document.createElement("div");
+        taskCount.classList.add("leaderboardtasks");
+        taskCount.innerText = completions + " tasks completed this week";
+        wrapper.append(taskCount);
+
+        return wrapper;
+      }
+
+      /** Load user data and friends here. Run after auth check to make sure the user ID is populated. */
+      async function loadData() {
+        let prefs = await userPreferences();
+        let friends = await userFriends();
+
+        for (let friendId of friends) {
+          let friendData = await user(friendId);
+          let friendElement = friendBox(
+            friendData.name,
+            friendData.username,
+            prefs.weeklyCompletions[friendId] || 0
+          );
+          document.querySelector(".friendscontainer").appendChild(friendElement);
+        }
+
+        changeAccentColor(prefs.accentColor || defaultAccentColor);
+      }
+
+      /** Function for changing accent color. */
+      function changeAccentColor(colorString) {
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          colorString
+        );
+      }
       const defaultAccentColor = "#fff5fa"; // the default color (pink)
 
       //controls the restore color button; which restores the color back to its default: pink
@@ -300,6 +368,9 @@
           colorPicker.value = defaultAccentColor;
         });
       }
+
+      authWrapper(loadData, () => window.location.href = "login.html");
+
     </script>
   </body>
 </html>

@@ -6,13 +6,12 @@
  * be read from the currentUser property of the @firebase/auth module.
  */
 
-import { prefersReducedMotion } from "svelte/motion";
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
     collection,
-} from "firebase/firestore";
+} from "https://gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
@@ -39,36 +38,30 @@ const INTRO_TASK = {
 
 /**
  * Retrieve current user's document entry and pass the data to another function.
- * @param {(DocumentData) => void} success Callback if user retrieval is successful.
- * @param {(Error) => void | null} fail Callback if user retrieval fails.
- * @return {void}
+ * @return {Promise<DocumentData>}
  */
-export const user = function(success, fail) {
+export const user = async function() {
     let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "User Info document not found");
+    return docFetch(docRef, "User Info document not found");
 }
 
 /**
  * Retrieve current user's app settings and pass the data to another function.
- * @param {(DocumentData) => void} success Callback if settings retrieval is successful.
- * @param {(Error) => void | null} fail Callback if settings retrieval fails.
- * @return {void}
+ * @return {Promise<DocumentData>}
  */
-export const userPreferences = function(success, fail) {
+export const userPreferences = async function() {
     let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "User Preferences document not found");
+    return docFetch(docRef, "User Preferences document not found");
 }
 
 /**
  * Retrieve the current user's friends and pass the array to a callback.
- * @param {(Array) => void} success Callback if friends array retrieval is successful. Note that the array can be empty.
- * @param {(Error) => void | null} fail Callback if settings retrieval failed.
+ * @return {Promise<Array<String>>}
  */
-export const userFriends = function(success, fail) {
-    const friendField = "friends";
-    let friendCollection = collection(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid, friendField);
+export const userFriends = async function() {
+    let friendCollection = collection(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid, "friends");
 
-    friendCollection.get().then(async (querySnap) => {
+    return getDocs(friendCollection).then(async (querySnap) => {
 
         let friendIds = [];
 
@@ -78,11 +71,28 @@ export const userFriends = function(success, fail) {
             }
         }
         return friendIds;
+    });
+}
 
-    }).catch(error => {
-        fail && fail(error)
+/**
+ * Adds a friend for the existing user. This will throw an error the give friend UID is not valid.
+ * @param {String} friendId Friend's UID.
+ * @return {Promise<void>} 
+ */
+export const addFriend = async function(friendId) {
+    const uid = firebaseAuth.currentUser.uid;
+    const docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid, "friends", friendId);
+    const friendUser = doc(firebaseDb, USER_COLLECTION_NAME, friendId);
 
-    }).then(success);
+    return getDoc(friendUser).then(async snap => {
+        if (snap.exists()) {
+            return snap.data();
+        } else {
+            throw new Error("Friend not found");
+        }
+    }).then(async data => {
+        return setDoc(docRef, {});
+    });
 }
 
 /**
@@ -92,7 +102,7 @@ export const userFriends = function(success, fail) {
  */
 export const personalTasks = function(success, fail) {
     let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "Personal Task document not found.");
+    return docFetch(docRef, "Personal Task document not found.");
 }
 
 /**
@@ -143,20 +153,16 @@ export const followedTasks = function(success, fail) {
 /**
  * Utility function for the public retrieval functions.
  * @param {DocumentReference} docRef 
- * @param {(DocumentData) => void} success 
- * @param {(Error) => void | null} fail 
  * @param {string} eMessage Error message on failure.
- * @return {void}
+ * @return {Promise<DocumentData>}
  */
-function docFetch(docRef, success, fail, eMessage) {
-    getDoc(docRef).then((snapshot) => {
+async function docFetch(docRef, eMessage) {
+    return getDoc(docRef).then(async (snapshot) => {
         if (snapshot.exists())
-            success(snapshot.data());
+            return snapshot.data();
         else
-            fail && fail(new Error(eMessage));
-    }).catch((error) => {
-        fail && fail(error);
-    });
+            throw new Error(eMessage);
+    })
 }
 
 /**
@@ -191,17 +197,6 @@ export const createUniqueUser = async function() {
         } else {
             throw new Error("Failed to update Firestore");
         }
-    }
-}
-
-
-/**
- * Execute this at the bottom of the script to automatically redirect back to index page if no user is detected.
- * @return {void}
- */
-export const checkAuth = function() {
-    if (firebaseDb.currentUser == null) {
-        window.location.href = "index.html";
     }
 }
 
