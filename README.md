@@ -130,8 +130,15 @@ personal_task = [
 	}
 ]
 ```
+###### `id-name-map` collection
+```ts
+id_name_map = [
+	userName: {
+		id: string
+	}
+]
+```
 ---
-
 
 ## License
 
