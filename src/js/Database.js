@@ -13,6 +13,10 @@ import {
     collection,
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
+import {
+    createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
 const PERSONAL_COLLECTION_NAME = "personal-tasks";
@@ -221,26 +225,32 @@ function generateTaskCollectionName(date) {
 
 /**
  * Creates a new entry in the users collection if the uid does not exist yet.
+ * @param {String} name
+ * @param {String} email
+ * @param {String} pw Password.
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
-export const createUser = async function(name, email) {
-    const firebaseUser = firebaseAuth.currentUser;
-    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+export const createUser = async function(name, email, pw) {
+    const cred = await createUserWithEmailAndPassword(firebaseAuth, email, pw);
+    const uid = cred.user.uid;
+
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {
-        return firebaseUser;
+        return uid;
     } else {
         let userDocFields = {
             name: name,
-            email: email
+            email: email,
+            createdAt: new Date()
         };
         await setDoc(userDocRef, userDocFields);
         snapshot = await getDoc(userDocRef);
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-            defaultEntry();
-            return firebaseUser;
+            defaultEntry(uid);
+            return uid;
         } else {
             throw new Error("Failed to update Firestore");
         }
@@ -249,25 +259,18 @@ export const createUser = async function(name, email) {
 
 /**
  * Populates Firestore with default data for the logged in user, if the documents do not exist.
+ * @param {String} idString UID string.
  * @return {void}
  */
-export const defaultEntry = function () {
+export const defaultEntry = function (idString) {
     const firebaseUser = firebaseAuth.currentUser;
 
     let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
-    let userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
 
     getDoc(prefRefs).then((snap) => {
         if (!snap.exists()) {
             setDoc(prefRefs, DEFAULT_PREFERENCES);
-        }
-    });
-
-    getDoc(userRef).then((snap) => {
-        if (!snap.exists()) {
-            let defaultUsername = firebaseUser.email.split("@")[0];
-            setDoc(userRef, {name: defaultUsername});
         }
     });
 

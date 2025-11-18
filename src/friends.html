@@ -280,7 +280,7 @@
       // The default color (pink)
       const defaultAccentColor = "#fff5fa";
       // Search components so we can append search results
-      const searchContainer = document.getElementById("searchbarcontainer");
+      const searchContainer = document.querySelector(".searchbarcontainer");
       const searchBar = searchContainer.querySelector(".searchbar");
       const searchResults = document.getElementById("searchresults");
 
@@ -292,11 +292,11 @@
         if (term === "") {
           return;
         }
-        searchResults(term);
+        populateSearch(term);
       }
 
       /** Search matching usernames and display the resutls. */
-      async function searchResults(term) {
+      async function populateSearch(term) {
         // Slower than I'd like but no point in re-engineering the DB to make it faster
         searchUsers(term).then(results => {
           // Display new results
