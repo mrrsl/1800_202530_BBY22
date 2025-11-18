@@ -11,7 +11,8 @@ server.get("/", (req, res) => {
 });
 
 server.get("/js/:script", (req, res) => {
-    res.sendFile(path.resolve(path.join("./src/js/", req.params.script)));
+    res.header("Allow-Access-Control-Origin", "*")
+        .sendFile(path.resolve(path.join("./src/js/", req.params.script)));
 });
 
 server.get("/scripts/:script", (req, res) => {

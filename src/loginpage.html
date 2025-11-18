@@ -20,39 +20,46 @@
       </p>
 
       <script type="module">
-        import {
-          authWrapper,
-          firebaseAuth as auth
-        } from "/js/FirebaseInstances.js";
+        import { doc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 
-        import {
-          signInWithEmailAndPassword
-        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
+        const appInstance = initializeApp({
+          apiKey: "AIzaSyCvHPZ7Bq3GbQXbnlxnJE8INAWKfTCcNqA",
+          authDomain: "team-77dac.firebaseapp.com",
+          projectId: "team-77dac",
+          storageBucket: "team-77dac.firebasestorage.app",
+          messagingSenderId: "744151093255",
+          appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
+          measurementId: "G-5H2SQNQ0RR"
+        });
+        
+        const auth = getAuth(appInstance);
         /* --- FOR LOGGING IN --- */
         const form = document.querySelector(".loginbox");
 
         form.addEventListener("submit", async (event) => {
-          event.preventDefault(); // stops the page from refreshing
-
+          // stops the page from refreshing
+          event.preventDefault();
           const email = form.querySelector("input[type='email']").value;
           const password = form.querySelector("input[type='password']").value;
 
-          // tells firebase to sign in with an email & password
           try {
             const usercredenetials = await signInWithEmailAndPassword(
               auth,
               email,
               password
             );
-            // redirect to main calendar page
-            window.location.href = "/sofiascalendar.html";
           } catch (error) {
             alert("Something went wrong! " + error.message);
           }
         });
 
-        authWrapper((user) => { window.location.href = "/sofiascalendar.html"});
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            window.location.href = "/sofiascalendar.html";
+          }
+        });
       </script>
     </div>
   </body>

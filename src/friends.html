@@ -211,6 +211,9 @@
         placeholder="Search for friends..."
         class="searchbar"
       />
+      <div id="searchresults">
+
+      </div>
     </div>
 
     <div class="friendscontainer">
@@ -263,31 +266,68 @@
       </ul>
     </div>
 
-    <script>
+    <script type="module">
       import {
         userFriends, addFriend,
         user, userPreferences,
+        searchUsers
       } from "/js/Database.js";
 
       import {
         authWrapper
       } from "/js/FirebaseInstances.js";
 
-      const colorPicker = document.getElementById("accentColor");
-      // the default color (pink)
+      // The default color (pink)
       const defaultAccentColor = "#fff5fa";
+      // Search components so we can append search results
+      const searchContainer = document.getElementById("searchbarcontainer");
+      const searchBar = searchContainer.querySelector(".searchbar");
+      const searchResults = document.getElementById("searchresults");
 
-      // updates the accent color based on the user's input
-      colorPicker.addEventListener("input", async (e) => {
-        const selectedColor = e.target.value;
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          selectedColor
-        );
+      function searchHandler(event) {
+        if (event.key !== "Enter") return;
 
-        
-      });
+        let term = searchBar.value.trim();
+        searchResults.innerHTML = "";
+        if (term === "") {
+          return;
+        }
+        searchResults(term);
+      }
 
+      /** Search matching usernames and display the resutls. */
+      async function searchResults(term) {
+        // Slower than I'd like but no point in re-engineering the DB to make it faster
+        searchUsers(term).then(results => {
+          // Display new results
+          results.forEach(async idString => {
+            let friendRef = await user(idString);
+            searchResults.appendChild(generateResultDisplay(friendRef.name, friendRef.email))
+          });
+        });
+      }
+
+      /** Generates result display items. */
+      function generateResultDisplay(name, email) {
+        /*
+        div.resultwrapper
+          p.name
+          p.email
+        */
+        let wrapper = document.createElement("div");
+        wrapper.classList.add("resultwrapper");
+
+        let nameP = document.createElement("p");
+        nameP.classList.add("name");
+        nameP.innerText = name;
+
+        let emailP = document.createElement("p");
+        emailP.classList.add("email");
+        emailP.innerText = email;
+
+        wrapper.append(nameP, emailP);
+        return wrapper;
+      }
       /** Element generator for the each retreived friend. */
       function friendBox(name, userName, completions) {
 
@@ -343,20 +383,6 @@
           "--accent-color",
           colorString
         );
-        colorPicker.value = savedColor;
-      }
-
-      //controls the restore color button; which restores the color back to its default: pink
-      const restoreButton = document.getElementById("restoreColor");
-
-      if (restoreButton) {
-        restoreButton.addEventListener("click", () => {
-          document.documentElement.style.setProperty(
-            "--accent-color",
-            defaultAccentColor
-          );
-          colorPicker.value = defaultAccentColor;
-        });
       }
 
       authWrapper(loadData, () => window.location.href = "login.html");

@@ -3,7 +3,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebas
 import {
   getAuth,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 import {
   getFirestore,
@@ -16,13 +15,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC1X3eQaWxuFZt-Jrrzxl_X7RPzD1ooRd8",
-  authDomain: "calendar-app-eeda4.firebaseapp.com",
-  projectId: "calendar-app-eeda4",
-  storageBucket: "calendar-app-eeda4.firebasestorage.app",
-  messagingSenderId: "135200443171",
-  appId: "1:135200443171:web:d842dc61da8fcae97d5a96",
-  measurementId: "G-B0DBRK6MM2",
+  apiKey: "AIzaSyCvHPZ7Bq3GbQXbnlxnJE8INAWKfTCcNqA",
+  authDomain: "team-77dac.firebaseapp.com",
+  projectId: "team-77dac",
+  storageBucket: "team-77dac.firebasestorage.app",
+  messagingSenderId: "744151093255",
+  appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
+  measurementId: "G-5H2SQNQ0RR"
 };
 
 const app = initializeApp(firebaseConfig);

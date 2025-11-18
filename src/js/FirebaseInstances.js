@@ -1,15 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { getFirestore } from "https://gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const appConfig = {
     apiKey: "AIzaSyCvHPZ7Bq3GbQXbnlxnJE8INAWKfTCcNqA",
     authDomain: "team-77dac.firebaseapp.com",
     projectId: "team-77dac",
     storageBucket: "team-77dac.firebasestorage.app",
+    messagingSenderId: "744151093255",
     appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
-}
-
+    measurementId: "G-5H2SQNQ0RR"
+};
 /**
  * Reference to the Firebase app instance.
  */

@@ -11,7 +11,7 @@ import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
     collection,
-} from "https://gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
@@ -38,10 +38,12 @@ const INTRO_TASK = {
 
 /**
  * Retrieve current user's document entry and pass the data to another function.
+ * @param {String | null} idString Optional ID string, defaults to current user.
  * @return {Promise<DocumentData>}
  */
-export const user = async function() {
-    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+export const user = async function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
     return docFetch(docRef, "User Info document not found");
 }
 
@@ -49,8 +51,9 @@ export const user = async function() {
  * Retrieve current user's app settings and pass the data to another function.
  * @return {Promise<DocumentData>}
  */
-export const userPreferences = async function() {
-    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+export const userPreferences = async function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
     return docFetch(docRef, "User Preferences document not found");
 }
 
@@ -75,18 +78,12 @@ export const setUserPreferences = async function(prefObj) {
  * @return {Promise<Array<String>>}
  */
 export const userFriends = async function() {
-    let friendCollection = collection(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid, "friends");
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
 
-    return getDocs(friendCollection).then(async (querySnap) => {
-
-        let friendIds = [];
-
-        if (!querySnap.empty()) {         
-            for (let docQuery of querySnap.docs()) {
-                friendIds.push(docQuery.data());
-            }
+    return getDoc(userDocRef).then(querySnap => {
+        if (querySnap.exists()) {
+            return querySnap.data.friends;
         }
-        return friendIds;
     });
 }
 
@@ -97,27 +94,60 @@ export const userFriends = async function() {
  */
 export const addFriend = async function(friendId) {
     const uid = firebaseAuth.currentUser.uid;
-    const docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid, "friends", friendId);
+    const docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
     const friendUser = doc(firebaseDb, USER_COLLECTION_NAME, friendId);
 
     return getDoc(friendUser).then(async snap => {
+        // Check the friend exists first
         if (snap.exists()) {
             return snap.data();
         } else {
             throw new Error("Friend not found");
         }
-    }).then(async data => {
-        return setDoc(docRef, {});
+    }).then(data => getDoc(docRef))
+    .then(async snap => {
+        // Get friends array and push the new ID onto it before overwriting the doc
+        if (snap.exists()) {
+            const userData = snap.data();
+            userData.friends.push(friendId);
+
+            return setDoc(docRef, userData);
+        } else {
+            throw new Error("User not found");
+        }
     });
 }
 
 /**
- * Retrieves the current user's tasks and pass the document to a callback.
- * @param {(Object) => void} success Callback that processes the task document. See curatedData in the function body for properties.
- * @param {(Error) => void | null} fail Callback if document retrieval failed.
+ * Generate an array of users whos names match the search string.
+ * @param {String} searchString 
+ * @return {Array<Object>}
  */
-export const personalTasks = function(success, fail) {
-    let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+export const searchUsers = async function(searchString) {
+    const uid = firebaseAuth.currentUser.uid;
+    const coll = collection(firebaseDb, USER_COLLECTION_NAME);
+
+    const rex = new RegExp(searchString);
+
+    let matchedUsers = [];
+    let docs = await getDocs(coll);
+    docs.forEach(doc => {
+        if (doc.id != uid && doc.name.search(rex) > -1) {
+            matchedUsers.push(doc.data());
+        }
+    });
+
+    return matchedUsers;
+}
+
+/**
+ * Retrieves the current user's tasks and pass the document to a callback.
+ * @param {String | null} idString Optional UID, defaults to current user.
+ * @return {Promise<DocumentData>}
+ */
+export const personalTasks = function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, uid);
     return docFetch(docRef, "Personal Task document not found.");
 }
 
@@ -193,7 +223,7 @@ function generateTaskCollectionName(date) {
  * Creates a new entry in the users collection if the uid does not exist yet.
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
-export const createUniqueUser = async function() {
+export const createUser = async function(name, email) {
     const firebaseUser = firebaseAuth.currentUser;
     let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let snapshot = await getDoc(userDocRef);
@@ -201,14 +231,15 @@ export const createUniqueUser = async function() {
         return firebaseUser;
     } else {
         let userDocFields = {
-            name: firebaseUser.displayName
+            name: name,
+            email: email
         };
         await setDoc(userDocRef, userDocFields);
         snapshot = await getDoc(userDocRef);
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-//            defaultEntry();
+            defaultEntry();
             return firebaseUser;
         } else {
             throw new Error("Failed to update Firestore");
