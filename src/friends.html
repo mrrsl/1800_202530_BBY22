@@ -16,7 +16,7 @@
       }
 
       header {
-        background-image: url("/images/backgrounds/lightcoloredbackdrop.png");
+        background-image: url("/img/lightcoloredbackdrop.png");
         box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
         padding: 2.5rem 0 0.5rem 0; /* top right bottom left padding*/
       }
@@ -61,8 +61,11 @@
       /* styles the container for the search bar (duh) */
       .searchbarcontainer {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
         margin-top: 1rem;
+        width: 100%;
       }
 
       .searchbar {
@@ -76,10 +79,48 @@
         font-family: var(--body-font, sans-serif);
         border: 2px solid #d2c2cb;
         border-radius: 25px;
-        background-image: url("searchicon.png"); /* sets the icon as a bg image in order to display it (I didn't feel like creating another wrapper div to do this) */
+        background-image: url("/img/searchicon.png"); /* sets the icon as a bg image in order to display it (I didn't feel like creating another wrapper div to do this) */
         background-repeat: no-repeat;
         background-size: 60px 60px;
         background-position: 0.8rem center;
+      }
+      #searchresults {
+        margin-top: 1rem;
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      div.resultwrapper {
+        background-color: #EFEFEF;
+        display:flex;
+        flex-direction: row;
+        width: 100%;
+      }
+      div.resultwrapper > i {
+        width: 10%;
+        height: auto;
+        aspect-ratio: 1/1;
+
+        margin-right: 5px;
+
+        background-image: url("/img/listadd.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      div.resulttext {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+
+        text-align: left;
+        padding-left: 5px;
+      }
+      div.resulttext > p {
+        margin: 0;
+        padding: 4px;
       }
 
       .friendscontainer {
@@ -245,8 +286,8 @@
           </div>
           <div class="leaderboardtasks">3 tasks completed this week</div>
         </div>
-      </div>
-    </template>
+      </template>
+    </div>
 
     <!-- BOTTOM NAVBAR -->
     <div class="bottomnav">
@@ -299,23 +340,30 @@
       async function populateSearch(term) {
         // Slower than I'd like but no point in re-engineering the DB to make it faster
         searchUsers(term).then(results => {
-          // Display new results
-          results.forEach(async idString => {
-            let friendRef = await user(idString);
-            searchResults.appendChild(generateResultDisplay(friendRef.name, friendRef.email))
+          results.forEach(async friendObj => {
+            searchResults.appendChild(generateResultDisplay(friendObj.name, friendObj.email, friendObj.uid));
           });
         });
       }
 
-      /** Generates result display items. */
-      function generateResultDisplay(name, email) {
+      /** Generates result display items. Get uid from wrapper.uid. */
+      function generateResultDisplay(name, email, uid) {
         /*
         div.resultwrapper
-          p.name
-          p.email
+          i.addfriendicon
+          div.resulttext
+            p.name
+            p.email
         */
         let wrapper = document.createElement("div");
         wrapper.classList.add("resultwrapper");
+        let textWrapper = document.createElement("div");
+        textWrapper.classList.add("resulttext");
+
+        let addIcon = document.createElement("i");
+        addIcon.classList.add("addfriendicon");
+        addIcon.firebaseUID = uid;
+        addIcon.addEventListener("click", addHandler);
 
         let nameP = document.createElement("p");
         nameP.classList.add("name");
@@ -325,11 +373,14 @@
         emailP.classList.add("email");
         emailP.innerText = email;
 
-        wrapper.append(nameP, emailP);
+        textWrapper.append(nameP, emailP);
+        wrapper.appendChild(textWrapper);
+        wrapper.appendChild(addIcon);
+
         return wrapper;
       }
       /** Element generator for the each retreived friend. */
-      function friendBox(name, userName, completions) {
+      function friendBox(name, email, completions) {
 
         let wrapper = document.createElement("div");
         wrapper.classList.add("friendbox");
@@ -346,10 +397,10 @@
         friendName.classList.add("friendname");
         friendName.innerText = name;
 
-        let friendUsername = document.createElement("div");
-        friendUsername.classList.add("friendusername");
-        friendUsername.innerText = userName;
-        infoBox.append(friendName, friendUsername);
+        let friendEmail = document.createElement("div");
+        friendEmail.classList.add("friendusername");
+        friendEmail.innerText = email;
+        infoBox.append(friendName, friendEmail);
 
         let taskCount = document.createElement("div");
         taskCount.classList.add("leaderboardtasks");
@@ -362,18 +413,20 @@
       /** Load user data and friends here. Run after auth check to make sure the user ID is populated. */
       async function loadData() {
         let prefs = await userPreferences();
-        let friends = await userFriends();
+        let friends = await userFriends() || [];
+
+        const friendsContainer = document.querySelector(".friendscontainer");
+        friendsContainer.innerHTML = "";
 
         for (let friendId of friends) {
           let friendData = await user(friendId);
           let friendElement = friendBox(
             friendData.name,
-            friendData.username,
-            prefs.weeklyCompletions[friendId] || 0
+            friendData.email,
+            0
           );
-          document.querySelector(".friendscontainer").appendChild(friendElement);
+          friendsContainer.appendChild(friendElement);
         }
-
         changeAccentColor(prefs.accentColor || defaultAccentColor);
       }
 
@@ -385,7 +438,20 @@
         );
       }
 
+      /** Handles clicking on the add button for search results. */
+      function addHandler(event) {
+        let addTarget = this.firebaseUID;
+        addFriend(addTarget).then(() => {
+          alert("Friend added!");
+          loadData();
+          searchResults.innerHTML = "";
+        }).catch((error) => {
+          alert("Failed to add friend: " + error.message);
+        });
+      }
+      
       authWrapper(loadData, () => window.location.href = "login.html");
+      searchBar.addEventListener("keydown", searchHandler);
 
     </script>
   </body>

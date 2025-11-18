@@ -365,7 +365,7 @@ async function displayPlannerName(userId) {
   // if the file is there
   if (snapshot.exists()) {
     const data = snapshot.data(); // get all the fields stored for that user, and use the username
-    const name = data.username || "user"; //
+    const name = data.name || "user"; //
     document.getElementById("plannerName").textContent = name + "'s Planner";
   } else {
     document.getElementById("plannerName").textContent = "My Planner";
@@ -409,6 +409,7 @@ onAuthStateChanged(auth, function (User) {
   // if the user is logged in, save their id, display the right planner name, and load in their tasks
   if (User) {
     USERS_CURRENT_ID = User.uid;
+    debugger;
     displayPlannerName(USERS_CURRENT_ID);
     loadTasksForTheDay(formatDate(selectedDate));
     // otherwise, clear the user's id, clear the task list, set the default planner name, and reset the task limit

@@ -1,9 +1,6 @@
 /**
  * Module for encapsulating Firestore API calls. The intention is to remove the need to
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
- * 
- * All functions here should take a Firestore {@link User} object as the first argument, which can
- * be read from the currentUser property of the @firebase/auth module.
  */
 
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
@@ -63,7 +60,7 @@ export const userPreferences = async function(idString) {
 
 /**
  * Sets fields in the user's preferences according to values defined in the argument.
- * @param {Object} prefObj
+ * @param {Object} prefObj Values in the argument will either be appended or overwrite the preferences object.
  * @returns 
  */
 export const setUserPreferences = async function(prefObj) {
@@ -78,15 +75,17 @@ export const setUserPreferences = async function(prefObj) {
     return setDoc(docRef, currentPrefs);
 }
 /**
- * Retrieve the current user's friends and pass the array to a callback.
+ * Retrieve an array of UID's that the user has added as a friend
+ * @param {String | null} idString Optional uid string. Defaults to current user.
  * @return {Promise<Array<String>>}
  */
-export const userFriends = async function() {
-    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+export const userFriends = async function(idString) {
+    const uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
 
     return getDoc(userDocRef).then(querySnap => {
         if (querySnap.exists()) {
-            return querySnap.data.friends;
+            return querySnap.data().friends;
         }
     });
 }
@@ -94,7 +93,7 @@ export const userFriends = async function() {
 /**
  * Adds a friend for the existing user. This will throw an error the give friend UID is not valid.
  * @param {String} friendId Friend's UID.
- * @return {Promise<void>} 
+ * @return {Promise<void>}
  */
 export const addFriend = async function(friendId) {
     const uid = firebaseAuth.currentUser.uid;
@@ -113,7 +112,10 @@ export const addFriend = async function(friendId) {
         // Get friends array and push the new ID onto it before overwriting the doc
         if (snap.exists()) {
             const userData = snap.data();
-            userData.friends.push(friendId);
+            if (userData.friends)
+                userData.friends.push(friendId);
+            else
+                userData.friends = [friendId];
 
             return setDoc(docRef, userData);
         } else {
@@ -136,8 +138,10 @@ export const searchUsers = async function(searchString) {
     let matchedUsers = [];
     let docs = await getDocs(coll);
     docs.forEach(doc => {
-        if (doc.id != uid && doc.name.search(rex) > -1) {
-            matchedUsers.push(doc.data());
+        if (doc.id != uid && doc.data().name.search(rex) > -1) {
+            let nameAndEmail = doc.data();
+            nameAndEmail.uid = doc.id;
+            matchedUsers.push(nameAndEmail);
         }
     });
 
@@ -233,7 +237,6 @@ function generateTaskCollectionName(date) {
 export const createUser = async function(name, email, pw) {
     const cred = await createUserWithEmailAndPassword(firebaseAuth, email, pw);
     const uid = cred.user.uid;
-
     let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {

@@ -319,10 +319,15 @@
     </div>
 
     <script type="module">
+
       import {
         getAuth,
         signOut
-      } from "https://gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+      import {
+        firebaseInstance
+      } from "/js/FirebaseInstances.js";
 
       const colorPicker = document.getElementById("accentColor");
       const logoutButton = document.getElementById("logoutbutton");
@@ -330,7 +335,7 @@
 
       // Simple logout function
       function logoutHandler() {
-        signOut(getAuth())
+        signOut(getAuth(firebaseInstance))
           .then(() => window.location.href = "loginpage.html");
       }
 

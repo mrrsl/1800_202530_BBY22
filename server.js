@@ -7,7 +7,8 @@ server.use(express.static("./public/"));
 server.use(express.static("./src/"));
 
 server.get("/", (req, res) => {
-    res.type("html").sendFile(path.resolve("./src/landingpage.html"));
+    res.header("Allow-Access-Control-Origin", "*")
+        .type("html").sendFile(path.resolve("./src/landingpage.html"));
 });
 
 server.get("/js/:script", (req, res) => {
