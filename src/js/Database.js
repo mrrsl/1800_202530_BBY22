@@ -55,6 +55,22 @@ export const userPreferences = async function() {
 }
 
 /**
+ * Sets fields in the user's preferences according to values defined in the argument.
+ * @param {Object} prefObj
+ * @returns 
+ */
+export const setUserPreferences = async function(prefObj) {
+    const uid = firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
+    let currentPrefs = await getDoc(docRef);
+    if (currentPrefs.exists()) currentPrefs = currentPrefs.data();
+
+    for (let field of Object.keys(prefObj)) {
+        currentPrefs[field] = prefObj[field];
+    }
+    return setDoc(docRef, currentPrefs);
+}
+/**
  * Retrieve the current user's friends and pass the array to a callback.
  * @return {Promise<Array<String>>}
  */
