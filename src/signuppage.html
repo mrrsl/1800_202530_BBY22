@@ -47,11 +47,9 @@
         const password = form.querySelector("input[type='password']").value;
 
         try {
-
           createUser(username, email, password);
-          console.log("You succesfully signed up!");
-
           window.location.href = "sofiascalendar.html";
+          
         } catch (error) {
           alert("Sign up failed! " + error.message);
         }
