@@ -318,8 +318,26 @@
       </ul>
     </div>
 
-    <script>
+    <script type="module">
+
+      import {
+        getAuth,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+      import {
+        firebaseInstance
+      } from "/js/FirebaseInstances.js";
+
       const colorPicker = document.getElementById("accentColor");
+      const logoutButton = document.getElementById("logoutbutton");
+      const defaultAccentColor = "#fff5fa"; // the default color (pink)
+
+      // Simple logout function
+      function logoutHandler() {
+        signOut(getAuth(firebaseInstance))
+          .then(() => window.location.href = "loginpage.html");
+      }
 
       // loads in the accent color selected by the user
       const savedColor = localStorage.getItem("accentColor");
@@ -340,9 +358,6 @@
         );
         localStorage.setItem("accentColor", selectedColor);
       });
-
-      const defaultAccentColor = "#fff5fa"; // the default color (pink)
-
       //controls the restore color button; which restores the color back to its default: pink
       const restoreButton = document.getElementById("restoreColor");
 
@@ -358,6 +373,8 @@
           colorPicker.value = defaultAccentColor;
         });
       }
+
+      logoutButton.addEventListener("click", logoutHandler);
     </script>
   </body>
 </html>

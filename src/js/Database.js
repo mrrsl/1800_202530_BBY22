@@ -1,18 +1,18 @@
 /**
  * Module for encapsulating Firestore API calls. The intention is to remove the need to
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
- * 
- * All functions here should take a Firestore {@link User} object as the first argument, which can
- * be read from the currentUser property of the @firebase/auth module.
  */
 
-import { prefersReducedMotion } from "svelte/motion";
 import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
 
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
     collection,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+import {
+    createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
@@ -39,60 +39,124 @@ const INTRO_TASK = {
 
 /**
  * Retrieve current user's document entry and pass the data to another function.
- * @param {(DocumentData) => void} success Callback if user retrieval is successful.
- * @param {(Error) => void | null} fail Callback if user retrieval fails.
- * @return {void}
+ * @param {String | null} idString Optional ID string, defaults to current user.
+ * @return {Promise<DocumentData>}
  */
-export const user = function(success, fail) {
-    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "User Info document not found");
+export const user = async function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
+    return docFetch(docRef, "User Info document not found");
 }
 
 /**
  * Retrieve current user's app settings and pass the data to another function.
- * @param {(DocumentData) => void} success Callback if settings retrieval is successful.
- * @param {(Error) => void | null} fail Callback if settings retrieval fails.
- * @return {void}
+ * @return {Promise<DocumentData>}
  */
-export const userPreferences = function(success, fail) {
-    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "User Preferences document not found");
+export const userPreferences = async function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
+    return docFetch(docRef, "User Preferences document not found");
 }
 
 /**
- * Retrieve the current user's friends and pass the array to a callback.
- * @param {(Array) => void} success Callback if friends array retrieval is successful. Note that the array can be empty.
- * @param {(Error) => void | null} fail Callback if settings retrieval failed.
+ * Sets fields in the user's preferences according to values defined in the argument.
+ * @param {Object} prefObj Values in the argument will either be appended or overwrite the preferences object.
+ * @returns 
  */
-export const userFriends = function(success, fail) {
-    const friendField = "friends";
-    let friendCollection = collection(firebaseDb, PREF_COLLECTION_NAME, firebaseAuth.currentUser.uid, friendField);
+export const setUserPreferences = async function(prefObj) {
+    const uid = firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
+    let currentPrefs = await getDoc(docRef);
+    if (currentPrefs.exists()) currentPrefs = currentPrefs.data();
 
-    friendCollection.get().then(async (querySnap) => {
+    for (let field of Object.keys(prefObj)) {
+        currentPrefs[field] = prefObj[field];
+    }
+    return setDoc(docRef, currentPrefs);
+}
+/**
+ * Retrieve an array of UID's that the user has added as a friend
+ * @param {String | null} idString Optional uid string. Defaults to current user.
+ * @return {Promise<Array<String>>}
+ */
+export const userFriends = async function(idString) {
+    const uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
 
-        let friendIds = [];
-
-        if (!querySnap.empty()) {         
-            for (let docQuery of querySnap.docs()) {
-                friendIds.push(docQuery.data());
-            }
+    return getDoc(userDocRef).then(querySnap => {
+        if (querySnap.exists()) {
+            return querySnap.data().friends;
         }
-        return friendIds;
+    });
+}
 
-    }).catch(error => {
-        fail && fail(error)
+/**
+ * Adds a friend for the existing user. This will throw an error the give friend UID is not valid.
+ * @param {String} friendId Friend's UID.
+ * @return {Promise<void>}
+ */
+export const addFriend = async function(friendId) {
+    const uid = firebaseAuth.currentUser.uid;
+    const docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
+    const friendUser = doc(firebaseDb, USER_COLLECTION_NAME, friendId);
 
-    }).then(success);
+    return getDoc(friendUser).then(async snap => {
+        // Check the friend exists first
+        if (snap.exists()) {
+            return snap.data();
+        } else {
+            throw new Error("Friend not found");
+        }
+    }).then(data => getDoc(docRef))
+    .then(async snap => {
+        // Get friends array and push the new ID onto it before overwriting the doc
+        if (snap.exists()) {
+            const userData = snap.data();
+            if (userData.friends)
+                userData.friends.push(friendId);
+            else
+                userData.friends = [friendId];
+
+            return setDoc(docRef, userData);
+        } else {
+            throw new Error("User not found");
+        }
+    });
+}
+
+/**
+ * Generate an array of users whos names match the search string.
+ * @param {String} searchString 
+ * @return {Array<Object>}
+ */
+export const searchUsers = async function(searchString) {
+    const uid = firebaseAuth.currentUser.uid;
+    const coll = collection(firebaseDb, USER_COLLECTION_NAME);
+
+    const rex = new RegExp(searchString);
+
+    let matchedUsers = [];
+    let docs = await getDocs(coll);
+    docs.forEach(doc => {
+        if (doc.id != uid && doc.data().name.search(rex) > -1) {
+            let nameAndEmail = doc.data();
+            nameAndEmail.uid = doc.id;
+            matchedUsers.push(nameAndEmail);
+        }
+    });
+
+    return matchedUsers;
 }
 
 /**
  * Retrieves the current user's tasks and pass the document to a callback.
- * @param {(Object) => void} success Callback that processes the task document. See curatedData in the function body for properties.
- * @param {(Error) => void | null} fail Callback if document retrieval failed.
+ * @param {String | null} idString Optional UID, defaults to current user.
+ * @return {Promise<DocumentData>}
  */
-export const personalTasks = function(success, fail) {
-    let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseAuth.currentUser.uid);
-    docFetch(docRef, success, fail, "Personal Task document not found.");
+export const personalTasks = function(idString) {
+    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
+    let docRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, uid);
+    return docFetch(docRef, "Personal Task document not found.");
 }
 
 /**
@@ -143,20 +207,16 @@ export const followedTasks = function(success, fail) {
 /**
  * Utility function for the public retrieval functions.
  * @param {DocumentReference} docRef 
- * @param {(DocumentData) => void} success 
- * @param {(Error) => void | null} fail 
  * @param {string} eMessage Error message on failure.
- * @return {void}
+ * @return {Promise<DocumentData>}
  */
-function docFetch(docRef, success, fail, eMessage) {
-    getDoc(docRef).then((snapshot) => {
+async function docFetch(docRef, eMessage) {
+    return getDoc(docRef).then(async (snapshot) => {
         if (snapshot.exists())
-            success(snapshot.data());
+            return snapshot.data();
         else
-            fail && fail(new Error(eMessage));
-    }).catch((error) => {
-        fail && fail(error);
-    });
+            throw new Error(eMessage);
+    })
 }
 
 /**
@@ -169,63 +229,51 @@ function generateTaskCollectionName(date) {
 
 /**
  * Creates a new entry in the users collection if the uid does not exist yet.
+ * @param {String} name
+ * @param {String} email
+ * @param {String} pw Password.
  * @return {Promise<UserInfo>} Resolves to true if a new user entry was successfully added to Firestore.
  */
-export const createUniqueUser = async function() {
-    const firebaseUser = firebaseAuth.currentUser;
-    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+export const createUser = async function(name, email, pw) {
+    const cred = await createUserWithEmailAndPassword(firebaseAuth, email, pw);
+    const uid = cred.user.uid;
+    let userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
     let snapshot = await getDoc(userDocRef);
     if (snapshot.exists()) {
-        return firebaseUser;
+        return uid;
     } else {
         let userDocFields = {
-            name: firebaseUser.displayName
+            name: name,
+            email: email,
+            createdAt: new Date()
         };
         await setDoc(userDocRef, userDocFields);
         snapshot = await getDoc(userDocRef);
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-//            defaultEntry();
-            return firebaseUser;
+            defaultEntry(uid);
+            return uid;
         } else {
             throw new Error("Failed to update Firestore");
         }
     }
 }
 
-
-/**
- * Execute this at the bottom of the script to automatically redirect back to index page if no user is detected.
- * @return {void}
- */
-export const checkAuth = function() {
-    if (firebaseDb.currentUser == null) {
-        window.location.href = "index.html";
-    }
-}
-
 /**
  * Populates Firestore with default data for the logged in user, if the documents do not exist.
+ * @param {String} idString UID string.
  * @return {void}
  */
-export const defaultEntry = function () {
+export const defaultEntry = function (idString) {
     const firebaseUser = firebaseAuth.currentUser;
 
     let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
-    let userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
     let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
 
     getDoc(prefRefs).then((snap) => {
         if (!snap.exists()) {
             setDoc(prefRefs, DEFAULT_PREFERENCES);
-        }
-    });
-
-    getDoc(userRef).then((snap) => {
-        if (!snap.exists()) {
-            let defaultUsername = firebaseUser.email.split("@")[0];
-            setDoc(userRef, {name: defaultUsername});
         }
     });
 

@@ -20,52 +20,44 @@
       </p>
 
       <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-        import {
-          getAuth,
-          signInWithEmailAndPassword,
-        } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+        import { doc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyC1X3eQaWxuFZt-Jrrzxl_X7RPzD1ooRd8",
-          authDomain: "calendar-app-eeda4.firebaseapp.com",
-          projectId: "calendar-app-eeda4",
-          storageBucket: "calendar-app-eeda4.appspot.com",
-          messagingSenderId: "135200443171",
-          appId: "1:135200443171:web:d842dc61da8fcae97d5a96",
-          measurementId: "G-B0DBRK6MM2",
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
+        const appInstance = initializeApp({
+          apiKey: "AIzaSyCvHPZ7Bq3GbQXbnlxnJE8INAWKfTCcNqA",
+          authDomain: "team-77dac.firebaseapp.com",
+          projectId: "team-77dac",
+          storageBucket: "team-77dac.firebasestorage.app",
+          messagingSenderId: "744151093255",
+          appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
+          measurementId: "G-5H2SQNQ0RR"
+        });
+        
+        const auth = getAuth(appInstance);
         /* --- FOR LOGGING IN --- */
         const form = document.querySelector(".loginbox");
 
         form.addEventListener("submit", async (event) => {
-          event.preventDefault(); // stops the page from refreshing
-
+          // stops the page from refreshing
+          event.preventDefault();
           const email = form.querySelector("input[type='email']").value;
           const password = form.querySelector("input[type='password']").value;
 
-          // tells firebase to sign in with an email & password
           try {
             const usercredenetials = await signInWithEmailAndPassword(
               auth,
               email,
               password
             );
-
-            // logs the user id to the console if it went fine
-            console.log(
-              "You're successfully logged in!",
-              usercredenetials.user.uniqueID
-            );
-
-            // redirect to main calendar page
-            window.location.href = "sofiascalendar.html";
           } catch (error) {
             alert("Something went wrong! " + error.message);
+          }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            window.location.href = "/sofiascalendar.html";
           }
         });
       </script>
