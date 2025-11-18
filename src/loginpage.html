@@ -20,24 +20,14 @@
       </p>
 
       <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
         import {
-          getAuth,
-          signInWithEmailAndPassword,
-        } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+          authWrapper,
+          firebaseAuth as auth
+        } from "/js/FirebaseInstances.js";
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyC1X3eQaWxuFZt-Jrrzxl_X7RPzD1ooRd8",
-          authDomain: "calendar-app-eeda4.firebaseapp.com",
-          projectId: "calendar-app-eeda4",
-          storageBucket: "calendar-app-eeda4.appspot.com",
-          messagingSenderId: "135200443171",
-          appId: "1:135200443171:web:d842dc61da8fcae97d5a96",
-          measurementId: "G-B0DBRK6MM2",
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        import {
+          signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
         /* --- FOR LOGGING IN --- */
         const form = document.querySelector(".loginbox");
@@ -55,19 +45,14 @@
               email,
               password
             );
-
-            // logs the user id to the console if it went fine
-            console.log(
-              "You're successfully logged in!",
-              usercredenetials.user.uniqueID
-            );
-
             // redirect to main calendar page
-            window.location.href = "sofiascalendar.html";
+            window.location.href = "/sofiascalendar.html";
           } catch (error) {
             alert("Something went wrong! " + error.message);
           }
         });
+
+        authWrapper((user) => { window.location.href = "/sofiascalendar.html"});
       </script>
     </div>
   </body>
