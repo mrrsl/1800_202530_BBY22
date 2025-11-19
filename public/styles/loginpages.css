@@ -9,14 +9,11 @@ body {
   display: flex;
 }
 
-#backarrow {
-  position: absolute;
-  top: 4rem;
-  left: 2rem;
-  z-index: 10;
-  width: 2rem;
-  height: auto;
-  cursor: pointer;
+#backarrow img {
+  position: fixed;
+  bottom: 0px;
+  right: 70px;
+  width: 80px;
 }
 
 @keyframes lightgradientshift {

@@ -1,0 +1,336 @@
+<html>
+  <head>
+    <style>
+      /* standardizing as many colors as possible so it's easier to customize */
+      :root {
+        --accent-color: #fff5fa; /* default accent color */
+        --header-font: "Oooh Baby", sans-serif;
+        --body-font: "Inria Serif", sans-serif;
+        --secondary-font-color: #4e162d;
+        --highlight-color: #f0cfe0;
+        --border-color: #d2c2cb;
+        --shadow-color: rgba(59, 16, 34, 0.384);
+        --box-shadow: rgba(78, 22, 45, 0.12);
+      }
+
+      body {
+        background-color: #fbf7f8;
+        background-blend-mode: lighten;
+        text-align: center;
+        font-family: var(--header-font);
+        font-size: 30pt;
+      }
+
+      header {
+        background-image: url("./img/lightcoloredbackdrop.png");
+        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
+        padding: 2.5rem 0 0.5rem 0;
+      }
+
+      #backarrow {
+        position: absolute;
+        top: 4rem;
+        left: 2rem;
+        z-index: 10;
+        width: 2rem;
+        height: auto;
+        cursor: pointer;
+      }
+
+      /* styles the settings icon in the header; Unfortunately, I had to use position: absolute to prevent the header from overflowing (note: the settings icon is styled using flexbox on the other pages)  */
+      .settingsIcon {
+        position: absolute;
+        top: 3.8rem;
+        right: 2.5rem;
+        z-index: 10;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* styles the group of two buttons located at the top of the friends page */
+      .socialbuttonsgroup {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin: 3rem 0;
+      }
+
+      /* styles each individual friends button */
+      .friendsbutton {
+        padding: 0.8rem 0.9rem;
+        font-size: 29pt;
+        font-family: var(--body-font, sans-serif);
+        background-color: #e0d6dc;
+        border: none;
+        border-radius: 8px;
+        letter-spacing: -1px;
+      }
+
+      /* styles friend & group buttons */
+      .friendsbutton {
+        padding: 1.4rem 1.8rem;
+        font-size: 31pt;
+        border: 2px solid #d2c2cb;
+        border-radius: 18px;
+        background: #fff5fa;
+        box-shadow: 0 6px 14px rgba(78, 2, 34, 0.726);
+      }
+
+      /* styles the container for the search bar */
+      .searchbarcontainer {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      .searchbar {
+        width: 100%;
+        max-width: 800px;
+        padding: 1rem 2rem 0.6rem 5rem; /* some of this padding is responsible for maintaining the distance between the icon and the placeholder text */
+        font-size: 29pt;
+        background-color: #fdf9fb;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        outline: none;
+        font-family: var(--body-font, sans-serif);
+        border: 2px solid #d2c2cb;
+        border-radius: 25px;
+        background-image: url("./img/searchicon.png"); /* sets the icon as a bg image in order to display it (I didn't feel like creating another wrapper div to do this) */
+        background-repeat: no-repeat;
+        background-size: 60px 60px;
+        background-position: 0.8rem center;
+      }
+
+      .groupSection {
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+        margin: 2rem auto;
+        width: 90%;
+        max-width: 900px;
+        padding-bottom: 8rem;
+      }
+
+      /* standard style for all group bubbles */
+      .bubblebox {
+        border: 2px solid var(--border-color);
+        border-radius: 24px;
+        background: white;
+        padding: 2rem;
+        box-shadow: 0 6px 14px var(--box-shadow);
+        margin: 0.5rem 0;
+      }
+
+      /* only styles the heading for each group */
+      .groupname {
+        font-size: 42pt;
+        margin-bottom: 1rem;
+        text-align: left;
+        font-weight: bold;
+      }
+
+      /* makes image and column sit next to each other */
+      .aboutgroup {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+      }
+
+      /* group photo */
+      .coverphoto {
+        width: 200px;
+        height: 200px;
+        border-radius: 18px;
+        border: 3px solid var(--highlight-color);
+        object-fit: cover;
+      }
+
+      /* the entire main column beside the group image*/
+      .groupinfo {
+        flex: 1;
+        text-align: left;
+      }
+
+      /* only styles the ROW with the pfp & add task button section */
+      .groupmembers {
+        font-size: 28pt;
+        font-family: var(--body-font);
+        gap: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .pfp {
+        border: 2px solid var(--highlight-color);
+        margin-right: 0.8rem;
+        border-radius: 69%;
+        box-shadow: 4px 8px 30px var(--shadow-color);
+        width: 70px;
+        height: 70px;
+      }
+
+      /* only for the small add task button (might change this to an icon later? not yet sure) */
+      .taskbutton {
+        font-family: var(--body-font);
+        background: var(--accent-color);
+        font-weight: 600;
+        padding: 0.8rem 1.2rem;
+        font-size: 24pt;
+        border: 2px solid var(--border-color);
+        box-shadow: 0 4px 10px var(--shadow-color);
+        border-radius: 16px;
+        color: var(--secondary-font-color);
+      }
+
+      .recentgrouptask {
+        font-family: var(--body-font);
+        background: var(--accent-color);
+        display: inline-block;
+        font-size: 25pt;
+        font-weight: 600;
+        color: var(--secondary-font-color);
+        border-radius: 16px;
+        border: 2px solid var(--border-color);
+        padding: 1rem 1.5rem;
+      }
+
+      /* styles the new group icon in the right hand corner */
+      .containerForNewGroupIcon {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20rem;
+        padding-right: 1.5rem; /
+      }
+
+      .newgroupicon {
+        width: 120px;
+        height: 120px;
+      }
+
+      /* styles the bottom navbar */
+      .bottomnav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--accent-color);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        padding: 1rem 0;
+      }
+
+      .bottomnav ul {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .bottomnav li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: var(--body-font);
+        font-size: 25pt;
+        color: #362830;
+      }
+
+      .bottomnav img {
+        width: 100px;
+        height: auto;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+    <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
+    <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+  </head>
+
+  <body>
+    <!-- HEADER AREA -->
+    <header>
+      <h1 id="plannerName">Groups</h1>
+      <div id="backarrow" onclick="window.history.back()">
+        <img src="../img/up-arrow.png" width="110px" />
+      </div>
+      <a href="sofiassettings.html" class="settingsicon">
+        <img src="../img/settingsgear.png" width="70px" />
+      </a>
+    </header>
+
+    <div class="socialbuttonsgroup">
+      <button class="friendsbutton">
+        <a href="friends.html">FRIENDS LIST</a>
+      </button>
+      <button class="friendsbutton"><a href="groups.html">GROUPS</a></button>
+    </div>
+
+    <div class="searchbarcontainer">
+      <input type="text" placeholder="Search for groups..." class="searchbar" />
+    </div>
+
+    <!-- FRIEND GROUPS -->
+    <div class="groupSection">
+      <div class="bubblebox">
+        <div class="groupname">Study Buddies :P</div>
+        <div class="aboutgroup">
+          <img src="../img/studybuddies.jpg" class="coverphoto" />
+          <div class="groupinfo">
+            <div class="groupmembers">
+              <img src="../img/lachesis.jfif" alt="Sofia" class="pfp" />
+              <img src="../img/zakarya.jpg" alt="Zakarya" class="pfp" />
+              <img src="../img/rawan.jpg" alt="Rawan" class="pfp" />
+              <button class="taskbutton">+ Add Task</button>
+            </div>
+            <div class="recentgrouptask">
+              Most recent task: Comp 1113 study session
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bubblebox">
+        <div class="groupname">1800 Group</div>
+        <div class="aboutgroup">
+          <img src="../img/comp1800.jpg" class="coverphoto" />
+          <div class="groupinfo">
+            <div class="groupmembers">
+              <img src="../img/default1.jpg" alt="Morris" class="pfp" />
+              <img src="../img/default2.jpg" alt="Sofia" class="pfp" />
+              <img src="../img/default3.jpg" alt="Kian" class="pfp" />
+              <button class="taskbutton">+ Add Task</button>
+            </div>
+            <div class="recentgrouptask">
+              Most recent task: Work on Sprint 4 Together
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="containerForNewGroupIcon">
+      <img src="../img/newgroup.png" class="newgroupicon" />
+    </div>
+
+    <!-- BOTTOM NAVBAR -->
+    <div class="bottomnav">
+      <ul>
+        <li>
+          <a href="friends.html"
+            ><img src="../img/friendsicon.png" alt="Friends"
+          /></a>
+          <span>Friends</span>
+        </li>
+        <li>
+          <a href="sofiascalendar.html"
+            ><img src="../img/scheduleicon.png" alt="Schedule"
+          /></a>
+          <span>Schedule</span>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
