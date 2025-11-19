@@ -1,10 +1,16 @@
 <html>
   <head>
     <style>
+      /* standardizing as many colors as possible so it's easier to customize */
       :root {
         --accent-color: #fff5fa; /* default accent color */
         --header-font: "Oooh Baby", sans-serif;
         --body-font: "Inria Serif", sans-serif;
+        --secondary-font-color: #4e162d;
+        --highlight-color: #f0cfe0;
+        --border-color: #d2c2cb;
+        --shadow-color: rgba(59, 16, 34, 0.384);
+        --box-shadow: rgba(78, 22, 45, 0.12);
       }
 
       body {
@@ -18,7 +24,7 @@
       header {
         background-image: url("./img/lightcoloredbackdrop.png");
         box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
-        padding: 2.5rem 0 0.5rem 0; /* top right bottom left padding*/
+        padding: 2.5rem 0 0.5rem 0;
       }
 
       #backarrow {
@@ -97,73 +103,111 @@
         background-position: 0.8rem center;
       }
 
-      .friendscontainer {
+      .groupSection {
         display: flex;
         flex-direction: column;
         gap: 4rem;
         margin: 2rem auto;
         width: 90%;
-        max-width: 800px;
-        padding-bottom: 8rem; /* added to prevent obstruction from navbar */
+        max-width: 900px;
+        padding-bottom: 8rem;
       }
 
-      .friendbox {
-        position: relative;
-        border: 2px solid #d2c2cb;
+      /* standard style for all group bubbles */
+      .bubblebox {
+        border: 2px solid var(--border-color);
         border-radius: 24px;
-        background: #fff;
-        padding: 1.8rem;
-        box-shadow: 0 6px 14px rgba(78, 22, 45, 0.12);
+        background: white;
+        padding: 2rem;
+        box-shadow: 0 6px 14px var(--box-shadow);
         margin: 0.5rem 0;
       }
 
-      /* styles the unfriend icon */
-      .unfriend {
-        position: absolute;
-        top: 1rem;
-        right: 1.5rem;
-        width: 67px;
-        height: 67px;
-      }
-
-      /* styles the add friend to group icon directly across */
-      .addToGroup {
-        position: absolute;
-        top: 1rem;
-        left: 1.5rem;
-        width: 67px;
-        height: 67px;
-      }
-
-      .profilepic {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 3px solid #f0cfe0;
-        object-fit: cover;
-        margin-right: 1.2rem;
-      }
-
-      .friendname {
-        font-size: 40pt;
+      /* only styles the heading for each group */
+      .groupname {
+        font-size: 42pt;
+        margin-bottom: 1rem;
+        text-align: left;
         font-weight: bold;
       }
 
-      .friendusername {
-        font-size: 34pt;
+      /* makes image and column sit next to each other */
+      .aboutgroup {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
       }
 
-      .leaderboardtasks {
-        margin-top: 10px;
+      /* group photo */
+      .coverphoto {
+        width: 200px;
+        height: 200px;
+        border-radius: 18px;
+        border: 3px solid var(--highlight-color);
+        object-fit: cover;
+      }
+
+      /* the entire main column beside the group image*/
+      .groupinfo {
+        flex: 1;
+        text-align: left;
+      }
+
+      /* only styles the ROW with the pfp & add task button section */
+      .groupmembers {
+        font-size: 28pt;
+        font-family: var(--body-font);
+        gap: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .pfp {
+        border: 2px solid var(--highlight-color);
+        margin-right: 0.8rem;
+        border-radius: 69%;
+        box-shadow: 4px 8px 30px var(--shadow-color);
+        width: 70px;
+        height: 70px;
+      }
+
+      /* only for the small add task button (might change this to an icon later? not yet sure) */
+      .taskbutton {
+        font-family: var(--body-font);
+        background: var(--accent-color);
+        font-weight: 600;
+        padding: 0.8rem 1.2rem;
+        font-size: 24pt;
+        border: 2px solid var(--border-color);
+        box-shadow: 0 4px 10px var(--shadow-color);
+        border-radius: 16px;
+        color: var(--secondary-font-color);
+      }
+
+      .recentgrouptask {
+        font-family: var(--body-font);
+        background: var(--accent-color);
+        display: inline-block;
         font-size: 25pt;
         font-weight: 600;
-        color: #4e162d;
+        color: var(--secondary-font-color);
         border-radius: 16px;
-        border: 2px solid #d2c2cb;
-        font-family: var(--body-font, sans-serif);
-        background: #fff5fa;
-        display: inline-block; /* crucial to prevent the button from stretching to its full width */
+        border: 2px solid var(--border-color);
         padding: 1rem 1.5rem;
+      }
+
+      /* styles the new group icon in the right hand corner */
+      .containerForNewGroupIcon {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20rem;
+        padding-right: 1.5rem; /
+      }
+
+      .newgroupicon {
+        width: 120px;
+        height: 120px;
       }
 
       /* styles the bottom navbar */
@@ -204,30 +248,20 @@
     </style>
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
-    <link
-      href="https://fonts.cdnfonts.com/css/cormorant-garamond"
-      rel="stylesheet"
-    />
   </head>
 
   <body>
     <!-- HEADER AREA -->
     <header>
-      <h1 id="plannerName">Friends</h1>
-      <div
-        id="backarrow"
-        onclick="window.history.back()"
-        style="cursor: pointer"
-      >
+      <h1 id="plannerName">Groups</h1>
+      <div id="backarrow" onclick="window.history.back()">
         <img src="../img/up-arrow.png" width="110px" />
       </div>
-
-      <a href="sofiassettings.html" class="settingsicon"
-        ><img src="../img/settingsgear.png" width="70px"
-      /></a>
+      <a href="sofiassettings.html" class="settingsicon">
+        <img src="../img/settingsgear.png" width="70px" />
+      </a>
     </header>
 
-    <!-- FRIENDS LIST SECTION -->
     <div class="socialbuttonsgroup">
       <button class="friendsbutton">
         <a href="friends.html">FRIENDS LIST</a>
@@ -236,57 +270,49 @@
     </div>
 
     <div class="searchbarcontainer">
-      <input
-        type="text"
-        placeholder="Search for friends..."
-        class="searchbar"
-      />
+      <input type="text" placeholder="Search for groups..." class="searchbar" />
     </div>
 
-    <div class="friendscontainer">
-      <div class="friendbox">
-        <img src="../img/unfriend.png" class="unfriend" />
-        <img src="../img/addtogroup.png" class="addToGroup" />
-        <img src="../img/lachesis.jfif" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Lachesis</div>
-          <div class="friendusername">@lachesis.cat</div>
+    <!-- FRIEND GROUPS -->
+    <div class="groupSection">
+      <div class="bubblebox">
+        <div class="groupname">Study Buddies :P</div>
+        <div class="aboutgroup">
+          <img src="../img/studybuddies.jpg" class="coverphoto" />
+          <div class="groupinfo">
+            <div class="groupmembers">
+              <img src="../img/lachesis.jfif" alt="Sofia" class="pfp" />
+              <img src="../img/zakarya.jpg" alt="Zakarya" class="pfp" />
+              <img src="../img/rawan.jpg" alt="Rawan" class="pfp" />
+              <button class="taskbutton">+ Add Task</button>
+            </div>
+            <div class="recentgrouptask">
+              Most recent task: Comp 1113 study session
+            </div>
+          </div>
         </div>
-        <div class="leaderboardtasks">12 tasks completed this week</div>
       </div>
 
-      <div class="friendbox">
-        <img src="../img/unfriend.png" class="unfriend" />
-        <img src="../img/addtogroup.png" class="addToGroup" />
-        <img src="../img/zakarya.jpg" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Zakarya</div>
-          <div class="friendusername">@zakblack</div>
+      <div class="bubblebox">
+        <div class="groupname">1800 Group</div>
+        <div class="aboutgroup">
+          <img src="../img/comp1800.jpg" class="coverphoto" />
+          <div class="groupinfo">
+            <div class="groupmembers">
+              <img src="../img/default1.jpg" alt="Morris" class="pfp" />
+              <img src="../img/default2.jpg" alt="Sofia" class="pfp" />
+              <img src="../img/default3.jpg" alt="Kian" class="pfp" />
+              <button class="taskbutton">+ Add Task</button>
+            </div>
+            <div class="recentgrouptask">
+              Most recent task: Work on Sprint 4 Together
+            </div>
+          </div>
         </div>
-        <div class="leaderboardtasks">9 tasks completed this week</div>
       </div>
-
-      <div class="friendbox">
-        <img src="../img/unfriend.png" class="unfriend" />
-        <img src="../img/addtogroup.png" class="addToGroup" />
-        <img src="../img/rawan.jpg" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Rawan</div>
-          <div class="friendusername">@rawanplans</div>
-        </div>
-        <div class="leaderboardtasks">3 tasks completed this week</div>
-      </div>
-
-      <div class="friendbox">
-        <img src="../img/unfriend.png" class="unfriend" />
-        <img src="../img/addtogroup.png" class="addToGroup" />
-        <img src="../img/rawan.jpg" class="profilepic" />
-        <div class="friendinfo">
-          <div class="friendname">Rawan</div>
-          <div class="friendusername">@rawanplans</div>
-        </div>
-        <div class="leaderboardtasks">3 tasks completed this week</div>
-      </div>
+    </div>
+    <div class="containerForNewGroupIcon">
+      <img src="../img/newgroup.png" class="newgroupicon" />
     </div>
 
     <!-- BOTTOM NAVBAR -->
@@ -306,47 +332,5 @@
         </li>
       </ul>
     </div>
-
-    <script>
-      const colorPicker = document.getElementById("accentColor");
-
-      // loads in the accent color selected by the user
-      const savedColor = localStorage.getItem("accentColor");
-      if (savedColor) {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          savedColor
-        );
-        colorPicker.value = savedColor;
-      }
-
-      // updates the accent color based on the user's input
-      colorPicker.addEventListener("input", (e) => {
-        const selectedColor = e.target.value;
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          selectedColor
-        );
-        localStorage.setItem("accentColor", selectedColor);
-      });
-
-      const defaultAccentColor = "#fff5fa"; // the default color (pink)
-
-      //controls the restore color button; which restores the color back to its default: pink
-      const restoreButton = document.getElementById("restoreColor");
-
-      if (restoreButton) {
-        restoreButton.addEventListener("click", () => {
-          document.documentElement.style.setProperty(
-            "--accent-color",
-            defaultAccentColor
-          );
-
-          localStorage.setItem("accentColor", defaultAccentColor);
-
-          colorPicker.value = defaultAccentColor;
-        });
-      }
-    </script>
   </body>
 </html>
