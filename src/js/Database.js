@@ -243,21 +243,21 @@ export const sharedTask = function (success, fail) {
  * @param {(Error) => void} fail Callback for failed retrieval.
  */
 export const followedTasks = function (success, fail) {
-  const followedCollectionName = "followedTasks";
-  let followedCollectionRef = collection(
-    firebaseDb,
-    "users",
-    firebaseAuth.currentUser.uid,
-    followedCollectionName
-  );
-  getDocs(followedCollectionRef)
-    .then(async (collectionSnap) => {
-      return collectionSnap.docs().map((x) => x.id);
-    })
-    .catch((error) => {
-      fail && fail(error);
-    })
-    .then(success);
+    const followedCollectionName = "followedTasks";
+    let followedCollectionRef = collection(
+        firebaseDb,
+        "users",
+        firebaseAuth.currentUser.uid,
+        followedCollectionName
+    );
+    getDocs(followedCollectionRef)
+        .then(async (collectionSnap) => {
+        return collectionSnap.docs().map((x) => x.id);
+        })
+        .catch((error) => {
+        fail && fail(error);
+        })
+        .then(success);
 };
 
 /**
@@ -340,8 +340,6 @@ export const defaultEntry = async function (idString) {
             await setDoc(userRef)
         }
     });
-    
-
 }
 
 /**
@@ -375,15 +373,15 @@ export const addPersonalTask = function (taskObj, success, fail) {
  * @return {void}
  */
 export const setUsername = function (username) {
-  const firebaseUser = firebaseAuth.currentUser;
-  let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
-  getDoc(docRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      let userDocData = snapshot.data();
-      userDocData["name"] = username;
-      setDoc(docRef, userDocData);
-    } else {
-      setDoc(docRef, { name: username });
-    }
-  });
+    const firebaseUser = firebaseAuth.currentUser;
+    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseUser.uid);
+    getDoc(docRef).then((snapshot) => {
+        if (snapshot.exists()) {
+        let userDocData = snapshot.data();
+        userDocData["name"] = username;
+        setDoc(docRef, userDocData);
+        } else {
+        setDoc(docRef, { name: username });
+        }
+    });
 };

@@ -37,6 +37,14 @@
         createUser
       } from "/js/Database.js";
 
+      import {
+        logout
+      } from "/js/Authentication.js";
+
+      import {
+        signInWithEmailAndPassword
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
       const form = document.querySelector(".loginbox");
 
       form.addEventListener("submit", async (event) => {
@@ -46,8 +54,10 @@
         const email = form.querySelector("input[type='email']").value;
         const password = form.querySelector("input[type='password']").value;
 
+        logout();
+
         try {
-          await createUser(username, email, password);
+          let newUserCred = await createUser(username, email, password);
           window.location.href = "sofiascalendar.html";
           
         } catch (error) {
