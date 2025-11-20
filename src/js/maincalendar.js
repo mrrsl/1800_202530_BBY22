@@ -409,7 +409,6 @@ onAuthStateChanged(auth, function (User) {
   // if the user is logged in, save their id, display the right planner name, and load in their tasks
   if (User) {
     USERS_CURRENT_ID = User.uid;
-    debugger;
     displayPlannerName(USERS_CURRENT_ID);
     loadTasksForTheDay(formatDate(selectedDate));
     // otherwise, clear the user's id, clear the task list, set the default planner name, and reset the task limit

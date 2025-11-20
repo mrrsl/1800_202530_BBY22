@@ -47,7 +47,7 @@
         const password = form.querySelector("input[type='password']").value;
 
         try {
-          createUser(username, email, password);
+          await createUser(username, email, password);
           window.location.href = "sofiascalendar.html";
           
         } catch (error) {

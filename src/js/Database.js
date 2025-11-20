@@ -126,6 +126,45 @@ export const addFriend = async function(friendId) {
 }
 
 /**
+ * Reciprocal removal of friends.
+ * @param {String} friendId 
+ */
+export const deleteFriend = async function(friendId) {
+    const uid = firebaseAuth.currentUser.uid;
+    const userDocRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
+    const friendDocRef = doc(firebaseDb, USER_COLLECTION_NAME, friendId);
+    let user = await getDoc(userDocRef);
+    let friend = await getDoc(userDocRef);
+
+    if (user.exists() && friend.exists()) {
+        user = user.data();
+        friend = friend.data();
+
+        let userIndex = 0;
+        let friendIndex = 0;
+        for (let a = 0; a < user.friends.length; a++) {
+            if (user.friends[a] == friendId) {
+                userIndex = a;
+                break;
+            }
+        }
+        for (let a = 0; a < friend.friends.length; a++) {
+            if (friend.friends[a] == uid) {
+                friendIndex = a;
+                break;
+            }
+        }
+        user.friends.splice(userIndex, 1);
+        friend.friends.splice(friendIndex);
+        setDoc(userDocRef, user);
+        setDoc(friendDocRef, friend);
+        return true;
+    } else {
+        throw new Error("Delete Failed");
+    }
+}
+
+/**
  * Generate an array of users whos names match the search string.
  * @param {String} searchString 
  * @return {Array<Object>}
@@ -262,14 +301,15 @@ export const createUser = async function(name, email, pw) {
         let userDocFields = {
             name: name,
             email: email,
-            createdAt: new Date()
+            createdAt: new Date(),
+            friends: []
         };
         await setDoc(userDocRef, userDocFields);
         snapshot = await getDoc(userDocRef);
 
         if (snapshot.exists()) {
             // Only populate default entries if the user entry worked
-            defaultEntry(uid);
+            await defaultEntry(uid);
             return uid;
         } else {
             throw new Error("Failed to update Firestore");
@@ -282,24 +322,27 @@ export const createUser = async function(name, email, pw) {
  * @param {String} idString UID string.
  * @return {void}
  */
-export const defaultEntry = function (idString) {
+export const defaultEntry = async function (idString) {
     const firebaseUser = firebaseAuth.currentUser;
 
     let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
     let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
 
-    getDoc(prefRefs).then((snap) => {
+    // Since this needs to fully execute after new user is created, make sure to stall out the redirect using await.
+    await getDoc(prefRefs).then(async (snap) => {
         if (!snap.exists()) {
-            setDoc(prefRefs, DEFAULT_PREFERENCES);
+            await setDoc(prefRefs, DEFAULT_PREFERENCES);
         }
     });
 
-  getDoc(personalRef).then((snap) => {
-    if (!snap.exists()) {
-      setDoc(personalRef, {}); // Fixed typo: set empty doc for parent
-    }
-  });
-};
+    await getDoc(personalRef).then(async (snap) => {
+        if (!snap.exists()) {
+            await setDoc(userRef)
+        }
+    });
+    
+
+}
 
 /**
  * Adds a personal task for the current user.

@@ -39,6 +39,11 @@
         z-index: 10;
       }
 
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
       /* styles the group of three buttons located at the top of the friends page */
       .socialbuttonsgroup {
         display: flex;
@@ -49,13 +54,14 @@
 
       /* styles each individual friends button */
       .friendsbutton {
-        padding: 0.8rem 0.9rem;
-        font-size: 29pt;
+        padding: 1.4rem 1.9rem;
+        font-size: 31pt;
         font-family: var(--body-font, sans-serif);
-        background-color: #e0d6dc;
-        border: none;
-        border-radius: 8px;
+        background-color: var(--accent-color);
+        border: 2px solid #d2c2cb;
+        border-radius: 18px;
         letter-spacing: -1px;
+        box-shadow: 0 6px 14px rgba(78, 2, 34, 0.726);
       }
 
       /* styles the container for the search bar (duh) */
@@ -71,7 +77,7 @@
       .searchbar {
         width: 100%;
         max-width: 800px;
-        padding: 0.6rem 1rem 0.6rem 5rem; /* some of this padding is responsible for maintaining the distance between the icon and the placeholder text */
+        padding: 1rem 2rem 0.6rem 5rem; /* some of this padding is responsible for maintaining the distance between the icon and the placeholder text */
         font-size: 29pt;
         background-color: #fdf9fb;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -130,24 +136,44 @@
         margin: 2rem auto;
         width: 90%;
         max-width: 800px;
+        padding-bottom: 8rem;
       }
 
       .friendbox {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #f7f7f7;
-        border-radius: 20px;
-        padding: 1rem 1.5rem;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        position: relative;
+        border: 2px solid #d2c2cb;
+        border-radius: 24px;
+        background: #fff;
+        padding: 1.8rem;
+        box-shadow: 0 6px 14px rgba(78, 22, 45, 0.12);
+        margin: 0.5rem 0;
+      }
+
+      /* styles the unfriend icon */
+      .unfriend {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        width: 67px;
+        height: 67px;
+      }
+
+      /* styles the add friend to group icon directly across */
+      .addToGroup {
+        position: absolute;
+        top: 1rem;
+        left: 1.5rem;
+        width: 67px;
+        height: 67px;
       }
 
       .profilepic {
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
+        border: 3px solid #f0cfe0;
         object-fit: cover;
-        margin-right: -8rem;
+        margin-right: 1.2rem;
       }
 
       .friendinfo {
@@ -158,25 +184,27 @@
       }
 
       .friendname {
-        font-size: 25pt;
+        font-size: 40pt;
         font-weight: bold;
-        font-family: var(--body-font, sans-serif);
-        color: #362830;
       }
 
       /* styles each friend's username */
       .friendusername {
-        font-size: 20pt;
-        color: #6a5d66;
-        font-family: var(--body-font, sans-serif);
+        font-size: 34pt;
       }
 
       /* styles the # of weekly tasks completed to the right of the friend box */
       .leaderboardtasks {
-        font-size: 20pt;
+        margin-top: 10px;
+        font-size: 25pt;
         font-weight: 600;
         color: #4e162d;
+        border-radius: 16px;
+        border: 2px solid #d2c2cb;
         font-family: var(--body-font, sans-serif);
+        background: #fff5fa;
+        display: inline-block; /* crucial to prevent the button from stretching to its full width */
+        padding: 1rem 1.5rem;
       }
 
       /* styles the bottom navbar */
@@ -232,11 +260,11 @@
         onclick="window.history.back()"
         style="cursor: pointer"
       >
-        <img src="../img/up-arrow.png" width="110px" />
+        <img src="/img/up-arrow.png" width="110px" />
       </div>
 
       <a href="sofiassettings.html" class="settingsicon"
-        ><img src="../img/settingsgear.png" width="70px"
+        ><img src="/img/settingsgear.png" width="70px"
       /></a>
     </header>
 
@@ -309,7 +337,8 @@
 
     <script type="module">
       import {
-        userFriends, addFriend,
+        userFriends,
+        addFriend, deleteFriend,
         user, userPreferences,
         searchUsers
       } from "/js/Database.js";
@@ -379,11 +408,24 @@
 
         return wrapper;
       }
+      
       /** Element generator for the each retreived friend. */
-      function friendBox(name, email, completions) {
+      function friendBox(name, email, completions, uid) {
 
         let wrapper = document.createElement("div");
         wrapper.classList.add("friendbox");
+
+        let unfriend = document.createElement("img");
+        unfriend.classList.add("unfriend");
+        unfriend.src = "/img/unfriend.png";
+        wrapper.append(unfriend);
+        unfriend.firebaseUID = uid;
+        unfriend.addEventListener("click", unfriendHandler);
+
+        let addtogroup = document.createElement("img");
+        addtogroup.classList.add("addToGroup");
+        addtogroup.src = "/img/addtogroup.png";
+        wrapper.append(addtogroup);
 
         let dp = document.createElement("img");
         dp.classList.add("profilepic");
@@ -423,7 +465,8 @@
           let friendElement = friendBox(
             friendData.name,
             friendData.email,
-            0
+            0,
+            friendId
           );
           friendsContainer.appendChild(friendElement);
         }
@@ -447,6 +490,14 @@
           searchResults.innerHTML = "";
         }).catch((error) => {
           alert("Failed to add friend: " + error.message);
+        });
+      }
+
+      function unfriendHandler(event) {
+        let unfriendTarget = this.firebaseUID;
+        deleteFriend(unfriendTarget).then(() => {
+          alert("Friend removed.");
+          loadData();
         });
       }
       
