@@ -124,7 +124,9 @@
       }
 
       /* styles the logout button */
-      #logoutbutton {
+      #logoutbutton,
+      #editbutton,
+      #savebutton {
         border: none;
         border-radius: 14px;
         font-size: 30pt;
@@ -260,12 +262,17 @@
       <p id="profilesectiontitle">PROFILE</p>
     </div>
     <div class="profilebox">
-      <p id="settingstitle">Edit Name:</p>
-      <input type="text" placeholder="Spencer" />
+      <div id="editable">
+        <p id="settingstitle">Edit Name:</p>
+        <input type="text" id="nameInput" placeholder="" />
 
-      <p id="settingstitle">Edit Email:</p>
-      <input type="text" placeholder="spencer@my.bcit.ca" />
-
+        <p id="settingstitle">Edit Email:</p>
+        <input type="text" id="emailInput" placeholder="" />
+      </div>
+      <div id="buttons">
+        <button id="editbutton">Edit</button>
+        <button id="savebutton">Save</button>
+      </div>
       <button id="logoutbutton">Log Out</button>
     </div>
 
@@ -319,62 +326,199 @@
     </div>
 
     <script type="module">
-
+      // CDN imports (works whether you're using a dev server or static hosting)
       import {
-        getAuth,
-        signOut
+        signOut,
+        onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
       import {
-        firebaseInstance
-      } from "/js/FirebaseInstances.js";
+        doc,
+        setDoc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+      // your local file exports (make sure this path is served by your server)
+      import { firebaseAuth, firebaseDb } from "/js/FirebaseInstances.js";
 
-      const colorPicker = document.getElementById("accentColor");
+      // UI refs
+      const nameInput = document.getElementById("nameInput");
+      const emailInput = document.getElementById("emailInput");
       const logoutButton = document.getElementById("logoutbutton");
-      const defaultAccentColor = "#fff5fa"; // the default color (pink)
+      const editButton = document.getElementById("editbutton");
+      const colorPicker = document.getElementById("accentColor");
+      const defaultAccentColor = "#fff5fa";
 
-      // Simple logout function
-      function logoutHandler() {
-        signOut(getAuth(firebaseInstance))
-          .then(() => window.location.href = "loginpage.html");
+      nameInput.disabled = true;
+      emailInput.disabled = true;
+      // safe DOM checks
+      function setPlaceholder(el, text) {
+        if (!el) return;
+        el.placeholder = text ?? "";
       }
 
-      // loads in the accent color selected by the user
+      // load placeholders from auth first, then overwrite with Firestore doc if available
+      onAuthStateChanged(firebaseAuth, async (fbUser) => {
+        if (!fbUser) {
+          console.log("No user logged in");
+          // optional: redirect to login
+          // window.location.href = "loginpage.html";
+          return;
+        }
+
+        // 1) immediate fallback from auth profile
+        const authName = fbUser.displayName || null;
+        const authEmail = fbUser.email || null;
+        // set placeholder fallbacks
+        setPlaceholder(nameInput, authName || "Your name");
+        setPlaceholder(emailInput, authEmail || "you@example.com");
+
+        // 2) try to get a richer profile from Firestore and overwrite input values/placeholders
+        try {
+          const userRef = doc(firebaseDb, "users", fbUser.uid);
+          const snap = await getDoc(userRef);
+          if (snap.exists()) {
+            const data = snap.data();
+            // If Firestore has a stored name/email, show it in the input value (so it's visible on load)
+            if (typeof data?.name === "string" && data.name.trim() !== "") {
+              nameInput.value = data.name;
+              setPlaceholder(nameInput, data.name);
+            } else if (authName) {
+              // fallback to auth displayName if Firestore doesn't have a usable value
+              nameInput.value = authName;
+              setPlaceholder(nameInput, authName);
+            }
+
+            if (typeof data?.email === "string" && data.email.trim() !== "") {
+              emailInput.value = data.email;
+              setPlaceholder(emailInput, data.email);
+            } else if (authEmail) {
+              emailInput.value = authEmail;
+              setPlaceholder(emailInput, authEmail);
+            }
+          } else {
+            // no user doc — use auth values if present
+            if (authName) nameInput.value = authName;
+            if (authEmail) emailInput.value = authEmail;
+          }
+        } catch (err) {
+          console.error("Error fetching user doc:", err);
+          // on error, still show auth values if available
+          if (authName) nameInput.value = authName;
+          if (authEmail) emailInput.value = authEmail;
+        }
+      });
+
+      document
+        .querySelector("#editbutton")
+        .addEventListener("click", editUserInfo);
+      function editUserInfo() {
+        //Enable the form fields
+        nameInput.disabled = false;
+        emailInput.disabled = false;
+      }
+
+      //-------------------------------------------------------------
+      // Function to save updated user info from the profile form
+      //-------------------------------------------------------------
+      document
+        .querySelector("#savebutton")
+        .addEventListener("click", saveUserInfo); //Add event listener for save button
+      async function saveUserInfo() {
+        const user = firebaseAuth.currentUser; // ✅ get the currently logged-in user
+        if (!user) {
+          alert("No user is signed in. Please log in first.");
+          return;
+        }
+        const name = document.getElementById("nameInput").value; //get the value of the field with id="nameInput"
+        const email = document.getElementById("emailInput").value; //get the value of the field with id="emailInput"
+        //b) update user's document in Firestore (only non-empty fields will be written)
+        await updateUserDocument(user.uid, name, email);
+        //c) disable edit and update inputs to reflect saved values
+        nameInput.disabled = true;
+        emailInput.disabled = true;
+        // If the user provided a non-empty value, show it in the input; otherwise keep existing value
+        if (typeof name === "string" && name.trim() !== "") {
+          nameInput.value = name.trim();
+          setPlaceholder(nameInput, name.trim());
+        }
+        if (typeof email === "string" && email.trim() !== "") {
+          emailInput.value = email.trim();
+          setPlaceholder(emailInput, email.trim());
+        }
+      }
+      // logout
+      if (logoutButton) {
+        logoutButton.addEventListener("click", () => {
+          signOut(firebaseAuth).then(
+            () => (window.location.href = "loginpage.html")
+          );
+        });
+      }
+
+      // accent color logic (kept from your file)
       const savedColor = localStorage.getItem("accentColor");
       if (savedColor) {
         document.documentElement.style.setProperty(
           "--accent-color",
           savedColor
         );
-        colorPicker.value = savedColor;
+        if (colorPicker) colorPicker.value = savedColor;
       }
-
-      // updates the accent color based on the user's input
-      colorPicker.addEventListener("input", (e) => {
-        const selectedColor = e.target.value;
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          selectedColor
-        );
-        localStorage.setItem("accentColor", selectedColor);
-      });
-      //controls the restore color button; which restores the color back to its default: pink
+      if (colorPicker) {
+        colorPicker.addEventListener("input", (e) => {
+          const selectedColor = e.target.value;
+          document.documentElement.style.setProperty(
+            "--accent-color",
+            selectedColor
+          );
+          localStorage.setItem("accentColor", selectedColor);
+        });
+      }
       const restoreButton = document.getElementById("restoreColor");
-
       if (restoreButton) {
         restoreButton.addEventListener("click", () => {
           document.documentElement.style.setProperty(
             "--accent-color",
             defaultAccentColor
           );
-
           localStorage.setItem("accentColor", defaultAccentColor);
-
-          colorPicker.value = defaultAccentColor;
+          if (colorPicker) colorPicker.value = defaultAccentColor;
         });
       }
+      async function updateUserDocument(uid, name, email) {
+        const userRef = doc(firebaseDb, "users", uid);
 
-      logoutButton.addEventListener("click", logoutHandler);
+        // Build an updates object containing only non-empty fields.
+        const updates = {};
+        if (typeof name === "string" && name.trim() !== "")
+          updates.name = name.trim();
+        if (typeof email === "string" && email.trim() !== "")
+          updates.email = email.trim();
+
+        // If there is nothing to update, do nothing.
+        if (Object.keys(updates).length === 0) {
+          console.log(
+            "No non-empty fields to update; skipping Firestore write."
+          );
+          return;
+        }
+
+        try {
+          const snap = await getDoc(userRef);
+
+          if (snap.exists()) {
+            // document exists → update only provided fields
+            await updateDoc(userRef, updates);
+            console.log("User profile updated (partial)!");
+          } else {
+            // document does NOT exist → create it with provided fields
+            await setDoc(userRef, updates);
+            console.log("User profile created with provided fields!");
+          }
+        } catch (error) {
+          console.error("Error updating/creating user document:", error);
+        }
+      }
     </script>
   </body>
 </html>
