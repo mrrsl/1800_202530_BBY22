@@ -6,13 +6,17 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
+import {
+    user
+} from "/js/Database.js";
+
 /**
  * Sign out utility to elide explicit auth import.
  * @return {Promise<void>}
  */
 export const logout = function() {
     if (isLoggedIn())
-        return signOut(firebaseAuth);
+        return signOut(auth);
 }
 
 /**
@@ -21,4 +25,20 @@ export const logout = function() {
  */
 export const isLoggedIn = function() {
     return auth.currentUser != null;
+}
+
+/**
+ * Repair for janky email changing.
+ * @param {User} user 
+ */
+export const forceEmailMatch = async function(user) {
+    const userDoc = await user(auth.currentUser.uid);
+    if (userDoc.exists()) {
+        userFirestoreEmail = userDoc.data().email;
+        if (userFirestoreEmail != user.email) {
+            let updatedDoc = userDoc.data();
+            updatedDoc.email = user.email;
+            
+        }
+    }
 }

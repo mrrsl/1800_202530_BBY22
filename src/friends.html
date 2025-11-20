@@ -386,6 +386,7 @@
         */
         let wrapper = document.createElement("div");
         wrapper.classList.add("resultwrapper");
+        wrapper.classList.add(".friendbox");
         let textWrapper = document.createElement("div");
         textWrapper.classList.add("resulttext");
 
@@ -455,7 +456,7 @@
       /** Load user data and friends here. Run after auth check to make sure the user ID is populated. */
       async function loadData() {
         let prefs = await userPreferences();
-        let friends = await userFriends() || [];
+        let friends = await userFriends() ?? [];
 
         const friendsContainer = document.querySelector(".friendscontainer");
         friendsContainer.innerHTML = "";
