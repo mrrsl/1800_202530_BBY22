@@ -99,19 +99,22 @@ users = [
 ```
 #### Task Collections
 Stores both personal and shared tasks collections.
-###### `shared-tasks`collection
+###### `groups`collection
 ```ts
-shared_task = [
-	userId: {
-		friends: [
-			userId1,
-			userId2
+groups = [
+	groupName: {
+		// Document field of type Array<String>
+		members: [
+
 		],
-		task: {
-			date: Date,
-			title: string,
-			desc: string
-		}
+		// Collection of task documents
+		tasks: [
+			taskId: {
+				date: Date,
+				title: string,
+				desc: string
+			}
+		]
 	}
 ]
 ```
