@@ -46,6 +46,7 @@
           const email = form.querySelector("input[type='email']").value;
           const password = form.querySelector("input[type='password']").value;
 
+          // signs in with an email and password
           try {
             const usercredenetials = await signInWithEmailAndPassword(
               auth,

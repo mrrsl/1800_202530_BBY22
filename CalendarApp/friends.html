@@ -28,7 +28,6 @@
         z-index: 10;
         width: 2rem;
         height: auto;
-        cursor: pointer;
       }
 
       /* styles the settings icon in the header; Unfortunately, I had to use position: absolute to prevent the header from overflowing (note: the settings icon is styled using flexbox on the other pages)  */
@@ -57,7 +56,7 @@
         padding: 0.8rem 0.9rem;
         font-size: 29pt;
         font-family: var(--body-font, sans-serif);
-        background-color: #e0d6dc;
+        background-color: var(--top-button-color);
         border: none;
         border-radius: 8px;
         letter-spacing: -1px;
@@ -214,11 +213,7 @@
     <!-- HEADER AREA -->
     <header>
       <h1 id="plannerName">Friends</h1>
-      <div
-        id="backarrow"
-        onclick="window.history.back()"
-        style="cursor: pointer"
-      >
+      <div id="backarrow" onclick="window.history.back()">
         <img src="../img/up-arrow.png" width="110px" />
       </div>
 
@@ -306,47 +301,5 @@
         </li>
       </ul>
     </div>
-
-    <script>
-      const colorPicker = document.getElementById("accentColor");
-
-      // loads in the accent color selected by the user
-      const savedColor = localStorage.getItem("accentColor");
-      if (savedColor) {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          savedColor
-        );
-        colorPicker.value = savedColor;
-      }
-
-      // updates the accent color based on the user's input
-      colorPicker.addEventListener("input", (e) => {
-        const selectedColor = e.target.value;
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          selectedColor
-        );
-        localStorage.setItem("accentColor", selectedColor);
-      });
-
-      const defaultAccentColor = "#fff5fa"; // the default color (pink)
-
-      //controls the restore color button; which restores the color back to its default: pink
-      const restoreButton = document.getElementById("restoreColor");
-
-      if (restoreButton) {
-        restoreButton.addEventListener("click", () => {
-          document.documentElement.style.setProperty(
-            "--accent-color",
-            defaultAccentColor
-          );
-
-          localStorage.setItem("accentColor", defaultAccentColor);
-
-          colorPicker.value = defaultAccentColor;
-        });
-      }
-    </script>
   </body>
 </html>
