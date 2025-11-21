@@ -32,7 +32,7 @@ const db = getFirestore(app);
 // represents the ID of the user logged in; assume nobody is logged in, so set it to null
 let USERS_CURRENT_ID = null;
 // the current date selected, set to today by default
-let selectedDate = new Date();
+let selecteddate = new Date();
 
 /* --- HELPER FUNCTION FOR CONVERTING DATES TO YYYY-MM-DD FORMAT --- */
 function formatDate(dateObj) {
@@ -82,7 +82,7 @@ let collapseButton;
 async function saveTask(
   title,
   desc = "",
-  standardDay = formatDate(selectedDate)
+  standardDay = formatDate(selecteddate)
 ) {
   if (!USERS_CURRENT_ID) {
     //end function if the user isn't logged in
@@ -116,14 +116,30 @@ async function loadTasksForTheDay(currentday) {
   // loops through each document in the snapshot
   for (let i = 0; i < snapshot.docs.length; i++) {
     const taskDoc = snapshot.docs[i]; // a single document snapshot
-    const taskData = taskDoc.data(); // the actual task info inside of that single doc snap
+    const taskInfo = taskDoc.data(); // the actual task info inside of that single doc snap
 
-    // if the saved date (yyyy-mm-dd) of the task matches the current day selected, display it as a new list item
-    if (taskData.dateISO === currentday) {
+    // CONNECTED TO THE TASK EDITING PAGE (NEEDS FIXING)!!! (issue is that you have to reload the page every time you want to edit a task you just created)
+    // if the saved task date in yyyy-mm-dd form matches the current day selected, display it as a new list item
+    if (taskInfo.dateISO === currentday) {
       const listItem = document.createElement("li");
-      listItem.textContent = taskData.title;
+      // saves the firestore doc id into the li
+      listItem.dataset.taskId = taskDoc.id;
 
-      // create an x button and attach it to each list item
+      //saves the priority level inside of the li as well;
+      listItem.dataset.priority = (taskInfo.priority || "")
+        .toString()
+        .toLowerCase();
+      // adds a class for css styling based on priority level
+      if (listItem.dataset.priority === "high")
+        listItem.classList.add("highpriority");
+      else if (listItem.dataset.priority === "medium")
+        listItem.classList.add("mediumpriority");
+      else if (listItem.dataset.priority === "low")
+        listItem.classList.add("lowpriority");
+
+      listItem.textContent = taskInfo.title; // displays the name of the task
+
+      // creates an x button and attaches it to each list item
       const deletebutton = document.createElement("button");
       deletebutton.textContent = "X";
       listItem.appendChild(deletebutton);
@@ -135,8 +151,20 @@ async function loadTasksForTheDay(currentday) {
         listItem.remove();
         updateNote(); // refreshes the limit note after a task has been deleted
       };
+
+      // THIS IS FOR THE TASK EDITING PAGE!! It loads in the correct task for a given day onto the edit page
+      listItem.onclick = function (e) {
+        if (e.target.closest("button")) return; // IMPORTANT!! stops if the click happened on a button (necessary to keep this part, because otherwise clicking the X button redirects to the task edit page)
+        // gets the current date & builds the unique task id
+        const currentday = formatDate(selecteddate);
+        const taskId = makeUniqueDocId(currentday, taskInfo.title);
+        // goes to the task edit page and puts the task ID into the url
+        window.location.href =
+          "sofiasnewedit.html?taskId=" + encodeURIComponent(taskId);
+      };
     }
   }
+
   // refreshes the limit note (AGAIN) after all tasks have loaded in
   updateNote();
 }
@@ -161,7 +189,7 @@ function addTask(taskTitle) {
   // if you click the delete button when logged in
   deletebutton.onclick = async () => {
     if (USERS_CURRENT_ID) {
-      const currentday = formatDate(selectedDate); // figure out the current day
+      const currentday = formatDate(selecteddate); // figure out the current day
       const taskId = makeUniqueDocId(currentday, taskTitle); // build a unique id for the task
       const taskRef = doc(
         //and point to this exact task in firestore
@@ -182,7 +210,7 @@ function addTask(taskTitle) {
 
   // if the user is logged in, save the task to firestore (very similar to deleting a task!)
   if (USERS_CURRENT_ID) {
-    const currentday = formatDate(selectedDate);
+    const currentday = formatDate(selecteddate);
     const taskId = makeUniqueDocId(currentday, taskTitle);
     const taskRef = doc(
       db,
@@ -233,10 +261,13 @@ function createHeaders(dateObject) {
     "November",
     "December",
   ];
-
-  // creates the month + day heading you see at the very top on the main calendar page
-  titleElement.innerHTML =
-    months[dateObject.getMonth()] + " " + dateObject.getDate();
+  // concatenates the month, day, and year together to display on the header
+  document.getElementById("mainmonthlabel").textContent =
+    months[dateObject.getMonth()] +
+    " " +
+    dateObject.getDate() +
+    ", " +
+    dateObject.getFullYear();
 }
 
 /* --- CREATING THE CALENDAR GRID! --- */
@@ -300,11 +331,11 @@ function createCalendar(dateObj) {
       // when this specific day box is clicked
       daybox.onclick = function () {
         // update the selected day to this date
-        selectedDate = new Date(year, month, displaynumber);
-        createHeaders(selectedDate); // update the calendar header & add a border around the day box
-        createCalendar(selectedDate);
+        selecteddate = new Date(year, month, displaynumber);
+        createHeaders(selecteddate); // update the calendar header & add a border around the day box
+        createCalendar(selecteddate);
 
-        loadTasksForTheDay(formatDate(selectedDate)); // it should also load the tasks from firestore
+        loadTasksForTheDay(formatDate(selecteddate)); // it should also load the tasks from firestore
       };
 
       daycount++; // moves onto the next day box
@@ -326,9 +357,9 @@ function collapsecalendar() {
     // figures out the # of week rows in the calendar
     const allWeekRows = calendarContainer.getElementsByClassName("days");
     // figures out the day, month, and year of the date currently selected
-    const currentYear = selectedDate.getFullYear();
-    const currentMonth = selectedDate.getMonth();
-    const currentDate = selectedDate.getDate();
+    const currentYear = selecteddate.getFullYear();
+    const currentMonth = selecteddate.getMonth();
+    const currentDate = selecteddate.getDate();
 
     //finds out which weekday the 1st of the month is on
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -363,10 +394,10 @@ async function displayPlannerName(userId) {
   const reference = doc(db, "users", userId); // reference this user's document under the users collection
   const snapshot = await getDoc(reference); // get the doc data from firestore
 
-  // if the file is there
+  // if the doc for the user is there
   if (snapshot.exists()) {
     const data = snapshot.data(); // get all the fields stored for that user, and use the username
-    const name = data.username || "user"; //
+    const name = data.username || "user";
     document.getElementById("plannerName").textContent = name + "'s Planner";
   } else {
     document.getElementById("plannerName").textContent = "My Planner";
@@ -377,30 +408,44 @@ async function displayPlannerName(userId) {
 /* --- Sets up the custom Navbar & Calendar Color --- */
 window.onload = function () {
   // links each html element to its javascript var
-  titleElement = document.getElementById("title");
+  const titleElement = document.getElementById("mainmonthlabel");
   taskList = document.getElementById("taskList");
   taskInput = document.getElementById("taskInput");
   calendarContainer = document.getElementById("tracker");
   collapseButton = document.getElementById("collapseButton");
 
-  // saves the accent color to local storage; NEED TO FIX LATER
-  const savedColor = localStorage.getItem("accentColor");
-  if (savedColor) {
-    document.documentElement.style.setProperty("--accent-color", savedColor);
+  const previousbutton = document.getElementById("previousarrow");
+  const nextbutton = document.getElementById("nextarrow");
+
+  // sets the selected date to today by default
+  selecteddate = new Date();
+
+  // helper function to create the header & calendar based on the day selected by the user
+  function refreshCalendar() {
+    createHeaders(selecteddate);
+    createCalendar(selecteddate);
   }
 
-  /* --- Updates the Calendar & Header whenever the user picks a new date --- */
-  createHeaders(selectedDate);
-  createCalendar(selectedDate);
-  collapsecalendar(); // sets up the collapsible calendar
+  // allows for month switching using the nav arrows
+  previousbutton.onclick = () => {
+    selecteddate.setMonth(selecteddate.getMonth() - 1);
+    refreshCalendar();
+  };
+  nextbutton.onclick = () => {
+    selecteddate.setMonth(selecteddate.getMonth() + 1);
+    refreshCalendar();
+  };
 
-  /* --- Adds New Tasks Both to Firestore & To the List --- */
-  // happens whenever user enters valid input & hits enter key
+  // sets up the collapsible calendar & correctly renders the calendar for the given month
+  refreshCalendar();
+  collapsecalendar();
+
+  // if a non-empty task is entered
   taskInput.onkeydown = function (event) {
     if (event.key === "Enter" && taskInput.value !== "") {
-      addTask(taskInput.value);
-      saveTask(taskInput.value, "", formatDate(selectedDate));
-      taskInput.value = "";
+      addTask(taskInput.value); // add the task to the list
+      saveTask(taskInput.value, "", formatDate(selecteddate)); // save the task to firestore
+      taskInput.value = ""; // clear the input box
     }
   };
 };
@@ -411,7 +456,7 @@ onAuthStateChanged(auth, function (User) {
   if (User) {
     USERS_CURRENT_ID = User.uid;
     displayPlannerName(USERS_CURRENT_ID);
-    loadTasksForTheDay(formatDate(selectedDate));
+    loadTasksForTheDay(formatDate(selecteddate));
     // otherwise, clear the user's id, clear the task list, set the default planner name, and reset the task limit
   } else {
     USERS_CURRENT_ID = null;

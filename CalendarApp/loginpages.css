@@ -78,7 +78,6 @@ body {
   border-radius: 20px;
   font-size: 30pt;
   font-family: "Inria Serif", sans-serif;
-  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 

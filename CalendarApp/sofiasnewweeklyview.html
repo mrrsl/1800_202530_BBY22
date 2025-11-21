@@ -9,6 +9,7 @@
         --shadow: rgba(78, 22, 45, 0.12);
         --bubble: #f2d9e6;
         --urgent: #fbe3eb;
+        --urgent-bubble-color: #f4c9d3;
       }
 
       html,
@@ -34,14 +35,6 @@
         padding: 1rem;
       }
 
-
-      /* spaces out the arrow and main title on the same row */
-      /* currently not being used since I thought it looked better stacked */
-      .headerrow {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-      }
 
       /* for text text within the top header */
       .topheading {
@@ -149,8 +142,8 @@
 
       /* creates a faint gradient on the header for the first weekday */
       .weekday.today .daytitleheader {
-        background: linear-gradient(180deg, #c59aad4d, #fff5fa);
-        position: relative;
+          background: var(--accent);
+          position: relative;
       }
 
       /* creates the task grid */
@@ -175,13 +168,13 @@
         border-radius: 16px;
         font-size: 3.6vw;
         box-shadow: 0 2px 6px var(--shadow);
-        background: #f4c9d3;
+        background: var(--urgent-bubble-color);
         color: #2a0d18;
         padding: 0.5rem 0.8rem;
       }
 
       /* the empty add new task section on thursday */
-      .emptyblock {
+      .emptyBubble {
         border-radius: 14px;
         font-size: 3.8vw;
         border: 1px dashed rgba(78, 22, 45, 0.18);
@@ -311,6 +304,7 @@
       .taskbubble {
         animation: bubblepop 0.4s ease;
       }
+
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
@@ -318,11 +312,9 @@
   </head>
   <body>
     <header>
-      <!-- <div class="headderrow"> --> <!-- leaving this here intentionally in case I want to add it again later-->
         <div
           id="backarrow"
           onclick="window.history.back()"
-          style="cursor: pointer"
         >
           <img src="../img/up-arrow.png" width="40px" />
         </div>
@@ -338,10 +330,10 @@
         <div class="weekdaycards">
           <div class="daytitleheader">
             <span class="nameofday">Monday</span>
-            <div class="date">Nov 10</div>
+            <div class="date">Nov 17</div>
           </div>
           <div class="tasks" data-weekday="Monday">
-            <div class="emptyblock">No tasks yet — add something simple</div>
+            <div class="emptyBubble">No tasks yet — add something simple</div>
             <div class="taskbubble">Buy Cookies</div>
             <div class="taskbubble">Call Lachesis</div>
             <div class="taskbubble">Swim Meet @7:00</div>
@@ -355,9 +347,10 @@
         <div class="weekdaycards">
           <div class="daytitleheader">
             <span class="nameofday">Tuesday</span>
-            <div class="date">Nov 11</div>
+            <div class="date">Nov 18</div>
           </div>
           <div class="tasks" data-weekday="Tuesday">
+            <div class="emptyBubble">No tasks yet — add something simple</div>
             <div class="taskbubble">Meet David @ Rocky Point</div>
             <div class="taskbubble">Work on 1800</div>
           </div>
@@ -370,7 +363,7 @@
         <div class="weekdaycards">
           <div class="daytitleheader">
             <span class="nameofday">Wednesday</span>
-            <div class="date">Nov 12</div>
+            <div class="date">Nov 19</div>
           </div>
           <div class="tasks" data-weekday="Wednesday">
             <div class="taskbubble">Work on Biz. Analysis ERD</div>
@@ -385,7 +378,7 @@
         <div class="weekdaycards">
           <div class="daytitleheader">
             <span class="nameofday">Thursday</span>
-            <div class="date">Nov 13</div>
+            <div class="date">Nov 20</div>
           </div>
           <div class="tasks" data-weekday="Thursday">
             <div class="taskbubble">Bake Banana Loaf</div>
@@ -399,7 +392,7 @@
         <div class="weekdaycards">
           <div class="daytitleheader">
             <span class="nameofday">Friday</span>
-            <div class="date">Nov 14</div>
+            <div class="date">Nov 21</div>
           </div>
           <div class="tasks" data-weekday="Friday">
             <div class="taskbubble">Bake Banana Loaf</div>
@@ -426,6 +419,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
   import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+  import { query, where } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC1X3eQaWxuFZt-Jrrzxl_X7RPzD1ooRd8",
@@ -440,6 +434,7 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
 
 /* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
 // figures out the weekday name associated with a date
@@ -475,41 +470,38 @@ function getWeekday(taskdate) {
     return weekdaynames[date.getDay()]; // gets weekday number from the date, uses it as an index to get the weekday name
   }
 
+  /* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE  --- */
+  function showTask(task) {
+    var weekday;
+    // if the task already has a firestore ISO date (yyyy-mm-dd) use that
+    if (task.dateISO) {
+      weekday = getWeekday(task.dateISO);
+    } else {
+      weekday = getWeekday(task.date); // otherwise, use the plain date we created above
+    }
+    if (!weekday) { // end the function if it's an invalid date
+      return;
+    }
 
+    // find the task bubble/box that matches this weekday
+    var taskcontainer = document.querySelector('[data-weekday="' + weekday + '"]');
 
+    // create a new bubble to show the task
+    var bubble = document.createElement("div");
+    bubble.className = "taskbubble";
 
-/* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE  --- */
-function showTask(task) {
-  var weekday;
-  // if the task already has a firestore ISO date (yyyy-mm-dd) use that
-  if (task.dateISO) {
-    weekday = getWeekday(task.dateISO);
-  } else {
-    weekday = getWeekday(task.date); // otherwise, use the plain date we created above
+    // put the task title inside of the bubble (unless the user entered a blank title)
+    if (task.title) {
+      bubble.textContent = task.title;
+    } else {
+      bubble.textContent = ""; 
+    }
+    taskcontainer.appendChild(bubble); // add bubble to the weekday box
   }
-  if (!weekday) { // end the function if it's an invalid date
-    return;
-  }
-
-  // find the task bubble/box that matches this weekday
-  var taskcontainer = document.querySelector('[data-weekday="' + weekday + '"]');
-
-  // create a new bubble to show the task
-  var bubble = document.createElement("div");
-  bubble.className = "taskbubble";
-
-  // put the task title inside of the bubble (unless the user entered a blank title)
-  if (task.title) {
-    bubble.textContent = task.title;
-  } else {
-    bubble.textContent = ""; 
-  }
-  taskcontainer.appendChild(bubble); // add bubble to the weekday box
-}
 
 
 
-/* --- CLEAR ALL TASK BUBBLES OFF THE PAGE --- */
+/* --- CLEARS ALL TASK BUBBLES OFF OF THE PAGE --- */
 function clearTasks() {
   var bubbles = document.querySelectorAll(".taskbubble"); // selects all of the task bubbles on the page
   for (var i = 0; i < bubbles.length; i++) { // runs a for loop that removes them one by one
@@ -517,13 +509,63 @@ function clearTasks() {
   }
 }
 
-/* --- LOAD IN AND DISPLAY NEW TASKS --- */
-async function loadWeeklyTasks(uid) {
-  var snapshot = await getDocs(collection(db, "personal-tasks", uid, "tasks")); // gets the users tasks from firestore
-  clearTasks(); // clears all tasks
-  for (var i = 0; i < snapshot.docs.length; i++) { // goes through each of the documents
-    var task = snapshot.docs[i].data(); // turns the document into an object
-    showTask(task);                      // shows it in the correct bubble
+/* --- LOADS IN AND DISPLAYS NEW TASKS ONLY FOR THE CURRENT WEEK (SEPARATES HIGH-PRIORITY FROM LOW-PRIORITY TASKS) --- */
+async function loadWeeklyTasks(userId) {
+  // uses today's date to figure out the bounds of the current week
+  const today = new Date();
+
+  // creates a copy of today's date and sets it back to sunday of this week
+  /* ex. let's say today is november 21st; then today.getDate() = 21 
+      today.getDay() would give you 5 (because we start counting at index 0 from sunday)
+      21-5 = 16, which represents sunday, november 16th
+  */
+  const startofweek = new Date(today);
+  startofweek.setDate(today.getDate() - today.getDay());
+
+/* copies over sunday's date: november 16th, into endofweek
+    so it becomes 16 + 6 = 22, therefore the end of the week would be saturday, november 22nd
+*/
+  const endofweek = new Date(startofweek);
+  endofweek.setDate(startofweek.getDate() + 6);
+
+  // slices the first 10 characters of the yyyy-mm-dd string to get both dates in this form
+  const startISO = startofweek.toISOString().slice(0, 10);
+  const endISO   = endofweek.toISOString().slice(0, 10);
+
+  // gets all tasks from firestore between the dates of sunday and saturday 
+  const thisweektasks = query(
+    collection(db, "personal-tasks", userId, "tasks"),
+    where("dateISO", ">=", startISO),
+    where("dateISO", "<=", endISO)
+  );
+  const snapshot = await getDocs(thisweektasks);
+
+  // clears out any old task bubbles
+  clearTasks();
+
+
+  // finds and clears any leftover tasks in the high priority bubble section
+  const urgentList = document.querySelector('.urgentbubblelist');
+  if (urgentList) urgentList.innerHTML = '';
+
+  // loops through each of the task docs from Firestore
+  for (let i = 0; i < snapshot.docs.length; i++) {
+    const tasksnapshot = snapshot.docs[i];     
+    const task = tasksnapshot.data();  
+
+    // shows regular tasks in their correct weekly bubble
+    showTask(task);
+
+    // standardizes the priority task value to a lowercase string
+    const priority = (task.priority || '').toString().toLowerCase();
+
+    // if it's high priority, create a new bubble to add to the priority section
+    if (priority === 'high' && urgentList) {
+      const urgentBubble = document.createElement('div'); 
+      urgentBubble.className = 'urgentbubble';
+      urgentBubble.textContent = task.title; // adds the name of the task into the task bubble
+      urgentList.appendChild(urgentBubble);
+    }
   }
 }
 
@@ -537,6 +579,7 @@ function setupWeeklyView() {
 }
 
 window.onload = setupWeeklyView;
+// note: I removed the custom color that saved to local storage on every page (since we no longer need it)
    </script>
   </body>
 </html>

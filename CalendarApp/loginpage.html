@@ -50,7 +50,7 @@
           const email = form.querySelector("input[type='email']").value;
           const password = form.querySelector("input[type='password']").value;
 
-          // tells firebase to sign in with an email & password
+          // signs in with an email and password
           try {
             const usercredenetials = await signInWithEmailAndPassword(
               auth,
@@ -64,7 +64,7 @@
               usercredenetials.user.uniqueID
             );
 
-            // redirect to main calendar page
+            // redirects to main calendar page
             window.location.href = "sofiascalendar.html";
           } catch (error) {
             alert("Something went wrong! " + error.message);

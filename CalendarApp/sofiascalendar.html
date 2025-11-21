@@ -5,6 +5,7 @@
         --accent-color: #fff5fa; /* default accent color */
         --header-font: "Oooh Baby", sans-serif;
         --body-font: "Inria Serif", sans-serif;
+        --monthly-arrow: #aa909d;
       }
 
       body {
@@ -114,7 +115,6 @@
         z-index: 0;
         padding-top: 10px;
         margin-top: -2rem;
-        cursor: pointer;
       }
 
       #collapseButton img {
@@ -137,7 +137,7 @@
         padding: 2rem;
         position: relative;
         z-index: 1;
-        min-height: 1000px; /* gives the grid background a long canvas feel */
+        min-height: 1000px;
       }
 
       /* styles the task list container that holds all the tasks */
@@ -181,6 +181,7 @@
       #taskList li {
         background: #fffdfcb5;
         margin-bottom: 10px;
+        margin: 0 0 30px 0;
         padding: 10px 14px;
         border-radius: 12px;
         display: flex;
@@ -197,12 +198,27 @@
         opacity: 0.7;
       }
 
+      .calendarmenu {
+        position: relative;
+      }
+
+      .calendarmenu:hover .dropdownmenuoptions {
+        display: block;
+      }
+
+      .dropdownmenuoptions {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 9999;
+      }
+
       /* controls the X button beside each task */
       button {
         background: none;
         border: none;
         font-size: 4rem;
-        cursor: pointer;
         color: #b57268;
       }
 
@@ -277,18 +293,45 @@
         color: inherit;
       }
 
-      .calendarmenu {
-        position: relative;
-        display: inline-block;
+      /* outlines for each task box assigned a priority level */
+      .lowpriority {
+        box-shadow: 3px 0 10px 5px rgba(171, 255, 171, 0.767);
+        border-radius: 8px;
+        background-color: rgb(226, 255, 226);
+      }
+      .mediumpriority {
+        box-shadow: 3px 0 10px 5px rgba(219, 201, 4, 0.603);
+        border-radius: 8px;
+        background-color: rgb(247, 246, 205);
+      }
+      .highpriority {
+        box-shadow: 3px 0 10px 5px rgba(196, 4, 4, 0.63);
+        background-color: rgb(255, 233, 230);
+        border-radius: 8px;
       }
 
-      .calendarmenu:hover .dropdownmenuoptions {
-        display: block;
+      /* styles the monthly arrows */
+      #previousarrow,
+      #nextarrow {
+        background: none;
+        border: none;
+        font-size: 4.3rem; /* size */
+        color: var(
+          --monthly-arrow
+        ); /* important that we define the color of the arrow in case the user wants to change it through preferences */
       }
-
     </style>
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+    <!-- old link to material icons in case I ever want to go back to it -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0&icon_names=arrow_left"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0&icon_names=arrow_right"
+    />
   </head>
   <body>
     <!-- HEADER AREA -->
@@ -309,18 +352,19 @@
           </div>
         </div>
       </div>
-      <div
-        id="backarrow"
-        onclick="window.history.back()"
-        style="cursor: pointer"
-      >
+      <div id="backarrow" onclick="window.history.back()">
         <img src="../img/up-arrow.png" width="110px" />
       </div>
     </header>
 
     <!-- TITLE AND SUBTITLE -->
-    <h1 id="title">Month</h1>
-    <h2 id="subtitle">Today</h2>
+    <h1 id="title">
+      <button id="previousarrow">◀</button>
+      <!-- (tried to use a material icon
+      here, but I have no idea how to change its size within the button) -->
+      <span id="mainmonthlabel"></span>
+      <button id="nextarrow">▶</button>
+    </h1>
 
     <!-- CALENDAR AREA -->
     <div id="calendarContainer">
@@ -412,13 +456,17 @@
       <div id="note" style="display: none">
         Max 20 tasks for now, take it easy!
       </div>
+
+      <div id="tasksByCategory"></div>
     </div>
 
     <!-- BOTTOM NAVBAR -->
     <div class="bottomnav">
       <ul>
         <li>
-          <a href="friends.html"><img src="../img/friendsicon.png" alt="Friends" /></a>
+          <a href="friends.html"
+            ><img src="../img/friendsicon.png" alt="Friends"
+          /></a>
           <span>Friends</span>
         </li>
         <li>
@@ -431,6 +479,5 @@
     </div>
 
     <script type="module" src="scripts/maincalendar.js"></script>
-    </script>
   </body>
 </html>
