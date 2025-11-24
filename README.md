@@ -93,7 +93,9 @@ users = [
 		// Collection of other userIds
 		friends: Array<Number|string>,
 		name: string,
-		completions: Number
+		completions: Number,
+		// Limit user to one group
+		group: String
 	}
 ]
 ```
@@ -110,7 +112,9 @@ groups = [
 		// Collection of task documents
 		tasks: [
 			taskId: {
-				date: Date,
+				// yyyymmdd
+				dateISO: DateString,
+				createdAt: Date,
 				title: string,
 				desc: string
 			}
@@ -125,7 +129,8 @@ personal_task = [
 		// Document ID will take the form {YYYYMMDD}{title}
 		tasks: [
 			{
-				date: Date,
+				dateISO: DateString,
+				createdAt: Date,
 				title: string,
 				desc: string
 			}

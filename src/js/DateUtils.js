@@ -159,3 +159,15 @@ export const getWeekRow = function(monthArray, date) {
         return Math.floor(dayIndex / 7);
     }
 }
+
+/**
+ * Generate string in YYYYMMDD format from a Date object.
+ * @param {Date} date 
+ */
+export const dateISOString = function(date) {
+    const m = date.getMonth();
+    const d = date.getDate();
+    let ms = (m < 9) ? "0".concat(m + 1): m + 1;
+    let ds = (d < 9) ? "0".concat(d + 1): d + 1;
+    return `${date.getFullYear()}${ms}${ds}`;
+}

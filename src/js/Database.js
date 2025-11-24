@@ -17,7 +17,7 @@ import {
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
 const PERSONAL_COLLECTION_NAME = "personal-tasks";
-const SHARED_COLLECTION_NAME = "shared-tasks";
+const GROUP_COLLECTION_NAME = groups;
 
 /**
  * Default app settings.
@@ -272,7 +272,7 @@ async function docFetch(docRef, eMessage) {
             return snapshot.data();
         else
             throw new Error(eMessage);
-    })
+    });
 }
 
 /**
@@ -334,12 +334,6 @@ export const defaultEntry = async function (idString) {
             await setDoc(prefRefs, DEFAULT_PREFERENCES);
         }
     });
-
-    await getDoc(personalRef).then(async (snap) => {
-        if (!snap.exists()) {
-            await setDoc(userRef)
-        }
-    });
 }
 
 /**
@@ -350,9 +344,9 @@ export const defaultEntry = async function (idString) {
  * @return {void}
  */
 export const addPersonalTask = function (taskObj, success, fail) {
-  const dateObj = taskObj.date; // Keep Date for subcollection
-  const subCollectionName = generateTaskCollectionName(dateObj);
-  const user = firebaseAuth.currentUser;
+    const dateObj = taskObj.date; // Keep Date for subcollection
+    const subCollectionName = generateTaskCollectionName(dateObj);
+    const user = firebaseAuth.currentUser;
 
     if (taskObj.date.toDateString) {
         taskObj.date = taskObj.date.toDateString();
@@ -385,3 +379,14 @@ export const setUsername = function (username) {
         }
     });
 };
+
+/**
+ * Checks that a task object to be written into Firestore has the required fields.
+ * @param {Object} task 
+ */
+export const validateTaskObj = function(task) {
+    if (task.title == null || task.desc == null || task.dateISO == null) {
+        throw new Error("Task Object is incomplete.");
+    }
+    task.createdAt = Date.now();
+}
