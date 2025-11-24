@@ -105,7 +105,6 @@ Stores both personal and shared tasks collections.
 ```ts
 groups = [
 	groupName: {
-		completions: Number,
 		// Document field of type Array<String>
 		members: [
 
@@ -117,7 +116,9 @@ groups = [
 				dateISO: DateString,
 				createdAt: Date,
 				title: string,
-				desc: string
+				desc: string,
+				// userIds that have completed the task
+				completed: []
 			}
 		]
 	}

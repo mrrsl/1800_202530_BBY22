@@ -3,7 +3,8 @@
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
  */
 
-import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
+import { firebaseDb, firebaseAuth } from "/js/FirebaseInstances.js";
+import { dateISOString } from "/js/DateUtils.js";
 
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
@@ -26,16 +27,6 @@ const DEFAULT_PREFERENCES = {
   bodyFont: "Inria Serif",
   titleFont: "Oooh Baby",
   accentColor: "#fff5fa",
-};
-
-/**
- * Introductory task.
- */
-const INTRO_TASK = {
-  date: new Date().toDateString(),
-  title: "Welcome",
-  desc: "Work hard and plan harder",
-  completed: false, // Added for consistency
 };
 
 /**
@@ -385,8 +376,14 @@ export const setUsername = function (username) {
  * @param {Object} task 
  */
 export const validateTaskObj = function(task) {
-    if (task.title == null || task.desc == null || task.dateISO == null) {
+    if (task.title == null || task.desc == null) {
         throw new Error("Task Object is incomplete.");
     }
+
     task.createdAt = Date.now();
+
+    if (task.dateISO == null) {
+        task.dateISO = dateISOString(task.createdAt);
+    }
+    
 }
