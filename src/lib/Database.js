@@ -3,8 +3,8 @@
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
  */
 
-import { firebaseDb, firebaseAuth } from "/js/FirebaseInstances.js";
-import { dateISOString } from "/js/DateUtils.js";
+import { firebaseDb, firebaseAuth } from "/lib/FirebaseInstances.js";
+import { dateISOString } from "/lib/DateUtils.js";
 
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
@@ -18,7 +18,7 @@ import {
 const USER_COLLECTION_NAME = "users";
 const PREF_COLLECTION_NAME = "preferences";
 const PERSONAL_COLLECTION_NAME = "personal-tasks";
-const GROUP_COLLECTION_NAME = groups;
+const GROUP_COLLECTION_NAME = "groups";
 
 /**
  * Default app settings.

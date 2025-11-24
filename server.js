@@ -11,11 +11,19 @@ server.get("/", (req, res) => {
         .type("html").sendFile(path.resolve("./src/landingpage.html"));
 });
 
+// Access page scripts
 server.get("/js/:script", (req, res) => {
     res.header("Allow-Access-Control-Origin", "*")
         .sendFile(path.resolve(path.join("./src/js/", req.params.script)));
 });
 
+// Access library scripts
+server.get("/lib/:script", (req, res) => {
+    res.header("Allow-Access-Control-Origin", "*")
+        .sendFile(path.resolve(path.join("./src/lib/", req.params.script)));
+});
+
+// Calendar app script accesc
 server.get("/scripts/:script", (req, res) => {
     res.sendFile(path.resolve(path.join("./src/js/", req.params.script)));
 });

@@ -19,17 +19,17 @@
 import {
     firebaseDb as db,
     firebaseAuth as auth
-} from "/js/FirebaseInstances.js";
+} from "/lib/FirebaseInstances.js";
 
 import {
     dateISOString
-} from "/js/DateUtils.js";
+} from "/lib/DateUtils.js";
 
 import {
     USER_COLLECTION_NAME, GROUP_COLLECTION_NAME,
     validateTaskObj,
     user,
-} from "/js/Database.js";
+} from "/lib/Database.js";
 
 import {
     doc, getDocs, getDoc,
@@ -138,7 +138,7 @@ export const getGroupMembers = async function(groupId) {
 }
 
 /**
- * Write the given task object to the firestore for a specified group
+ * Write the given task object to the firestore for a specified group.
  * @param {String} groupId 
  * @param {Option} task
  */

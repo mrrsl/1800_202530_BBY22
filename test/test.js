@@ -1,11 +1,11 @@
 import {
     firebaseAuth,
     firebaseDb
-} from "../src/js/FirebaseInstances.js";
+} from "../src/lib/Database.js";
 
 import {
     createUniqueUser,
-}from "../src/js/Database.js";
+}from "../src/lib/Database.js";
 
 import {
     onAuthStateChanged,

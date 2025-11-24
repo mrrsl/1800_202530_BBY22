@@ -24,9 +24,16 @@ const firebaseConfig = {
   measurementId: "G-5H2SQNQ0RR"
 };
 
-const app = initializeApp(firebaseConfig);
+/** Project Libraries */
+
+import {
+  firebaseAuth as auth,
+  firebaseDb as db
+} from "/lib/FirebaseInstances.js";
+
+/* const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = getFirestore(app); */
 
 // represents the ID of the user logged in; assume nobody is logged in, so set it to null
 let USERS_CURRENT_ID = null;
@@ -396,7 +403,7 @@ async function displayPlannerName(userId) {
   // if the doc for the user is there
   if (snapshot.exists()) {
     const data = snapshot.data(); // get all the fields stored for that user, and use the username
-    const name = data.username || "user";
+    const name = data.name || "user";
     document.getElementById("plannerName").textContent = name + "'s Planner";
   } else {
     document.getElementById("plannerName").textContent = "My Planner";

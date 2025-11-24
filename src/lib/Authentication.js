@@ -1,6 +1,6 @@
 import {
     firebaseAuth as auth
-} from "/js/FirebaseInstances.js";
+} from "/lib/FirebaseInstances.js";
 
 import {
     signOut
@@ -8,7 +8,7 @@ import {
 
 import {
     user
-} from "/js/Database.js";
+} from "/lib/Database.js";
 
 /**
  * Sign out utility to elide explicit auth import.
