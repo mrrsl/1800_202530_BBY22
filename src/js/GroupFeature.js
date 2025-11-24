@@ -32,6 +32,8 @@ import {
 import {
     doc, getDocs, getDoc,
     setDoc, deleteDoc, updateDoc,
+    query,
+    where,
     collection,
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
@@ -142,6 +144,8 @@ export const removeGroupTask = async function(taskObj, groupId) {
     if (groupId == null) {
         groupId = await user().group;
     }
+    const groupTasksRef = collection(db, GROUP_COLLECTION_NAME, groupId, "tasks");
+    const filter = query(groupTasksRef, where());
 }
 
 /**
