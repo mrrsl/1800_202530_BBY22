@@ -46,9 +46,14 @@ export const SEP = '\u00A0';
 /**
  * Adds the current user to a group with the specified name.
  * @param {String} groupId
+ * @param {String | null} userId Null to default to current user.
  */
-export const joinGroup = async function(groupId) {
+export const addGroupMember = async function(groupId, userId) {
+    if (userId == null)
+        userId = firebaseAuth.currentUser.uid;
+
     const groupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
+    const userRef = doc(db, USER_COLLECTION_NAME, userId);
     
     getDoc(groupRef).then(async snap => {
 
@@ -60,9 +65,10 @@ export const joinGroup = async function(groupId) {
 
     }).then(async data => {
 
-        const userRef = doc(db, USER_COLLECTION_NAME);
-        data.group = groupId;
-        return setDoc(userRef, data);
+        let groupsArray = data.groups;
+        groupsArray.push(groupId);
+        return updateDoc(userRef, {groups: groupsArray});
+        
     });
 }
 
@@ -72,9 +78,9 @@ export const joinGroup = async function(groupId) {
  * @returns 
  */
 export const createGroup = async function(groupId) {
-    const uid = auth.currentUser.uid;
     const groupCollection = collection(db, GROUP_COLLECTION_NAME);
     const existingGroups = await getDocs(groupCollection);
+    
 
     // Ensure unique group ids for the task within a group
     let existingNameSet = new Set(existingGroups.docs.map(doc => doc.id));
@@ -85,11 +91,11 @@ export const createGroup = async function(groupId) {
     } while (existingNameSet.has(workingGroupName));
 
     const defaultGroupDoc = {
-        members: [ uid ],
+        members: [],
         completed: 0
     };
     const groupDocRef = doc(db, GROUP_COLLECTION_NAME, workingGroupName);
-    return setDoc(groupDocRef, defaultGroupDoc);
+    await setDoc(groupDocRef, defaultGroupDoc);
 }
 
 /** Uitility function to generate 4 digits for a unique group name. */
