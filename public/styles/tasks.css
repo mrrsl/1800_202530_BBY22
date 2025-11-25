@@ -1,0 +1,49 @@
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* this is for the task-list container */
+.taskcontainer {
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgb(130, 98, 98);
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    min-height: 1000px;
+}
+
+/* styles the task list container that holds all the tasks */
+#taskList {
+    max-width: 80rem;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    font-size: 40pt;
+}
+
+/* styles each individual task box */
+#taskList li {
+    background: #fffdfcb5;
+    margin-bottom: 10px;
+    margin: 0 0 30px 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1.5px solid rgb(74, 43, 48);
+}
+
+/* styles the task after it's been completed; note: the line-through is not currently being used */
+#taskList li.done {
+    text-decoration: line-through;
+    color: #b5b5b5;
+    background: #f2f2f2;
+    opacity: 0.7;
+}
+
+.bottominfo {
+    display: flex;
+    flex-direction:row;
+}

@@ -15,10 +15,10 @@ import {
     createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-const USER_COLLECTION_NAME = "users";
-const PREF_COLLECTION_NAME = "preferences";
-const PERSONAL_COLLECTION_NAME = "personal-tasks";
-const GROUP_COLLECTION_NAME = "groups";
+export const USER_COLLECTION_NAME = "users";
+export const PREF_COLLECTION_NAME = "preferences";
+export const PERSONAL_COLLECTION_NAME = "personal-tasks";
+export const GROUP_COLLECTION_NAME = "groups";
 
 /**
  * Default app settings.
