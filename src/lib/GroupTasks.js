@@ -74,35 +74,29 @@ export const addGroupMember = async function(groupId, userId) {
 
 /**
  * Creates a group with the given group name.
- * @param {} groupId 
- * @returns 
+ * @param {} groupId Group document ID.
+ * @returns {Promise<void> | Promise<DocumentData>} Resolves to void if a new group was created.
  */
 export const createGroup = async function(groupId) {
     const groupCollection = collection(db, GROUP_COLLECTION_NAME);
     const existingGroups = await getDocs(groupCollection);
-    
-
-    // Ensure unique group ids for the task within a group
-    let existingNameSet = new Set(existingGroups.docs.map(doc => doc.id));
-    let workingGroupName = null;
-
-    do {
-        workingGroupName = groupId + SEP + generateDigits();
-    } while (existingNameSet.has(workingGroupName));
-
     const defaultGroupDoc = {
         members: [],
         completed: 0
-    };
-    const groupDocRef = doc(db, GROUP_COLLECTION_NAME, workingGroupName);
-    await setDoc(groupDocRef, defaultGroupDoc);
-}
+    };    
 
-/** Uitility function to generate 4 digits for a unique group name. */
-function generateDigits() {
-    return Math.floor(
-        Math.random() * 10_000
-    );
+    // Ensure unique group ids for the task within a group
+    let existingNameSet = new Set(existingGroups.docs.map(doc => doc.id));
+    
+    if (existingNameSet.has(groupId)) {
+        const existingGroupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
+        return getDoc(existingGroupRef).then(snap => {
+            return snap.data();
+        });
+    } else {
+        const groupDocRef = doc(db, GROUP_COLLECTION_NAME, groupId);
+        return setDoc(groupDocRef, defaultGroupDoc);
+    }
 }
 
 /**
@@ -135,7 +129,7 @@ export const getGroupMembers = async function(groupId) {
         return memberDocs.docs.map(doc => {
             return {
                 id: doc.id,
-                name: doc.data().name,
+                name: doc.data().username,
                 email: doc.data().email
             };
         });
@@ -304,12 +298,13 @@ export const searchForGroup = function(searchTerm) {
     return getDocs(groupsRef).then(async querySnap => {
 
         let results = [];
-
         querySnap.forEach(doc => {
             if (doc.id.search(rgx) >= 0) {
+                let groupInfo = doc.data();
                 results.push({
                     name: doc.id,
-                    completions: doc.data().completions
+                    completions: groupInfo.completions,
+                    memberCount: groupInfo.members.length,
                 });
             }
         });

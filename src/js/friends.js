@@ -35,14 +35,30 @@ let groupInfo;
 
 /** Search matching usernames and display the resutls. */
 async function populateSearch(term) {
-    // Slower than I'd like but no point in re-engineering the DB to make it faster
-    searchUsers(term).then(results => {
-        results.forEach(async friendObj => {
-            searchResults.appendChild(resultDisplay(friendObj.name, friendObj.email, friendObj.uid));
+
+    let addButton = document.createElement("button");
+    addButton.setAttribute("id", "creategroupbutton");
+    addButton.innerText = "Create Group named '" + term + "'";
+    addButton.addEventListener("click", () => {
+        createGroup(term).then(async () => {
+            return addGroupMember()
+        }).catch((error) => {
+            alert("Failed to create group: " + error.message);
         });
     });
-}
+    searchResults.appendChild(addButton);
 
+    let resultArray = await searchForGroup(term);
+
+    for (let result of resultArray) {
+        let resultElement = resultDisplay(
+            result.name,
+            result.memberCount
+        );
+        searchResults.appendChild(resultElement);
+    }
+
+}
 /**
  * Populate the group member list.
  * @param {boolean} hasGroup Whether the user has a group or not.
@@ -54,7 +70,7 @@ function populateGroupMembers(hasGroup) {
         getGroupMembers(userInfo.group).then(memberArray => {
             for (let mem of memberArray) {
                 let memberElement = friendBox(
-                    mem.name,
+                    mem.username,
                     mem.email,
                     0,
                     mem.uid
@@ -111,34 +127,32 @@ async function loadGroupData() {
 }
 
 /** Generates result display items. Get uid from wrapper.uid. */
-function resultDisplay(name, email, uid) {
+function resultDisplay(name, memberCount) {
     /*
-    div.resultwrapper
-        i.addfriendicon
+    div.friendbox
         div.resulttext
-        p.name
-        p.email
+            p.friendname
+            p.friendusername
+        i.addfriendicon
     */
     let wrapper = document.createElement("div");
     wrapper.classList.add("resultwrapper");
-    wrapper.classList.add(".friendbox");
     let textWrapper = document.createElement("div");
     textWrapper.classList.add("resulttext");
 
     let addIcon = document.createElement("i");
     addIcon.classList.add("addfriendicon");
-    addIcon.firebaseUID = uid;
-    addIcon.addEventListener("click", addHandler);
+    addIcon.addEventListener("click", addHandler.bind(addIcon, name));
 
     let nameP = document.createElement("p");
-    nameP.classList.add("name");
+    nameP.classList.add("groupname");
     nameP.innerText = name;
 
-    let emailP = document.createElement("p");
-    emailP.classList.add("email");
-    emailP.innerText = email;
+    let countText = document.createElement("p");
+    countText.classList.add("membercounttext");
+    countText.innerText = memberCount + " members";
 
-    textWrapper.append(nameP, emailP);
+    textWrapper.append(nameP, countText);
     wrapper.appendChild(textWrapper);
     wrapper.appendChild(addIcon);
 
@@ -238,7 +252,7 @@ async function loadData() {
     for (let friendId of friends) {
         let friendData = await user(friendId);
         let friendElement = friendBox(
-        friendData.name,
+        friendData.username,
         friendData.email,
         0,
         friendId
@@ -268,14 +282,13 @@ function searchHandler(event) {
 }
 
 /** Handles clicking on the add button for search results. */
-function addHandler(event) {
-    let addTarget = this.firebaseUID;
-    addFriend(addTarget).then(() => {
-        alert("Friend added!");
+function addHandler(groupId, event) {
+    addGroupMember(groupId).then(() => {
+        alert("Joined " + groupId + "!");
         loadData();
         searchResults.innerHTML = "";
     }).catch((error) => {
-        alert("Failed to add friend: " + error.message);
+        alert("Failed to join: " + groupId);
     });
 }
 

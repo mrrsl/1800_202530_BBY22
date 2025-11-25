@@ -5,8 +5,6 @@ ul {
 
 /* this is for the task-list container */
 .taskcontainer {
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgb(130, 98, 98);
     padding: 2rem;
     position: relative;
     z-index: 1;

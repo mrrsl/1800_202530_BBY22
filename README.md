@@ -92,10 +92,10 @@ users = [
 	userId: {
 		// Collection of other userIds
 		friends: Array<Number|string>,
-		name: string,
+		username: string,
 		completions: Number,
 		// Limit user to one group
-		group: String
+		group: String | null
 	}
 ]
 ```
@@ -120,7 +120,9 @@ groups = [
 				// userIds that have completed the task
 				completed: []
 			}
-		]
+		],
+		// URI string that can be put into a src attribute for now
+		coverPhoto: String
 	}
 ]
 ```

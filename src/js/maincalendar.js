@@ -403,7 +403,7 @@ async function displayPlannerName(userId) {
   // if the doc for the user is there
   if (snapshot.exists()) {
     const data = snapshot.data(); // get all the fields stored for that user, and use the username
-    const name = data.name || "user";
+    const name = data.username || "user";
     document.getElementById("plannerName").textContent = name + "'s Planner";
   } else {
     document.getElementById("plannerName").textContent = "My Planner";
