@@ -418,7 +418,14 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-  import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+  import {
+  getFirestore,
+  getDocs,
+  collection,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
   import { query, where } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -435,150 +442,106 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-
-/* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
-// figures out the weekday name associated with a date
-function getWeekday(taskdate) {
-  var date;
-
-  // if it's a firestore timestamp, convert it to a normal js date
-  if(taskdate && taskdate.toDate) {
-    date = taskdate.toDate();
-  }
-
-  // if it's already a Date object, use it as is
-  else if(taskdate instanceof Date) {
-    date = taskdate;
-  }
-
-  // if it is in the form yyyy-mm-dd, parse it into numbers
-  else if(typeof taskdate === "string" ) {
-    var parts = taskdate.split("-");
-    if(parts.length === 3) {
-      var year = parts[0]; // first part is the year
-      var month = parts[1] - 1; // month (recall they start at index 0)
-      var day = parts[2]; // day
-      date = new Date(year, month, day);
-
-    // if it's none of these, let javascript figure it out
-    } else {
-      date = new Date(taskdate);
+  /* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
+  function getWeekday(taskdate) {
+    let date;
+    if (taskdate && taskdate.toDate) {
+      date = taskdate.toDate();
+    } else if (taskdate instanceof Date) {
+      date = taskdate;
+    } else if (typeof taskdate === "string") {
+      const parts = taskdate.split("-");
+      if (parts.length === 3) {
+        const year = parts[0];
+        const month = parts[1] - 1;
+        const day = parts[2];
+        date = new Date(year, month, day);
+      } else {
+        date = new Date(taskdate);
+      }
     }
-    }
-
-    var weekdaynames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return weekdaynames[date.getDay()]; // gets weekday number from the date, uses it as an index to get the weekday name
+    const weekdaynames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    return weekdaynames[date.getDay()];
   }
 
-  /* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE  --- */
+  /* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE --- */
   function showTask(task) {
-    var weekday;
-    // if the task already has a firestore ISO date (yyyy-mm-dd) use that
-    if (task.dateISO) {
-      weekday = getWeekday(task.dateISO);
-    } else {
-      weekday = getWeekday(task.date); // otherwise, use the plain date we created above
-    }
-    if (!weekday) { // end the function if it's an invalid date
-      return;
-    }
+    let weekday = task.dateISO ? getWeekday(task.dateISO) : getWeekday(task.date);
+    if (!weekday) return;
 
-    // find the task bubble/box that matches this weekday
-    var taskcontainer = document.querySelector('[data-weekday="' + weekday + '"]');
-
-    // create a new bubble to show the task
-    var bubble = document.createElement("div");
+    const taskcontainer = document.querySelector('[data-weekday="' + weekday + '"]');
+    const bubble = document.createElement("div");
     bubble.className = "taskbubble";
-
-    // put the task title inside of the bubble (unless the user entered a blank title)
-    if (task.title) {
-      bubble.textContent = task.title;
-    } else {
-      bubble.textContent = ""; 
-    }
-    taskcontainer.appendChild(bubble); // add bubble to the weekday box
+    bubble.textContent = task.title || "";
+    taskcontainer.appendChild(bubble);
   }
 
-
-
-/* --- CLEARS ALL TASK BUBBLES OFF OF THE PAGE --- */
-function clearTasks() {
-  var bubbles = document.querySelectorAll(".taskbubble"); // selects all of the task bubbles on the page
-  for (var i = 0; i < bubbles.length; i++) { // runs a for loop that removes them one by one
-    bubbles[i].remove();
+  /* --- CLEARS ALL TASK BUBBLES OFF OF THE PAGE --- */
+  function clearTasks() {
+    document.querySelectorAll(".taskbubble").forEach(b => b.remove());
   }
-}
 
-/* --- LOADS IN AND DISPLAYS NEW TASKS ONLY FOR THE CURRENT WEEK (SEPARATES HIGH-PRIORITY FROM LOW-PRIORITY TASKS) --- */
-async function loadWeeklyTasks(userId) {
-  // uses today's date to figure out the bounds of the current week
-  const today = new Date();
+  /* --- JUST A REFACTOR OF THE PERSONAL WEEKLY VIEW PAGE (ALMOST IDENTICAL) --- */
+  async function loadWeeklyGroupTasks(groupId) {
+    const today = new Date();
+    const startofweek = new Date(today);
+    startofweek.setDate(today.getDate() - today.getDay());
+    const endofweek = new Date(startofweek);
+    endofweek.setDate(startofweek.getDate() + 6);
 
-  // creates a copy of today's date and sets it back to sunday of this week
-  /* ex. let's say today is november 21st; then today.getDate() = 21 
-      today.getDay() would give you 5 (because we start counting at index 0 from sunday)
-      21-5 = 16, which represents sunday, november 16th
-  */
-  const startofweek = new Date(today);
-  startofweek.setDate(today.getDate() - today.getDay());
+    const startISO = startofweek.toISOString().slice(0, 10);
+    const endISO   = endofweek.toISOString().slice(0, 10);
 
-/* copies over sunday's date: november 16th, into endofweek
-    so it becomes 16 + 6 = 22, therefore the end of the week would be saturday, november 22nd
-*/
-  const endofweek = new Date(startofweek);
-  endofweek.setDate(startofweek.getDate() + 6);
+    const thisweektasks = query(
+      collection(db, "groups", groupId, "tasks"),
+      where("dateISO", ">=", startISO),
+      where("dateISO", "<=", endISO)
+    );
+    const snapshot = await getDocs(thisweektasks);
 
-  // slices the first 10 characters of the yyyy-mm-dd string to get both dates in this form
-  const startISO = startofweek.toISOString().slice(0, 10);
-  const endISO   = endofweek.toISOString().slice(0, 10);
+    clearTasks();
 
-  // gets all tasks from firestore between the dates of sunday and saturday 
-  const thisweektasks = query(
-    collection(db, "personal-tasks", userId, "tasks"),
-    where("dateISO", ">=", startISO),
-    where("dateISO", "<=", endISO)
-  );
-  const snapshot = await getDocs(thisweektasks);
+    const urgentList = document.querySelector(".urgentbubblelist");
+    if (urgentList) urgentList.innerHTML = "";
 
-  // clears out any old task bubbles
-  clearTasks();
+    snapshot.forEach((taskdoc) => {
+      const task = taskdoc.data();
+      showTask(task);
+
+      const priority = (task.priority || "").toLowerCase();
+      if (priority === "high" && urgentList) {
+        const urgentBubble = document.createElement("div");
+        urgentBubble.className = "urgentbubble";
+        urgentBubble.textContent = task.title;
+        urgentList.appendChild(urgentBubble);
+      }
+    });
+  }
+
+  /* --- SETUP GROUP WEEKLY VIEW --- */
+async function setupGroupWeeklyView() {
+  const url = new URLSearchParams(window.location.search); // gets the group id from url
+  const groupId = url.get("groupId");
+  if (!groupId) return; // ends function if no group id is present
 
 
-  // finds and clears any leftover tasks in the high priority bubble section
-  const urgentList = document.querySelector('.urgentbubblelist');
-  if (urgentList) urgentList.innerHTML = '';
-
-  // loops through each of the task docs from Firestore
-  for (let i = 0; i < snapshot.docs.length; i++) {
-    const tasksnapshot = snapshot.docs[i];     
-    const task = tasksnapshot.data();  
-
-    // shows regular tasks in their correct weekly bubble
-    showTask(task);
-
-    // standardizes the priority task value to a lowercase string
-    const priority = (task.priority || '').toString().toLowerCase();
-
-    // if it's high priority, create a new bubble to add to the priority section
-    if (priority === 'high' && urgentList) {
-      const urgentBubble = document.createElement('div'); 
-      urgentBubble.className = 'urgentbubble';
-      urgentBubble.textContent = task.title; // adds the name of the task into the task bubble
-      urgentList.appendChild(urgentBubble);
+  const groupdoc = doc(db, "groups", groupId);
+  const groupsnapshot = await getDoc(groupdoc);
+  if (groupsnapshot.exists()) { // checks if the group doc exists
+    const groupinfo = groupsnapshot.data(); // if it does, read all the fields inside of the doc
+    const heading = document.querySelector(".topheading");
+    // changes the heading of each weekly calenar to correspond to the group's name
+    if (heading) {
+      heading.textContent = groupinfo.name + " — This Week";
     }
   }
+
+  loadWeeklyGroupTasks(groupId);
 }
 
-/* --- GETS THE LOGGED IN USER'S TASKS --- */
-function setupWeeklyView() {
-  onAuthStateChanged(auth, function (user) {
-    if (user) {
-      loadWeeklyTasks(user.uid);
-    }
-  });
-}
+window.onload = setupGroupWeeklyView;
 
-window.onload = setupWeeklyView;
-   </script>
+</script>
+
   </body>
 </html>

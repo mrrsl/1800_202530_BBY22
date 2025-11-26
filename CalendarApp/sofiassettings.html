@@ -12,6 +12,7 @@
         text-align: center;
         font-family: var(--header-font);
         font-size: 30pt;
+        padding-bottom: 120px; /* makes sure everything is cleared from the bottom navbar*/
       }
 
       header {
@@ -27,7 +28,6 @@
         z-index: 10;
         width: 2rem;
         height: auto;
-        cursor: pointer;
       }
 
       /* styles the bottom navbar */
@@ -125,16 +125,16 @@
 
       /* styles the logout button */
       #logoutbutton {
-        border: none;
-        border-radius: 14px;
+        border: 2px solid #4a2b30;
+        border-radius: 20px;
         font-size: 30pt;
         text-align: left;
         font-family: var(--body-font);
         margin-top: 0.5em;
         width: 190px;
         padding: 20px;
-        background-color: #a58a91;
-        color: white;
+        background-color: var(--accent-color);
+        color: #362830;
       }
 
       /* styles the container for the APPEARANCE title */
@@ -175,17 +175,16 @@
 
       /* styles the default accent color button */
       #restoreColor {
+        font-family: var(--body-font);
+        background-color: var(--accent-color);
+        color: #362830;
+        border: 2px solid #4a2b30;
+        border-radius: 20px;
+        font-size: 30pt;
+        padding: 8px 16px;
         margin-top: -3em;
         margin-right: 2.5em;
         float: right;
-        font-family: var(--body-font);
-        color: white;
-        background-color: #a58a91;
-        padding: 8px 16px;
-        color: #ffffff;
-        border: 1.5px solid #b5b5b5;
-        border-radius: 20px;
-        font-size: 30pt;
       }
 
       /* styles the font icon beside the Font section with the 3 buttons */
@@ -230,6 +229,64 @@
         font-family: "Oooh Baby", sans-serif;
         font-size: 28pt;
       }
+
+      .profilepicwrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+      }
+
+      #profilePic {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #b57268;
+        margin-bottom: 10px;
+      }
+
+      .pictext {
+        text-align: center;
+      }
+
+      .pictext input {
+        font-size: 30pt;
+        font-family: var(--body-font);
+        width: 80%;
+        padding: 20px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+
+      .pictext button {
+        background-color: #b57268;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+      }
+
+      label {
+        font-size: 50pt;
+        font-family: var(--header-font);
+      }
+
+      #savepic {
+        width: 200px;
+        font-size: 30pt;
+        font-family: var(--body-font);
+        font-weight: bold;
+        border: 2px solid #4a2b30;
+        border-radius: 20px;
+        padding: 13px;
+        margin-top: 0.5em;
+        text-align: center;
+        background-color: var(--accent-color);
+        color: #362830;
+        box-shadow: 0 4px 20px rgba(78, 22, 45, 0.25);
+      }
     </style>
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
@@ -247,6 +304,21 @@
         <img src="../img/up-arrow.png" width="110px" />
       </div>
     </header>
+
+    <!-- PFP SECTION -->
+    <div class="profilepicwrapper">
+      <img id="profilePic" src="./img/defaultprofile.png" />
+      <div class="pictext">
+        <label for="newpicinput">Add Imgur Link:</label>
+        <input
+          type="text"
+          id="newpicinput"
+          placeholder="https://i.imgur.com/..."
+        />
+        <br />
+        <button id="savepic">Save</button>
+      </div>
+    </div>
 
     <!-- PROFILE SETTINGS SECTION -->
     <div class="wrapperforprofilesection">
@@ -308,5 +380,50 @@
         </li>
       </ul>
     </div>
+
+    <script type="module">
+      import { db, auth } from "./FirebaseInstances.js";
+      import {
+        doc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+      onAuthStateChanged(auth, async (signedinuser) => {
+        if (signedinuser) {
+          // points to the current user's doc
+          const userdocref = doc(db, "users", signedinuser.uid);
+
+          // loads all of the user's data from firestore
+          const userdoc = await getDoc(userdocref);
+
+          // if the user doc exists and has a profile picture saved, show it on the page
+          if (userdoc.exists() && userdoc.data().profilePic) {
+            document.getElementById("profilePic").src =
+              userdoc.data().profilePic;
+          }
+
+          // when the save button is clicked, update the profile picture
+          document
+            .getElementById("savepic")
+            .addEventListener("click", async () => {
+              const newpicinput = document
+                .getElementById("newpicinput")
+                .value.trim(); // get the new picture url from input
+
+              if (newpicinput) {
+                // save the new picture url to firestore
+                await updateDoc(userdocref, { profilePic: newpicinput });
+
+                // update the picture on the page
+                document.getElementById("profilePic").src = newpicinput;
+
+                alert("profile picture updated!"); // msg for the user
+              }
+            });
+        }
+      });
+    </script>
   </body>
 </html>
