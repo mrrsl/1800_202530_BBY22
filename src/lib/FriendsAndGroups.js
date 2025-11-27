@@ -1,4 +1,4 @@
-import { db, auth } from "./FirebaseInstances.js";
+import { db, auth } from "/js/FirebaseInstances.js";
 import {
   doc,
   getDoc,
