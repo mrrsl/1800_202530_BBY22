@@ -237,7 +237,7 @@
 
   <body>
     <header>
-      <h1 id="mainTitlePage">Edit Task</h1>
+      <h1 id="mainTitlePage">Write a Group Task</h1>
       <div id="backarrow" onclick="window.history.back()">
         <img src="../img/up-arrow.png" width="110px" />
       </div>
@@ -250,7 +250,7 @@
         <input type="text" placeholder="Go Hiking At Burnaby Mountain" />
       </div>
 
-      <p id="mainheadings">Change Date:</p>
+      <p id="mainheadings">Set Date:</p>
       <div class="inputbubble">
         <input id="dateoftask" type="date" />
       </div>
@@ -265,7 +265,6 @@
         <br />
         <div class="buttonrow">
           <button id="save">Save</button>
-          <button id="deletetask">Delete</button>
         </div>
       </div>
     </div>
@@ -289,21 +288,6 @@
     </div>
 
     <script type="module">
-      // CONTROLS THE BACKGROUND SHADOW FOR EVERY PRIORITY BUTTON (only a stylistic feature)
-      var buttons = document.querySelectorAll(".prioritylevel");
-      // loops through each button
-      for (var i = 0; i < buttons.length; i++) {
-        let button = buttons[i]; // stores the current button
-
-        button.addEventListener("click", function () {
-          // removes the inUse class from all buttons, then adds it back in for the button currently selected
-          for (var s = 0; s < buttons.length; s++) {
-            buttons[s].classList.remove("inUse");
-          }
-          button.classList.add("inUse");
-        });
-      }
-
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
       import { getAuth } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
       import {
@@ -329,101 +313,57 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // identifies which task to load by going through the string in the URL after the ? to pull out the task id
-      const idfromURL = new URLSearchParams(window.location.search);
-      const taskId = idfromURL.get("taskId");
+      // pulls out the group id from the url string after the ?
+      const urlparams = new URLSearchParams(window.location.search);
+      const groupId = urlparams.get("groupId");
 
-      auth.onAuthStateChanged(async (user) => {
-        if (!user) return; // ends here if nobody is signed in
-
-        const currentTask = doc(
-          db,
-          "personal-tasks",
-          user.uid,
-          "tasks",
-          taskId
-        );
-
-        // loads all of the task data from firestore
-        const snapshot = await getDoc(currentTask);
-
-        // if it finds the task, then both the name and date of the task should show up in the input boxes
-        if (snapshot.exists()) {
-          const taskdata = snapshot.data();
-          document.querySelector(".inputbubble input").value = taskdata.title;
-          document.getElementById("dateoftask").value = taskdata.standardDate;
-        }
-
-        // when the save button is clicked, it pushes any updated input about the task back to firestore
-        document.getElementById("save").onclick = async () => {
-          const newtaskname =
-            document.querySelector(".inputbubble input").value;
-          const newdate =
-            document.getElementById("dateoftask").value ||
-            snapshot.data().dateISO; // if no new date was entered, then it will default back to the date saved to firestore
-
-          if (!newdate) {
-            return; // if there's still no date, end here
-          }
-
-          // builds a new task id
-          const newtaskid = newdate.replaceAll("-", "") + newtaskname;
-          const newcurrentTask = doc(
-            db,
-            "personal-tasks",
-            user.uid,
-            "tasks",
-            newtaskid
-          );
-
-          // figures out which of the priority buttons was chosen
-          let chosenprioritylevel;
-
-          const inuseprioritybutton = document.querySelector(
-            ".prioritylevel.inUse"
-          );
-          if (inuseprioritybutton) {
-            chosenprioritylevel = inuseprioritybutton.id; // uses the button's id to represent priority level
-          } else {
-            // if a new priority level wasn't assigned, it defaults back to whatever priority was already saved to firestore
-            chosenprioritylevel = snapshot.data().priority;
-          }
-
-          // prepares all of the new task data that needs saving
-          const updatedtask = {
-            title: newtaskname,
-            dateISO: newdate,
-            priority: chosenprioritylevel,
-          };
-
-          // saves the newly updated task to firestore
-          if (newtaskid === taskId) {
-            await updateDoc(newcurrentTask, updatedtask); // if the id hasn't changed, just update the existing doc
-          } else {
-            await setDoc(newcurrentTask, updatedtask); // if the id changed because the name or date was updated, create a new task doc
-            await deleteDoc(
-              doc(db, "personal-tasks", user.uid, "tasks", taskId) // deletes old doc
-            );
-          }
-
-          // redirects back to the main calendar page after saving
-          window.location.href = "sofiascalendar.html";
-        };
+      // finds all of the priority buttons on the page
+      const prioritybuttons = document.querySelectorAll(".prioritylevel");
+      prioritybuttons.forEach((button) => {
+        // when a priority button is clicked
+        button.addEventListener("click", () => {
+          // remove the inUse class from all buttons
+          prioritybuttons.forEach((b) => b.classList.remove("inUse"));
+          // add the inUse class to the clicked button
+          button.classList.add("inUse");
+        });
       });
 
-      // deletes the task off of the page when delete button is clicked
-      document
-        .getElementById("deletetask")
-        .addEventListener("click", async () => {
-          const user = auth.currentUser;
-          // stops if there's no user or task id
-          if (!user || !taskId) return;
+      // when the save button is clicked create a new group task
+      document.getElementById("save").onclick = async () => {
+        const tasktitleinput =
+          document.querySelector(".inputbubble input").value; // get the task title from the input box
+        const taskdateinput = document.getElementById("dateoftask").value; // get the task date from the date input box
 
-          const taskRef = doc(db, "personal-tasks", user.uid, "tasks", taskId);
-          // goes back to the calendar page after deleting
-          await deleteDoc(taskRef);
-          window.location.href = "sofiascalendar.html";
-        });
+        if (!taskdateinput || !tasktitleinput) return; // stop if input fields are left empty
+
+        // builds a unique id for the task using date + title
+        const newtaskid = taskdateinput.replaceAll("-", "") + tasktitleinput;
+
+        const taskdocref = doc(db, "groups", groupId, "tasks", newtaskid);
+
+        // finds which priority button is currently in use
+        const selectedprioritybutton = document.querySelector(
+          ".prioritylevel.inUse"
+        );
+
+        // if a button is selected, use its id; otherwise default to medium
+        const chosenpriority = selectedprioritybutton
+          ? selectedprioritybutton.id
+          : "medium";
+
+        // prepares the new task object
+        const newtaskdata = {
+          title: tasktitleinput,
+          dateISO: taskdateinput, // task date in iso format
+          priority: chosenpriority,
+          shared: true, // shows this is a group task
+        };
+        // saves the new task into firestore
+        await setDoc(taskdocref, newtaskdata);
+
+        window.location.href = "sofiascalendar.html"; // redirects back to the calendar page
+      };
     </script>
   </body>
 </html>

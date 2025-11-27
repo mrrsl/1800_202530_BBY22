@@ -96,7 +96,7 @@
         font-family: var(--body-font, sans-serif);
         border: 2px solid #d2c2cb;
         border-radius: 25px;
-        background-image: url("./img/searchicon.png"); /* sets the icon as a bg image in order to display it (I didn't feel like creating another wrapper div to do this) */
+        background-image: url("./img/searchicon.png"); /* sets the icon as a bg image in order to display it*/
         background-repeat: no-repeat;
         background-size: 60px 60px;
         background-position: 0.8rem center;
@@ -120,6 +120,19 @@
         padding: 2rem;
         box-shadow: 0 6px 14px var(--box-shadow);
         margin: 0.5rem 0;
+        position: relative; /* newly added to accomodate the leave group icon */
+      }
+
+      .leavegroupicon {
+        width: 70px;
+        height: 70px;
+        position: absolute;
+        top: 10px;
+        right: 13px;
+      }
+
+      .bubblebox {
+        position: relative; /* for positioning the leave icon */
       }
 
       /* only styles the heading for each group */
@@ -130,20 +143,19 @@
         font-weight: bold;
       }
 
-      /* makes image and column sit next to each other */
+      /* makes the cover photo and column sit next to each other in each group box */
       .aboutgroup {
         display: flex;
         align-items: flex-start;
         gap: 2rem;
       }
 
-      /* group photo */
+      /* for the cover image of each group */
       .coverphoto {
         width: 200px;
         height: 200px;
         border-radius: 18px;
         border: 3px solid var(--highlight-color);
-        object-fit: cover;
       }
 
       /* the entire main column beside the group image*/
@@ -160,6 +172,7 @@
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
+        max-width: 400px; /* enough space for ~5 icons */
       }
 
       .pfp {
@@ -196,12 +209,12 @@
         padding: 1rem 1.5rem;
       }
 
-      /* styles the new group icon in the right hand corner */
-      .containerForNewGroupIcon {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 20rem;
-        padding-right: 1.5rem; /
+      /* styles the new group icon in the bottom right corner */
+      .plusIconContainer {
+        position: fixed;
+        bottom: 6rem;
+        right: 1.5rem;
+        z-index: 1000; /* just in case */
       }
 
       .newgroupicon {
@@ -243,6 +256,98 @@
         width: 100px;
         height: auto;
         margin-bottom: 0.5rem;
+      }
+
+      .overlaybox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(
+          0,
+          0,
+          0,
+          0.5
+        ); /* makes the actual background (so behind the new group container darker!!) */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+
+      /* styles both the outside & inside container for the popup */
+      .overlaybox .groupeditcontainer {
+        font-family: var(--header-font);
+        background: #fff;
+        border: 2px solid var(--border-color);
+        border-radius: 50px;
+        padding: 100px;
+        width: 600px;
+        max-width: 90%;
+        box-shadow: 0 6px 40px rgb(0, 0, 0); /* shadow around main box */
+        position: relative; /* so close button can sit in the top-right */
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* the X button */
+      .overlaybox .closepopup {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #333;
+      }
+
+      /* headings in the popup box */
+      #mainheadings {
+        font-size: 50pt;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      /* input bubbles in the popup box */
+      .inputbubble input {
+        width: 100%;
+        padding: 40px;
+        font-size: 30pt;
+        font-family: var(--body-font);
+        border: 1px solid #aaa;
+        border-radius: 30px;
+      }
+
+      /* styles each friend option in the popup box */
+      .friendoptions a {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        font-family: var(--body-font);
+        font-size: 30pt;
+        padding: 10px 14px;
+        border-radius: 8px;
+      }
+
+      /* profile pics */
+      .friendoptions img.pfp {
+        width: 100px;
+        height: 100px;
+        border-radius: 70%;
+      }
+
+      /* save button inside the popup box */
+      .savebutton {
+        background: var(--accent-color);
+        color: #333;
+        font-size: 34pt;
+        font-family: var(--body-font);
+        padding: 30px 30px;
+        width: 300px;
+        border: 7px solid var(--border-color);
+        margin: 20px auto;
+        border-radius: 50px;
       }
     </style>
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
@@ -310,7 +415,7 @@
         </div>
       </div>
     </div>
-    <div class="containerForNewGroupIcon">
+    <div class="plusIconCOntainer">
       <img src="../img/newgroup.png" class="newgroupicon" />
     </div>
 
@@ -331,5 +436,463 @@
         </li>
       </ul>
     </div>
+
+    <script type="module">
+      import { db, auth } from "./FirebaseInstances.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+      import {
+        collection,
+        addDoc,
+        getDocs,
+        doc,
+        getDoc,
+        setDoc,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+      // section where all user groups are displayed
+      const groupsection = document.querySelector(".groupSection");
+
+      // represents the + icon for creating a new group
+      const newgroupicon = document.querySelector(".newgroupicon");
+
+      // LOADS IN THE USER'S GROUPS
+      async function loadGroups(user) {
+        // points to the groups collection
+        const groupscollection = collection(db, "groups");
+
+        // gets each of the group docs
+        const snapshot = await getDocs(groupscollection);
+
+        // clears placeholder group boxes off of the page
+        groupsection.innerHTML = "";
+
+        // loops through each group doc & reads all fields: name, members, cover photo
+        snapshot.forEach(function (docSnap) {
+          const groupInfo = docSnap.data();
+
+          // checks to see if the user logged in is one of the members
+          var isUserInGroup = false;
+
+          // only runs the loop if there's a list of members
+          if (groupInfo.members) {
+            for (var i = 0; i < groupInfo.members.length; i++) {
+              var groupmember = groupInfo.members[i];
+              if (groupmember.uid === user.uid) {
+                isUserInGroup = true; // found the user
+                break; // stop checking
+              }
+            }
+          }
+
+          if (isUserInGroup) {
+            // creates a new div for each group
+            const div = document.createElement("div");
+            div.className = "bubblebox";
+
+            // builds the list of members as html
+            var membersHTML = "";
+            var members = groupInfo.members || [];
+
+            // loops through each member
+            for (var i = 0; i < members.length; i++) {
+              var currentmember = members[i];
+              // use their profile picture if they have one, otherwise, use default img
+              var pfp = currentmember.profilePic
+                ? currentmember.profilePic
+                : "../img/default.png";
+
+              // use their username if possible or default to uid
+              var name = currentmember.username
+                ? currentmember.username
+                : members.uid;
+
+              // adds a span with each group member's name & pfp to the group box
+              membersHTML +=
+                "<span class='member'>" +
+                "<img src='" +
+                pfp +
+                "' class='pfp' />" +
+                name +
+                "</span> ";
+            }
+
+            // use the cover photo if there is one, otherwise use default img
+            var cover = groupInfo.coverPhoto
+              ? groupInfo.coverPhoto
+              : "/img/defaultgroup.jpg";
+
+            // builds the html for each individual group box
+            div.innerHTML =
+              "<div class='groupname'>" +
+              groupInfo.name +
+              "<img src='../img/leavegroup.png' class='leavegroupicon' style='float:right;' />" +
+              "</div>" +
+              "<div class='aboutgroup'>" +
+              "<img src='" +
+              cover +
+              "' class='coverPhoto' />" +
+              "<div class='groupinfo'>" +
+              "<div class='groupmembers'>" +
+              membersHTML +
+              "<button class='taskbutton'>+ Add Task</button>" +
+              "</div>" +
+              "<div class='recentgrouptask'>Most recent task: placeholder</div>" +
+              "</div>" +
+              "</div>";
+
+            // adds flex wrap to the group boxes after a certain # of friends bc it causes the layout to break
+            const groupmembers = div.querySelector(".groupmembers");
+            const pfps = groupmembers.querySelectorAll(".pfp");
+
+            if (pfps.length > 5) {
+              groupmembers.style.display = "flex"; // make sure it's flex
+              groupmembers.style.flexWrap = "wrap";
+            }
+
+            // redirects to the group add/edit task page when the + icon is clicked
+            div
+              .querySelector(".taskbutton")
+              .addEventListener("click", function (buttonclick) {
+                buttonclick.stopPropagation(); // prevents any triggers from clicking on the group bubble
+                window.location.href =
+                  "sofiasnewgroupedit.html?groupId=" + docSnap.id;
+              });
+
+            // removes a user from a group when leave icon is clicked
+            div
+              .querySelector(".leavegroupicon")
+              .addEventListener("click", async function (buttonclick) {
+                buttonclick.stopPropagation(); // prevents group bubble trigger
+                const groupDocRef = doc(db, "groups", docSnap.id);
+
+                // builds a new members array without the current user
+                var newmembers = []; // starts with an empty list
+
+                if (groupInfo.members) {
+                  for (var i = 0; i < groupInfo.members.length; i++) {
+                    var groupmember = groupInfo.members[i];
+                    // only keep this person if their uid doens't match the current user's uid
+                    if (groupmember.uid !== user.uid) {
+                      newmembers.push(groupmember);
+                    }
+                  }
+                }
+
+                // saves the updated group doc back to firestore
+                await setDoc(groupDocRef, {
+                  name: groupInfo.name,
+                  coverPhoto: groupInfo.coverPhoto,
+                  members: newmembers,
+                });
+
+                // reloads the groups list so that the UI updates
+                loadGroups(user);
+              });
+
+            // when you click on the group box itself, redirect to the group weekly view page
+            div.addEventListener("click", function (buttonclick) {
+              if (buttonclick.target.closest(".taskbutton")) return; // ignore any clicks on the add task button
+              window.location.href =
+                "groupweeklyview.html?groupId=" + docSnap.id;
+            });
+
+            // add the group box to the actual groups page
+            groupsection.appendChild(div);
+          }
+        });
+      }
+
+      // GETTING THE USER'S FRIENDS FROM FIRESTORE
+      async function getFriends(currentUser) {
+        const frienshipscollection = collection(db, "friendships"); // points to friendships collection
+
+        // note: in the database, friendship docs are structured so that userA represents one person's uid and userB is the other friend's uid
+        // side note: the only reason there's a separate friendships collection is because I was having trouble with firestore's rules
+
+        // finds friendships where the current user is userA
+        const whereUserIsA = await getDocs(
+          query(frienshipscollection, where("userA", "==", currentUser.uid))
+        );
+
+        // friendships where the current user is userB
+        const whereUserIsB = await getDocs(
+          query(frienshipscollection, where("userB", "==", currentUser.uid))
+        );
+
+        // an empty list for all the uids of this user's friends
+        const friendsIDS = [];
+
+        // for every friendship where the user logged in is userA, add the other person, userB's uid to the list
+        whereUserIsA.forEach(function (friendshipDoc) {
+          friendsIDS.push(friendshipDoc.data().userB);
+        });
+
+        // vise-versa
+        whereUserIsB.forEach(function (friendshipDoc) {
+          friendsIDS.push(friendshipDoc.data().userA);
+        });
+
+        // empty list for storing friend profiles (turned into html later on)
+        const friendslist = [];
+
+        // loops through each friend's uid from our earlier list
+        for (var i = 0; i < friendsIDS.length; i++) {
+          var friendID = friendsIDS[i];
+
+          // gets a snapshot of their profile
+          const friendProfileSnap = await getDoc(doc(db, "users", friendID));
+
+          // if their profile exists in firestore, add their info to the friendslist
+          if (friendProfileSnap.exists()) {
+            var friendInfo = friendProfileSnap.data(); // read all their profile data
+
+            friendslist.push({
+              uid: friendID,
+              username: friendInfo.username || friendID, // username or default to uid
+              profilePic: friendInfo.profilePic || "../img/defaultprofile.png", // pfp or default img
+            });
+          }
+        }
+
+        return friendslist; // returns the full list of friends to display across different pages
+      }
+
+      // THE POPUP/OVERLAY FOR CREATING A NEW GROUP
+      async function shownewgroupPopup(user, friendslist) {
+        // gets all of the saved info on the user logged in
+        const userdocref = doc(db, "users", user.uid);
+        const usersnap = await getDoc(userdocref);
+        const currentuserdata = usersnap.exists() ? usersnap.data() : {}; // only use the data if it exists, otherwise use an empty object
+
+        // creates the outer popup box
+        const outerpopup = document.createElement("div");
+        outerpopup.className = "overlaybox";
+
+        // creates the inner container that actually holds the buttons & input boxes
+        const innercontainer = document.createElement("div");
+        innercontainer.className = "groupeditcontainer";
+
+        // the close button in the corner
+        const closebutton = document.createElement("button");
+        closebutton.className = "closepopup";
+        closebutton.style.alignSelf = "flex-end";
+        closebutton.style.fontSize = "30pt";
+        closebutton.textContent = "X";
+        innercontainer.appendChild(closebutton);
+
+        // adds the 'Group Name' heading inside of the popup box
+        const groupnameHeading = document.createElement("p");
+        groupnameHeading.id = "mainheadings";
+        groupnameHeading.textContent = "Group Name:";
+        innercontainer.appendChild(groupnameHeading);
+
+        // creates the div wrapper for the Group Name input box
+        const inputbox = document.createElement("div");
+        inputbox.className = "inputbubble";
+
+        // creates the actual input box for the group name
+        const groupname = document.createElement("input");
+        groupname.type = "text";
+        groupname.id = "groupnameInput";
+        groupname.placeholder = "Enter group name";
+        inputbox.appendChild(groupname);
+        innercontainer.appendChild(inputbox);
+
+        // adds the 'Cover image URL' heading inside the popup box
+        const coverimgHeading = document.createElement("p");
+        coverimgHeading.id = "mainheadings";
+        coverimgHeading.textContent = "Cover image URL:";
+        innercontainer.appendChild(coverimgHeading);
+
+        // creates the div wrapper for the cover image input box
+        const coverimgInputBox = document.createElement("div");
+        coverimgInputBox.className = "inputbubble";
+
+        // creates the actual input box for inserting the link to the cover image
+        const coverimgInput = document.createElement("input");
+        coverimgInput.type = "text";
+        coverimgInput.id = "groupCoverInput";
+        coverimgInput.placeholder =
+          "Paste an Imgur Link! ex. https://i.imgur.com/...";
+        coverimgInputBox.appendChild(coverimgInput);
+        innercontainer.appendChild(coverimgInputBox);
+
+        // adds the 'Add Friends' heading inside of the input box
+        const friendsHeading = document.createElement("p");
+        friendsHeading.id = "mainheadings";
+        friendsHeading.textContent = "Add Friends:";
+        innercontainer.appendChild(friendsHeading);
+
+        // creates each friend option
+        const friendoption = document.createElement("div");
+        friendoption.className = "friendoptions";
+
+        // loops through each friend in the friendslist array & attaches an <a> element to each one
+        // each anchor tag uniquely represents every friend
+        friendslist.forEach((friend) => {
+          const link = document.createElement("a");
+
+          // stores extra info about each friend: uid, username and pfp
+          // the info gets read later when the link is clicked
+          link.dataset.uid = friend.uid;
+          link.dataset.username = friend.username;
+          link.dataset.pfp = friend.profilePic;
+
+          // creates & attaches each friend pfp to their link
+          const pfpimage = document.createElement("img");
+          pfpimage.src = friend.profilePic; // sources the pfp image
+          pfpimage.className = "pfp";
+          link.appendChild(pfpimage);
+
+          // attaches username text to link
+          link.appendChild(document.createTextNode(friend.username));
+
+          // creates the icon beside each friend option
+          const plusfriendicon = document.createElement("img");
+          plusfriendicon.src = "../img/addtogroup.png";
+          plusfriendicon.className = "addperson";
+          link.appendChild(plusfriendicon);
+
+          friendoption.appendChild(link); // attaches the anchor to each friend
+        });
+
+        // attaches the friend options to the popup box
+        innercontainer.appendChild(friendoption);
+
+        // creates the save button
+        const savebutton = document.createElement("button");
+        savebutton.className = "savebutton";
+        savebutton.textContent = "Save";
+
+        innercontainer.appendChild(savebutton);
+
+        // sets up the popup box; attaches the inner to the outer container; adds it to the page
+        outerpopup.appendChild(innercontainer);
+        document.body.appendChild(outerpopup);
+
+        // removes popup when X clicked
+        closebutton.addEventListener("click", () => {
+          document.body.removeChild(outerpopup);
+        });
+
+        // keeps track of friends chosen from the options
+        let chosenfriends = [];
+
+        // goes through every friend link
+        friendoption.querySelectorAll("a").forEach((friend) => {
+          friend.addEventListener("click", (event) => {
+            event.preventDefault(); // stops link from redirecting
+
+            // bundles all the info we stored earlier in the link into an object
+            const friendInfo = {
+              uid: friend.dataset.uid,
+              username: friend.dataset.username,
+              profilePic: friend.dataset.pfp,
+            };
+
+            // starts off by assuming the friend hasn't been picked yet
+            let alreadyselected = false;
+
+            // go through each friend in the list
+            for (let i = 0; i < chosenfriends.length; i++) {
+              // compares the uid of each friend in the list to the uid of the friend selected
+              // if it matches, end it immediately to avoid duplicate friends
+              if (chosenfriends[i].uid === friendInfo.uid) {
+                alreadyselected = true;
+                break;
+              }
+            }
+
+            // if alreadyselected = false, then add the friend to the list of chosen friends
+            if (!alreadyselected) {
+              chosenfriends.push(friendInfo);
+              friend.style.backgroundColor = "#e6d9dc"; // also change the option bg color
+            }
+          });
+        });
+
+        // SAVES THE NEWLY CREATED GROUP
+        savebutton.addEventListener("click", async () => {
+          // gets the group name text, removes whitespace to avoid errors when using the searchbar
+          const groupname = document
+            .getElementById("groupnameInput")
+            .value.trim();
+
+          const coverPhoto = document
+            .getElementById("groupCoverInput")
+            .value.trim();
+
+          if (!groupname) {
+            alert("Sorry! You have to enter a group name");
+            return;
+          }
+
+          // the logged-in user
+          const loggedinuser = {
+            uid: user.uid,
+            username: currentuserdata.username || user.displayName || "You",
+            profilePic: currentuserdata.profilePic || "/img/defaultprofile.png",
+          };
+
+          // combines the user with the list of chosen friends
+          const totalgroupmembers = [loggedinuser].concat(chosenfriends);
+
+          // saves the new group to firestore
+          await addDoc(collection(db, "groups"), {
+            name: groupname,
+            coverPhoto: coverPhoto || "/img/defaultgroup.jpg",
+            members: totalgroupmembers,
+          });
+
+          // closes the popup
+          document.body.removeChild(outerpopup);
+
+          // reloads all of the groups
+          loadGroups(user);
+        });
+      }
+
+      // checks user's login status
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+
+        // loads groups onto the page & gets friends list from firestore if logged in
+        loadGroups(user);
+        const friendslist = await getFriends(user);
+
+        // checks that the new group icon is still on the page (idk, doesn't make much sense, but it simplified the logic)
+        if (newgroupicon) {
+          newgroupicon.addEventListener("click", () => {
+            shownewgroupPopup(user, friendslist); // opens the popup box with their friend list
+          });
+        }
+      });
+
+      // FOR THE SEARCH BAR
+      const searchbar = document.querySelector(".searchbar");
+
+      if (searchbar) {
+        searchbar.addEventListener("input", () => {
+          const searchedkeyword = searchbar.value.toLowerCase(); // standardizes the text typed in to all lowercase
+
+          // loops through each group bubble on the page, grabs the group name from each
+          document.querySelectorAll(".bubblebox").forEach((box) => {
+            const nameofgroup = box.querySelector(".groupname");
+
+            // convert text to all lowercase
+            const textofgroupname = nameofgroup
+              ? nameofgroup.textContent.toLowerCase()
+              : "";
+
+            // if group bubble contains the searched word, display it
+            box.style.display = textofgroupname.includes(searchedkeyword)
+              ? ""
+              : "none";
+          });
+        });
+      }
+    </script>
   </body>
 </html>

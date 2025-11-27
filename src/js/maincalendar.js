@@ -12,6 +12,8 @@ import {
   getDocs,
   getDoc,
   deleteDoc,
+  updateDoc,
+  increment,
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -77,39 +79,103 @@ function daysInMonth(indexofmonth, year) {
   return dateObject.getDate();
 }
 
-/* --- javascript variables that we connect to html elements later on  --- */
-let titleElement;
+/* --- variables that we connect to html elements later on  --- */
 let taskList;
 let taskInput;
 let calendarContainer;
 let collapseButton;
 
-/* --- FOR SAVING AND LOADING TASKS FROM FIRESTORE --- */
-async function saveTask(
-  title,
-  desc = "",
-  standardDay = formatDate(selecteddate)
-) {
-  if (!USERS_CURRENT_ID) {
-    //end function if the user isn't logged in
-    return;
+/* --- FOR CREATING NEW TASK ITEMS --- */
+/* changed the original function so that task creation only happens in a single spot;
+   before, addTask() was making new list items, but it didn't include the 
+   redirect to the edit page or priority borders, and loadTasksForTheDay was only making
+   task items for loaded tasks, so there was a lot of repeated code;
+   this also fixed the reload bug when editing tasks
+*/
+function createTask(taskId, taskinfo, tasklocation = null) {
+  const taskItem = document.createElement("li");
+
+  // saves the task id and priority level inside the list item
+  taskItem.dataset.taskId = taskId;
+  taskItem.dataset.priority = (taskinfo.priority || "").toLowerCase();
+
+  // assigns each task a css class based on priority (only used for styling)
+  if (taskItem.dataset.priority === "high")
+    taskItem.classList.add("highpriority");
+  else if (taskItem.dataset.priority === "medium")
+    taskItem.classList.add("mediumpriority");
+  else if (taskItem.dataset.priority === "low")
+    taskItem.classList.add("lowpriority");
+
+  // displays the name of the task
+  taskItem.textContent = taskinfo.title;
+
+  // for creating the groups icon to the right of every group task
+  if (tasklocation && tasklocation.path.includes("groups")) {
+    const groupicon = document.createElement("img");
+    groupicon.src = "/img/groupicon.png";
+    groupicon.style.width = "80px";
+    groupicon.style.position = "absolute";
+    groupicon.style.right = "90px";
+    groupicon.style.top = "10%";
+    taskItem.style.position = "relative"; // makes the li the context that its being positioned in
+    taskItem.appendChild(groupicon);
   }
 
-  let taskId = makeUniqueDocId(standardDay, title); // make a unique id for the task based on the date + title
-  let taskRef = doc(db, "personal-tasks", USERS_CURRENT_ID, "tasks", taskId); // where the task is saved in firestore
+  // creates delete button, attaches it to task
+  const deletebutton = document.createElement("button");
+  deletebutton.textContent = "X";
+  taskItem.appendChild(deletebutton);
 
-  // puts the task data into firestore
-  await setDoc(taskRef, {
-    dateISO: standardDay, // dateISO is the standard yyyymmdd date format
-    title: title,
-    desc: desc,
-    createdAt: new Date(),
-    done: false,
-  });
+  // when the delete button is clicked:
+  deletebutton.onclick = async () => {
+    // remove the task from firestore (if it exists in the database)
+    if (tasklocation) {
+      await deleteDoc(tasklocation);
+
+      // otherwise, build the location in firestore using user id and task id, then remove it
+    } else if (USERS_CURRENT_ID) {
+      const taskRef = doc(
+        db,
+        "personal-tasks",
+        USERS_CURRENT_ID,
+        "tasks",
+        taskId
+      );
+      await deleteDoc(taskRef);
+    }
+
+    // increments the # of tasks completed
+    if (USERS_CURRENT_ID) {
+      const currentuserdoc = doc(db, "users", USERS_CURRENT_ID);
+      await updateDoc(currentuserdoc, {
+        tasksCompleted: increment(1),
+      });
+    }
+
+    // removes the item from the list, updates the task limit note
+    taskItem.remove();
+    updateNote();
+  };
+
+  // redirects to the task editing page with the correct task id in the url whenever the task is clicked on
+  if (!tasklocation || tasklocation.path.includes("groups")) {
+    taskItem.onclick = null; // note: I added this line to disable editing for group tasks
+  } else {
+    taskItem.onclick = (e) => {
+      if (e.target.closest("button")) return; // stops if the click was on the delete button
+      window.location.href =
+        "sofiasnewedit.html?taskId=" + encodeURIComponent(taskId);
+    };
+  }
+  // adds new task to the list
+  taskList.appendChild(taskItem);
 }
 
 /* --- LOADING TASKS FOR A SPECIFIC DAY --- */
+// removed task creation section which is now handled by createTask()
 async function loadTasksForTheDay(currentday) {
+  // stops if no user is logged in
   if (!USERS_CURRENT_ID) return;
 
   // gets all tasks for this user from firestore
@@ -117,120 +183,114 @@ async function loadTasksForTheDay(currentday) {
     collection(db, "personal-tasks", USERS_CURRENT_ID, "tasks")
   );
 
-  taskList.innerHTML = ""; //clears task list before adding anything new
+  // clears the current task list before adding new items
+  taskList.innerHTML = "";
 
-  // loops through each document in the snapshot
+  // goes through each task in the snapshot
   for (let i = 0; i < snapshot.docs.length; i++) {
-    const taskDoc = snapshot.docs[i]; // a single document snapshot
-    const taskInfo = taskDoc.data(); // the actual task info inside of that single doc snap
+    const taskDoc = snapshot.docs[i]; // a single task from firestore
+    const taskinfo = taskDoc.data(); // all of the task's info; title, date, priority level
 
-    // CONNECTED TO THE TASK EDITING PAGE (NEEDS FIXING)!!! (issue is that you have to reload the page every time you want to edit a task you just created)
-    // if the saved task date in yyyy-mm-dd form matches the current day selected, display it as a new list item
-    if (taskInfo.dateISO === currentday) {
-      const listItem = document.createElement("li");
-      // saves the firestore doc id into the li
-      listItem.dataset.taskId = taskDoc.id;
-
-      //saves the priority level inside of the li as well;
-      listItem.dataset.priority = (taskInfo.priority || "")
-        .toString()
-        .toLowerCase();
-      // adds a class for css styling based on priority level
-      if (listItem.dataset.priority === "high")
-        listItem.classList.add("highpriority");
-      else if (listItem.dataset.priority === "medium")
-        listItem.classList.add("mediumpriority");
-      else if (listItem.dataset.priority === "low")
-        listItem.classList.add("lowpriority");
-
-      listItem.textContent = taskInfo.title; // displays the name of the task
-
-      // creates an x button and attaches it to each list item
-      const deletebutton = document.createElement("button");
-      deletebutton.textContent = "X";
-      listItem.appendChild(deletebutton);
-      taskList.appendChild(listItem);
-
-      // delete the task from firestore when clicked & remove it from the list
-      deletebutton.onclick = async function () {
-        await deleteDoc(taskDoc.ref);
-        listItem.remove();
-        updateNote(); // refreshes the limit note after a task has been deleted
-      };
-
-      // THIS IS FOR THE TASK EDITING PAGE!! It loads in the correct task for a given day onto the edit page
-      listItem.onclick = function (e) {
-        if (e.target.closest("button")) return; // IMPORTANT!! stops if the click happened on a button (necessary to keep this part, because otherwise clicking the X button redirects to the task edit page)
-        // gets the current date & builds the unique task id
-        const currentday = formatDate(selecteddate);
-        const taskId = makeUniqueDocId(currentday, taskInfo.title);
-        // goes to the task edit page and puts the task ID into the url
-        window.location.href =
-          "sofiasnewedit.html?taskId=" + encodeURIComponent(taskId);
-      };
+    // only show tasks matching the currently selected day
+    if (taskinfo.dateISO === currentday) {
+      createTask(taskDoc.id, taskinfo, taskDoc.ref);
     }
   }
 
-  // refreshes the limit note (AGAIN) after all tasks have loaded in
+  // LOADS IN ALL GROUP TASKS
+  const groupscollection = collection(db, "groups");
+  const allgroupdocs = await getDocs(groupscollection);
+
+  for (let i = 0; i < allgroupdocs.docs.length; i++) {
+    // loops through each group
+    const singleGroupSnapshot = allgroupdocs.docs[i]; // takes one group doc
+    const singleGroupInfo = singleGroupSnapshot.data(); // reads its fields
+
+    if (singleGroupInfo.members) {
+      // checks if the group has members
+      let userIsMember = false; // starts with the assumption that they're not a group member
+      for (let j = 0; j < singleGroupInfo.members.length; j++) {
+        // loops through each member
+        if (singleGroupInfo.members[j].uid === USERS_CURRENT_ID) {
+          // checks if current user is listed
+          userIsMember = true;
+          break; // stops checking afterwards
+        }
+      }
+
+      if (userIsMember) {
+        // only continues if the user is actually in the group
+        const tasksCollection = collection(
+          // points to the user's tasks subcollection
+          db,
+          "groups",
+          singleGroupSnapshot.id,
+          "tasks"
+        );
+        const taskssnapshot = await getDocs(tasksCollection); // get all tasks for this group
+
+        for (let k = 0; k < taskssnapshot.docs.length; k++) {
+          // loops through each task
+          const singleTaskSnapshot = taskssnapshot.docs[k];
+          const singleTaskInfo = singleTaskSnapshot.data();
+
+          if (singleTaskInfo.dateISO === currentday) {
+            // only keep tasks for the currently selected day
+            const taskDetails = {
+              dateISO: singleTaskInfo.dateISO,
+              desc: singleTaskInfo.desc,
+              completed: singleTaskInfo.completed,
+              title: singleTaskInfo.title,
+            };
+
+            createTask(
+              // renders the task onto the list
+              singleTaskSnapshot.id,
+              taskDetails,
+              singleTaskSnapshot.ref
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // refreshes the limit note
   updateNote();
 }
 
-/* --- ADDING A BRAND NEW TASK TO THE LIST --- */
-function addTask(taskTitle) {
-  // if they already have 20+ tasks, end the function
-  if (taskList.children.length >= 20) {
-    return;
-  }
+/* --- ADDS A BRAND NEW TASK TO THE LIST (Modified Version) --- */
+function addNewTask(taskTitle) {
+  // stops after the 20 task limit
+  if (taskList.children.length >= 20) return;
 
-  // create a brand new list item displaying the task's title
-  const listItem = document.createElement("li");
-  listItem.textContent = taskTitle;
+  // figures out the day of the task in yyyy-mm-dd form
+  const currentday = formatDate(selecteddate);
 
-  // create a delete button, attach it to each list item
-  const deletebutton = document.createElement("button");
-  deletebutton.textContent = "X";
-  listItem.appendChild(deletebutton);
-  taskList.appendChild(listItem);
+  // creates a new id for the task: combines date and name of task (so we can identify it later)
+  const taskId = makeUniqueDocId(currentday, taskTitle);
 
-  // if you click the delete button when logged in
-  deletebutton.onclick = async () => {
-    if (USERS_CURRENT_ID) {
-      const currentday = formatDate(selecteddate); // figure out the current day
-      const taskId = makeUniqueDocId(currentday, taskTitle); // build a unique id for the task
-      const taskRef = doc(
-        //and point to this exact task in firestore
-        db,
-        "personal-tasks",
-        USERS_CURRENT_ID,
-        "tasks",
-        taskId
-      );
-      // removes the task from firestore (only when logged in!)
-      await deleteDoc(taskRef);
-    }
-    listItem.remove(); // removes the list item from the screen
-    updateNote(); // updates limit note after the task has been removed
-  };
+  // main info about the task (priority level left empty until set by the user)
+  const taskinfo = { title: taskTitle, priority: "" };
 
-  updateNote(); // updates limit note after all tasks have loaded in
+  // if the user is logged in, point to where the task will be saved in firestore
+  const tasklocation = USERS_CURRENT_ID
+    ? doc(db, "personal-tasks", USERS_CURRENT_ID, "tasks", taskId)
+    : null; // otherwise, set it to null
 
-  // if the user is logged in, save the task to firestore (very similar to deleting a task!)
+  // uses the new helper function to create a task
+  createTask(taskId, taskinfo, tasklocation);
+
+  // updates the task limit note
+  updateNote();
+
+  // if the user is logged in, save the task to firestore
   if (USERS_CURRENT_ID) {
-    const currentday = formatDate(selecteddate);
-    const taskId = makeUniqueDocId(currentday, taskTitle);
-    const taskRef = doc(
-      db,
-      "personal-tasks",
-      USERS_CURRENT_ID,
-      "tasks",
-      taskId
-    );
-    // except we use setDoc to save it
-    setDoc(taskRef, {
-      standardDate: currentday,
-      title: taskTitle,
-      createdAt: new Date(),
-      done: false, //indicates whether the task is done or not
+    setDoc(tasklocation, {
+      dateISO: currentday, // day of task
+      title: taskTitle, // task name
+      createdAt: new Date(), // creation date
+      done: false, // false by default, assume task is incomplete
     });
   }
 }
@@ -402,7 +462,7 @@ async function displayPlannerName(userId) {
 
   // if the doc for the user is there
   if (snapshot.exists()) {
-    const data = snapshot.data(); // get all the fields stored for that user, and use the username
+    const data = snapshot.data(); // get all the fields stored for that user, and use their username
     const name = data.username || "user";
     document.getElementById("plannerName").textContent = name + "'s Planner";
   } else {
@@ -449,8 +509,7 @@ window.onload = function () {
   // if a non-empty task is entered
   taskInput.onkeydown = function (event) {
     if (event.key === "Enter" && taskInput.value !== "") {
-      addTask(taskInput.value); // add the task to the list
-      saveTask(taskInput.value, "", formatDate(selecteddate)); // save the task to firestore
+      addNewTask(taskInput.value); // handles both adding + saving
       taskInput.value = ""; // clear the input box
     }
   };
