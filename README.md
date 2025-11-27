@@ -1,27 +1,24 @@
-# Elmo Hikes
+# Planoria (Working Name)
 
 
 ## Overview
-Elmo Hikes is a client-side JavaScript web application that helps users discover and explore hiking trails. The app displays a curated list of hike trails, each with details such as name, location, difficulty, and an image. Users can browse the list and mark their favorite trails for easy access later.
-
-Developed for the COMP 1800 course, this project applies User-Centred Design practices and agile project management, and demonstrates integration with Firebase backend services for storing user favorites.
+A planner with customization features and tracking to-do lists of other people in your social circle.
 
 ---
 
 
 ## Features
 
-- Browse a list of curated hiking trails with images and details
-- Mark and unmark trails as favorites
-- View a personalized list of favorite hikes
-- Responsive design for desktop and mobile
+- Change colors and font styles for the interface
+- Make todo lists that can be followed by other people
+- See who's completed the most tasks
 
 ---
 
 
 ## Technologies Used
 
-- **Frontend**: HTML, CSS, JavaScript, Svelte
+- **Frontend**: HTML, CSS, JavaScript
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Backend**: Firebase for hosting
 - **Database**: Firestore
@@ -42,12 +39,14 @@ Developed for the COMP 1800 course, this project applies User-Centred Design pra
 ## Project Structure
 
 ```
-elmo-hikes/
+planaria/
 ├── src/
-│   ├── main.js
+│   └── main.js
 ├── styles/
 │   └── style.css
 ├── public/
+	├── icons
+	└── backgrounds
 ├── images/
 ├── index.html
 ├── package.json
@@ -86,34 +85,44 @@ elmo-hikes/
 ---
 
 ## Implementation Notes
----
 ### Firestore Schemes
-#### `users`Collection
+##### `users`Collection
 ```ts
 users = [
 	userId: {
 		// Collection of other userIds
 		friends: Array<Number|string>,
-		name: string,
-		completions: Number
+		username: string,
+		completions: Number,
+		// Limit user to one group
+		group: String | null
 	}
 ]
 ```
 #### Task Collections
 Stores both personal and shared tasks collections.
-###### `shared-tasks`collection
+###### `groups`collection
 ```ts
-shared_task = [
-	userId: {
-		friends: [
-			userId1,
-			userId2
+groups = [
+	groupName: {
+		// Document field of type Array<String>
+		members: [
+
 		],
-		task: {
-			date: Date,
-			title: string,
-			desc: string
-		}
+		// Collection of task documents
+		tasks: [
+			taskId: {
+				// yyyymmdd
+				dateISO: DateString,
+				createdAt: Date,
+				title: string,
+				desc: string,
+				// userIds that have completed the task
+				completed: []
+			}
+		],
+		// URI string that can be put into a src attribute for now
+		coverPhoto: String
 	}
 ]
 ```
@@ -124,7 +133,8 @@ personal_task = [
 		// Document ID will take the form {YYYYMMDD}{title}
 		tasks: [
 			{
-				date: Date,
+				dateISO: DateString,
+				createdAt: Date,
 				title: string,
 				desc: string
 			}
@@ -132,8 +142,15 @@ personal_task = [
 	}
 ]
 ```
+###### `id-name-map` collection
+```ts
+id_name_map = [
+	userName: {
+		id: string
+	}
+]
+```
 ---
-
 
 ## License
 

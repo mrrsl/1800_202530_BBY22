@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <style>
+      :root {
+        --accent-color: #fff5fa; /* default accent color */
+        --header-font: "Oooh Baby", sans-serif;
+        --body-font: "Inria Serif", sans-serif;
+      }
+
+      body {
+        background-color: #fbf7f8;
+        background-blend-mode: lighten;
+        text-align: center;
+        font-family: var(--header-font);
+        font-size: 30pt;
+      }
+
+      header {
+        background-image: url("/img/lightcoloredbackdrop.png");
+        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
+        padding: 2.5rem 0 0.5rem 0; /* top right bottom left padding*/
+      }
+
+      #backarrow {
+        position: absolute;
+        top: 4rem;
+        left: 2rem;
+        z-index: 10;
+        width: 2rem;
+        height: auto;
+        cursor: pointer;
+      }
+
+      /* styles the settings icon in the header; Unfortunately, I had to use position: absolute to prevent the header from overflowing (note: the settings icon is styled using flexbox on the other pages)  */
+      .settingsIcon {
+        position: absolute;
+        top: 3.8rem;
+        right: 2.5rem;
+        z-index: 10;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* styles the group of three buttons located at the top of the friends page */
+      .socialbuttonsgroup {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin: 3rem 0;
+      }
+
+      /* styles each individual friends button */
+      .friendsbutton {
+        padding: 1.4rem 1.9rem;
+        font-size: 31pt;
+        font-family: var(--body-font, sans-serif);
+        background-color: var(--accent-color);
+        border: 2px solid #d2c2cb;
+        border-radius: 18px;
+        letter-spacing: -1px;
+        box-shadow: 0 6px 14px rgba(78, 2, 34, 0.726);
+      }
+
+      /* styles the container for the search bar (duh) */
+      .searchbarcontainer {
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 1rem;
+        width: 100%;
+      }
+
+      .searchbar {
+        width: 100%;
+        max-width: 800px;
+        padding: 1rem 2rem 0.6rem 5rem; /* some of this padding is responsible for maintaining the distance between the icon and the placeholder text */
+        font-size: 29pt;
+        background-color: #fdf9fb;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        outline: none;
+        font-family: var(--body-font, sans-serif);
+        border: 2px solid #d2c2cb;
+        border-radius: 25px;
+        background-image: url("/img/searchicon.png"); /* sets the icon as a bg image in order to display it (I didn't feel like creating another wrapper div to do this) */
+        background-repeat: no-repeat;
+        background-size: 60px 60px;
+        background-position: 0.8rem center;
+      }
+      .friendscontainer {
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+        margin: 2rem auto;
+        width: 90%;
+        max-width: 800px;
+        padding-bottom: 8rem;
+      }
+
+      .friendbox {
+        position: relative;
+        border: 2px solid #d2c2cb;
+        border-radius: 24px;
+        background: #fff;
+        padding: 1.8rem;
+        box-shadow: 0 6px 14px rgba(78, 22, 45, 0.12);
+        margin: 0.5rem 0;
+      }
+
+      /* styles the unfriend icon */
+      .unfriend {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        width: 67px;
+        height: 67px;
+      }
+
+      /* styles the add friend to group icon directly across */
+      .addToGroup {
+        position: absolute;
+        top: 1rem;
+        left: 1.5rem;
+        width: 67px;
+        height: 67px;
+      }
+
+      .profilepic {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 3px solid #f0cfe0;
+        object-fit: cover;
+        margin-right: 1.2rem;
+      }
+
+      .friendinfo {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .friendname {
+        font-size: 40pt;
+        font-weight: bold;
+      }
+
+      /* styles each friend's username */
+      .friendusername {
+        font-size: 34pt;
+      }
+
+      /* styles the # of weekly tasks completed to the right of the friend box */
+      .leaderboardtasks {
+        margin-top: 10px;
+        font-size: 25pt;
+        font-weight: 600;
+        color: #4e162d;
+        border-radius: 16px;
+        border: 2px solid #d2c2cb;
+        font-family: var(--body-font, sans-serif);
+        background: #fff5fa;
+        display: inline-block; /* crucial to prevent the button from stretching to its full width */
+        padding: 1rem 1.5rem;
+      }
+
+      /* styles the bottom navbar */
+      .bottomnav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--accent-color);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        padding: 1rem 0;
+      }
+
+      .bottomnav ul {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .bottomnav li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: var(--body-font);
+        font-size: 25pt;
+        color: #362830;
+      }
+
+      .bottomnav img {
+        width: 100px;
+        height: auto;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+
+    <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
+    <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+    <link
+      href="https://fonts.cdnfonts.com/css/cormorant-garamond"
+      rel="stylesheet"
+    />
+    <link href="/styles/tasks.css" rel="stylesheet">
+    <link href="/styles/search.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <!-- HEADER AREA -->
+    <header>
+      <h1 id="plannerName">Group To-Do</h1>
+      <div
+        id="backarrow"
+        onclick="window.history.back()"
+        style="cursor: pointer"
+      >
+        <img src="/img/up-arrow.png" width="110px" />
+      </div>
+
+      <a href="sofiassettings.html" class="settingsicon"
+        ><img src="/img/settingsgear.png" width="70px"
+      /></a>
+    </header>
+
+    <!-- FRIENDS LIST SECTION -->
+    <div class="socialbuttonsgroup">
+      <button class="friendsbutton" id="viewmemberbutton">MEMBERS</button>
+      <button class="friendsbutton" id="viewgroupbutton">GROUPS</button>
+    </div>
+
+    <div class="searchbarcontainer">
+      <input
+        type="text"
+        placeholder="Search for groups..."
+        class="searchbar"
+      />
+      <div id="searchresults">
+
+      </div>
+    </div>
+
+    <div class="friendscontainer">
+      <!-- Template here to remove them from final rendered view -->
+      <template>
+        <div class="friendbox">
+          <img src="../img/lachesis.jfif" alt="Friend 1" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Lachesis</div>
+            <div class="friendusername">@lachesis.cat</div>
+          </div>
+          <div class="leaderboardtasks">12 tasks completed this week</div>
+        </div>
+
+        <div class="friendbox">
+          <img src="../img/zakarya.jpg" alt="Friend 2" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Zakarya</div>
+            <div class="friendusername">@zakblack</div>
+          </div>
+          <div class="leaderboardtasks">9 tasks completed this week</div>
+        </div>
+
+        <div class="friendbox">
+          <img src="../img/rawan.jpg" alt="Friend 3" class="profilepic" />
+          <div class="friendinfo">
+            <div class="friendname">Rawan</div>
+            <div class="friendusername">@rawanplans</div>
+          </div>
+          <div class="leaderboardtasks">3 tasks completed this week</div>
+        </div>
+      </template>
+    </div>
+    <div class="taskcontainer">
+      <ul id="taskList">
+
+      </ul>
+    </div>
+
+    <!-- BOTTOM NAVBAR -->
+    <div class="bottomnav">
+      <ul>
+        <li>
+          <a href="friends.html"
+            ><img src="../img/friendsicon.png" alt="Friends"
+          /></a>
+          <span>Friends</span>
+        </li>
+        <li>
+          <a href="sofiascalendar.html"
+            ><img src="../img/scheduleicon.png" alt="Schedule"
+          /></a>
+          <span>Schedule</span>
+        </li>
+      </ul>
+    </div>
+
+    <script type="module" src="/js/friends.js">
+    </script>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
+    <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles/loginpages.css" />
+
+    </script>
+  </head>
+  <body>
+    <div class="loginsection">
+      <div id="backarrow" onclick="window.history.back()">
+        <img src="./img/back.png" width="110px" />
+      </div>
+      <h2>Sign Up</h2>
+      <p class="continuesubtitle">Create an account to get started!</p>
+      <form class="loginbox">
+        <input type="text" placeholder="Username" required />
+        <br />
+        <input type="email" placeholder="Email" required />
+        <br />
+        <input type="password" placeholder="Password" required />
+        <br />
+        <input type="submit" id="loginbutton" value="Sign Up"></input>
+      </form>
+      <p class="signupmessage">
+        Already have an account? <a href="loginpage.html">Sign in</a>
+      </p>
+    </div>
+
+    <script type="module">
+      import {
+        firebaseAuth as auth,
+        firebaseDb as db
+      } from "/lib/FirebaseInstances.js";
+
+      import {
+        createUser
+      } from "/lib/Database.js";
+
+      import {
+        logout
+      } from "/lib/Authentication.js";
+
+      import {
+        signInWithEmailAndPassword
+      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+      const form = document.querySelector(".loginbox");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const username = form.querySelector("input[type='text']").value;
+        const email = form.querySelector("input[type='email']").value;
+        const password = form.querySelector("input[type='password']").value;
+
+        logout();
+
+        try {
+          let newUserCred = await createUser(username, email, password);
+          window.location.href = "sofiascalendar.html";
+          
+        } catch (error) {
+          alert("Sign up failed! " + error.message);
+        }
+      });
+    </script>
+  </body>
+</html>
