@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="">
   <head>
     <style>
       :root {
@@ -90,45 +91,6 @@
         background-size: 60px 60px;
         background-position: 0.8rem center;
       }
-      #searchresults {
-        margin-top: 1rem;
-        width: 100%;
-        max-width: 800px;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      div.resultwrapper {
-        background-color: #EFEFEF;
-        display:flex;
-        flex-direction: row;
-        width: 100%;
-      }
-      div.resultwrapper > i {
-        width: 10%;
-        height: auto;
-        aspect-ratio: 1/1;
-
-        margin-right: 5px;
-
-        background-image: url("/img/listadd.png");
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-      }
-      div.resulttext {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-
-        text-align: left;
-        padding-left: 5px;
-      }
-      div.resulttext > p {
-        margin: 0;
-        padding: 4px;
-      }
-
       .friendscontainer {
         display: flex;
         flex-direction: column;
@@ -243,18 +205,22 @@
         margin-bottom: 0.5rem;
       }
     </style>
+
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
     <link
       href="https://fonts.cdnfonts.com/css/cormorant-garamond"
       rel="stylesheet"
     />
+    <link href="/styles/tasks.css" rel="stylesheet">
+    <link href="/styles/search.css" rel="stylesheet">
+
   </head>
 
   <body>
     <!-- HEADER AREA -->
     <header>
-      <h1 id="plannerName">Friends</h1>
+      <h1 id="plannerName">Group To-Do</h1>
       <div
         id="backarrow"
         onclick="window.history.back()"
@@ -270,14 +236,14 @@
 
     <!-- FRIENDS LIST SECTION -->
     <div class="socialbuttonsgroup">
-      <button class="friendsbutton">FRIENDS LIST</button>
-      <button class="friendsbutton">GROUPS</button>
+      <button class="friendsbutton" id="viewmemberbutton">MEMBERS</button>
+      <button class="friendsbutton" id="viewgroupbutton">GROUPS</button>
     </div>
 
     <div class="searchbarcontainer">
       <input
         type="text"
-        placeholder="Search for friends..."
+        placeholder="Search for groups..."
         class="searchbar"
       />
       <div id="searchresults">
@@ -316,6 +282,11 @@
         </div>
       </template>
     </div>
+    <div class="taskcontainer">
+      <ul id="taskList">
+
+      </ul>
+    </div>
 
     <!-- BOTTOM NAVBAR -->
     <div class="bottomnav">
@@ -335,176 +306,7 @@
       </ul>
     </div>
 
-    <script type="module">
-      import {
-        userFriends,
-        addFriend, deleteFriend,
-        user, userPreferences,
-        searchUsers
-      } from "/lib/Database.js";
-
-      import {
-        authWrapper
-      } from "/lib/Database.js";
-
-      // The default color (pink)
-      const defaultAccentColor = "#fff5fa";
-      // Search components so we can append search results
-      const searchContainer = document.querySelector(".searchbarcontainer");
-      const searchBar = searchContainer.querySelector(".searchbar");
-      const searchResults = document.getElementById("searchresults");
-
-      function searchHandler(event) {
-        if (event.key !== "Enter") return;
-
-        let term = searchBar.value.trim();
-        searchResults.innerHTML = "";
-        if (term === "") {
-          return;
-        }
-        populateSearch(term);
-      }
-
-      /** Search matching usernames and display the resutls. */
-      async function populateSearch(term) {
-        // Slower than I'd like but no point in re-engineering the DB to make it faster
-        searchUsers(term).then(results => {
-          results.forEach(async friendObj => {
-            searchResults.appendChild(generateResultDisplay(friendObj.name, friendObj.email, friendObj.uid));
-          });
-        });
-      }
-
-      /** Generates result display items. Get uid from wrapper.uid. */
-      function generateResultDisplay(name, email, uid) {
-        /*
-        div.resultwrapper
-          i.addfriendicon
-          div.resulttext
-            p.name
-            p.email
-        */
-        let wrapper = document.createElement("div");
-        wrapper.classList.add("resultwrapper");
-        wrapper.classList.add(".friendbox");
-        let textWrapper = document.createElement("div");
-        textWrapper.classList.add("resulttext");
-
-        let addIcon = document.createElement("i");
-        addIcon.classList.add("addfriendicon");
-        addIcon.firebaseUID = uid;
-        addIcon.addEventListener("click", addHandler);
-
-        let nameP = document.createElement("p");
-        nameP.classList.add("name");
-        nameP.innerText = name;
-
-        let emailP = document.createElement("p");
-        emailP.classList.add("email");
-        emailP.innerText = email;
-
-        textWrapper.append(nameP, emailP);
-        wrapper.appendChild(textWrapper);
-        wrapper.appendChild(addIcon);
-
-        return wrapper;
-      }
-      
-      /** Element generator for the each retreived friend. */
-      function friendBox(name, email, completions, uid) {
-
-        let wrapper = document.createElement("div");
-        wrapper.classList.add("friendbox");
-
-        let unfriend = document.createElement("img");
-        unfriend.classList.add("unfriend");
-        unfriend.src = "/img/unfriend.png";
-        wrapper.append(unfriend);
-        unfriend.firebaseUID = uid;
-        unfriend.addEventListener("click", unfriendHandler);
-
-        let addtogroup = document.createElement("img");
-        addtogroup.classList.add("addToGroup");
-        addtogroup.src = "/img/addtogroup.png";
-        wrapper.append(addtogroup);
-
-        let dp = document.createElement("img");
-        dp.classList.add("profilepic");
-        wrapper.append(dp);
-
-        let infoBox = document.createElement("div");
-        infoBox.classList.add("friendinfo");
-        wrapper.append(infoBox);
-
-        let friendName = document.createElement("div");
-        friendName.classList.add("friendname");
-        friendName.innerText = name;
-
-        let friendEmail = document.createElement("div");
-        friendEmail.classList.add("friendusername");
-        friendEmail.innerText = email;
-        infoBox.append(friendName, friendEmail);
-
-        let taskCount = document.createElement("div");
-        taskCount.classList.add("leaderboardtasks");
-        taskCount.innerText = completions + " tasks completed this week";
-        wrapper.append(taskCount);
-
-        return wrapper;
-      }
-
-      /** Load user data and friends here. Run after auth check to make sure the user ID is populated. */
-      async function loadData() {
-        let prefs = await userPreferences();
-        let friends = await userFriends() ?? [];
-
-        const friendsContainer = document.querySelector(".friendscontainer");
-        friendsContainer.innerHTML = "";
-
-        for (let friendId of friends) {
-          let friendData = await user(friendId);
-          let friendElement = friendBox(
-            friendData.name,
-            friendData.email,
-            0,
-            friendId
-          );
-          friendsContainer.appendChild(friendElement);
-        }
-        changeAccentColor(prefs.accentColor || defaultAccentColor);
-      }
-
-      /** Function for changing accent color. */
-      function changeAccentColor(colorString) {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          colorString
-        );
-      }
-
-      /** Handles clicking on the add button for search results. */
-      function addHandler(event) {
-        let addTarget = this.firebaseUID;
-        addFriend(addTarget).then(() => {
-          alert("Friend added!");
-          loadData();
-          searchResults.innerHTML = "";
-        }).catch((error) => {
-          alert("Failed to add friend: " + error.message);
-        });
-      }
-
-      function unfriendHandler(event) {
-        let unfriendTarget = this.firebaseUID;
-        deleteFriend(unfriendTarget).then(() => {
-          alert("Friend removed.");
-          loadData();
-        });
-      }
-      
-      authWrapper(loadData, () => window.location.href = "login.html");
-      searchBar.addEventListener("keydown", searchHandler);
-
+    <script type="module" src="/js/friends.js">
     </script>
   </body>
 </html>

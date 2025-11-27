@@ -15,10 +15,10 @@ import {
     createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-const USER_COLLECTION_NAME = "users";
-const PREF_COLLECTION_NAME = "preferences";
-const PERSONAL_COLLECTION_NAME = "personal-tasks";
-const GROUP_COLLECTION_NAME = "groups";
+export const USER_COLLECTION_NAME = "users";
+export const PREF_COLLECTION_NAME = "preferences";
+export const PERSONAL_COLLECTION_NAME = "personal-tasks";
+export const GROUP_COLLECTION_NAME = "groups";
 
 /**
  * Default app settings.
@@ -32,12 +32,20 @@ const DEFAULT_PREFERENCES = {
 /**
  * Retrieve current user's document entry and pass the data to another function.
  * @param {String | null} idString Optional ID string, defaults to current user.
- * @return {Promise<DocumentData>}
+ * @return {Promise<Object>} Object containing username, email, createdAt, etc.
  */
 export const user = async function(idString) {
     let uid = (idString)? idString: firebaseAuth.currentUser.uid;
     let docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
-    return docFetch(docRef, "User Info document not found");
+    return getDoc(docRef).then(async snap => {
+        if (snap.exists()) {
+            let result = snap.data();
+            result.uid = idString;
+            return result;
+        } else {
+            throw new Error("User document not found");
+        }
+    })
 }
 
 /**
@@ -45,6 +53,7 @@ export const user = async function(idString) {
  * @return {Promise<DocumentData>}
  */
 export const userPreferences = async function(idString) {
+    
     let uid = (idString)? idString: firebaseAuth.currentUser.uid;
     let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
     return docFetch(docRef, "User Preferences document not found");
@@ -169,7 +178,7 @@ export const searchUsers = async function(searchString) {
     let matchedUsers = [];
     let docs = await getDocs(coll);
     docs.forEach(doc => {
-        if (doc.id != uid && doc.data().name.search(rex) > -1) {
+        if (doc.id != uid && doc.data().username.search(rex) > -1) {
             let nameAndEmail = doc.data();
             nameAndEmail.uid = doc.id;
             matchedUsers.push(nameAndEmail);
@@ -255,15 +264,16 @@ export const followedTasks = function (success, fail) {
  * Utility function for the public retrieval functions.
  * @param {DocumentReference} docRef 
  * @param {string} eMessage Error message on failure.
- * @return {Promise<DocumentData>}
+ * @return {Promise<Object>}
  */
 async function docFetch(docRef, eMessage) {
-    return getDoc(docRef).then(async (snapshot) => {
-        if (snapshot.exists())
-            return snapshot.data();
-        else
-            throw new Error(eMessage);
-    });
+    let snapshot = await getDoc(docRef);
+    
+    if (snapshot.exists())
+        return snapshot.data();
+    else
+        throw new Error(eMessage);
+    
 }
 
 /**
@@ -296,15 +306,8 @@ export const createUser = async function(name, email, pw) {
             friends: []
         };
         await setDoc(userDocRef, userDocFields);
-        snapshot = await getDoc(userDocRef);
-
-        if (snapshot.exists()) {
-            // Only populate default entries if the user entry worked
-            await defaultEntry(uid);
-            return uid;
-        } else {
-            throw new Error("Failed to update Firestore");
-        }
+        defaultEntry(uid);
+        return uid;
     }
 }
 
@@ -314,17 +317,8 @@ export const createUser = async function(name, email, pw) {
  * @return {void}
  */
 export const defaultEntry = async function (idString) {
-    const firebaseUser = firebaseAuth.currentUser;
-
-    let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, firebaseUser.uid);
-    let personalRef = doc(firebaseDb, PERSONAL_COLLECTION_NAME, firebaseUser.uid);
-
-    // Since this needs to fully execute after new user is created, make sure to stall out the redirect using await.
-    await getDoc(prefRefs).then(async (snap) => {
-        if (!snap.exists()) {
-            await setDoc(prefRefs, DEFAULT_PREFERENCES);
-        }
-    });
+    let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, idString);
+    return setDoc(prefRefs, DEFAULT_PREFERENCES);
 }
 
 /**
