@@ -124,7 +124,9 @@
       }
 
       /* styles the logout button */
-      #logoutbutton {
+      #logoutbutton,
+      #editbutton,
+      #savebutton {
         border: 2px solid #4a2b30;
         border-radius: 20px;
         font-size: 30pt;
@@ -326,10 +328,15 @@
     </div>
     <div class="profilebox">
       <p id="settingstitle">Edit Name:</p>
-      <input type="text" placeholder="Spencer" />
+      <input type="text" id="usernameInput" />
 
       <p id="settingstitle">Edit Email:</p>
-      <input type="text" placeholder="spencer@my.bcit.ca" />
+      <input type="text" id="emailInput" />
+
+      <div id="buttons">
+        <button id="editbutton">Edit</button>
+        <button id="savebutton">Save</button>
+      </div>
 
       <button id="logoutbutton">Log Out</button>
     </div>
@@ -390,39 +397,137 @@
       } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-      onAuthStateChanged(auth, async (signedinuser) => {
-        if (signedinuser) {
-          // points to the current user's doc
-          const userdocref = doc(db, "users", signedinuser.uid);
+      const nameInput = document.getElementById("usernameInput");
+      const emailInput = document.getElementById("emailInput");
+      const logoutButton = document.getElementById("logoutbutton");
+      const editButton = document.getElementById("editbutton");
+      const colorPicker = document.getElementById("accentColor");
+      const defaultAccentColor = "#fff5fa";
 
-          // loads all of the user's data from firestore
-          const userdoc = await getDoc(userdocref);
+      nameInput.disabled = true;
+      emailInput.disabled = true;
 
-          // if the user doc exists and has a profile picture saved, show it on the page
-          if (userdoc.exists() && userdoc.data().profilePic) {
-            document.getElementById("profilePic").src =
-              userdoc.data().profilePic;
-          }
+      function setPlaceholder(el, text) {
+        if (!el) return;
+        el.placeholder = text ?? "";
+      }
 
-          // when the save button is clicked, update the profile picture
-          document
-            .getElementById("savepic")
-            .addEventListener("click", async () => {
-              const newpicinput = document
-                .getElementById("newpicinput")
-                .value.trim(); // get the new picture url from input
-
-              if (newpicinput) {
-                // save the new picture url to firestore
-                await updateDoc(userdocref, { profilePic: newpicinput });
-
-                // update the picture on the page
-                document.getElementById("profilePic").src = newpicinput;
-
-                alert("profile picture updated!"); // msg for the user
-              }
-            });
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          console.log("No user logged in");
+          return;
         }
+
+        const userDocRef = doc(db, "users", user.uid);
+
+        // Load Firestore doc and profile data
+        try {
+          const snap = await getDoc(userDocRef);
+          if (snap.exists()) {
+            const data = snap.data();
+
+            // Profile Picture
+            if (data?.profilePic) {
+              document.getElementById("profilePic").src = data.profilePic;
+            }
+
+            // USERNAME (changed from name → username)
+            if (
+              typeof data?.username === "string" &&
+              data.username.trim() !== ""
+            ) {
+              nameInput.value = data.username;
+              setPlaceholder(nameInput, data.username);
+            }
+
+            // EMAIL
+            if (typeof data?.email === "string" && data.email.trim() !== "") {
+              emailInput.value = data.email;
+              setPlaceholder(emailInput, data.email);
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching user doc:", err);
+        }
+
+        // Fallbacks
+        const authEmail = user.email || null;
+
+        if (!nameInput.value) {
+          setPlaceholder(nameInput, "Choose a username");
+        }
+
+        if (!emailInput.value && authEmail) {
+          emailInput.value = authEmail;
+          setPlaceholder(emailInput, authEmail);
+        } else {
+          setPlaceholder(
+            emailInput,
+            emailInput.placeholder || authEmail || "you@example.com"
+          );
+        }
+
+        // Save profile picture
+        document
+          .getElementById("savepic")
+          .addEventListener("click", async () => {
+            const newpicinput = document
+              .getElementById("newpicinput")
+              .value.trim();
+            if (!newpicinput) return;
+
+            try {
+              await updateDoc(userDocRef, { profilePic: newpicinput });
+              document.getElementById("profilePic").src = newpicinput;
+              alert("Profile picture updated!");
+            } catch (err) {
+              console.error("Failed to update profile picture:", err);
+              alert("Failed to update profile picture.");
+            }
+          });
+
+        // Edit button enables inputs
+        editButton.addEventListener("click", () => {
+          nameInput.disabled = false;
+          emailInput.disabled = false;
+          nameInput.focus();
+        });
+
+        // Save button writes USERNAME + EMAIL to Firestore
+        document
+          .getElementById("savebutton")
+          .addEventListener("click", async () => {
+            const username = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            const updates = {};
+            if (username) updates.username = username; // ✅ changed
+            if (email) updates.email = email;
+
+            if (Object.keys(updates).length === 0) {
+              console.log("No fields to update.");
+            } else {
+              try {
+                await updateDoc(userDocRef, updates);
+              } catch (err) {
+                console.error("Failed to update user document:", err);
+                alert("Failed to save profile info.");
+              }
+            }
+
+            nameInput.disabled = true;
+            emailInput.disabled = true;
+
+            // Update UI
+            if (updates.username) {
+              nameInput.value = updates.username;
+              setPlaceholder(nameInput, updates.username);
+            }
+            if (updates.email) {
+              emailInput.value = updates.email;
+              setPlaceholder(emailInput, updates.email);
+            }
+          });
       });
     </script>
   </body>
