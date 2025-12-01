@@ -23,14 +23,14 @@ const firebaseConfig = {
   storageBucket: "team-77dac.firebasestorage.app",
   messagingSenderId: "744151093255",
   appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
-  measurementId: "G-5H2SQNQ0RR"
+  measurementId: "G-5H2SQNQ0RR",
 };
 
 /** Project Libraries */
 
 import {
   firebaseAuth as auth,
-  firebaseDb as db
+  firebaseDb as db,
 } from "/lib/FirebaseInstances.js";
 
 /* const app = initializeApp(firebaseConfig);
@@ -84,6 +84,8 @@ let taskList;
 let taskInput;
 let calendarContainer;
 let collapseButton;
+
+let calendarCollapsed = false;
 
 /* --- FOR CREATING NEW TASK ITEMS --- */
 /* changed the original function so that task creation only happens in a single spot;
@@ -420,6 +422,9 @@ function createCalendar(dateObj) {
 /* --- COLLAPSIBLE CALENDAR --- */
 function collapsecalendar() {
   collapseButton.addEventListener("click", function () {
+    // toggle collapsed state
+    calendarCollapsed = !calendarCollapsed;
+
     // figures out the # of week rows in the calendar
     const allWeekRows = calendarContainer.getElementsByClassName("days");
     // figures out the day, month, and year of the date currently selected
@@ -433,24 +438,23 @@ function collapsecalendar() {
     // calculates which week row today belongs to
     const currentWeek = Math.floor((currentDate + firstDayOfMonth - 1) / 7);
 
-    // checks if the calendar is already collapsed
-    const isCollapsed = allWeekRows[0].style.display === "none";
-
-    // loops through each week row
+    // loops through each week row and show/hide depending on collapsed state
     for (let i = 0; i < allWeekRows.length; i++) {
-      // if the calendar is collapsed, show all the rows using flex
-      if (isCollapsed || i === currentWeek) {
-        allWeekRows[i].style.display = "flex";
-        // otherwise, hide the rows
+      if (calendarCollapsed) {
+        // collapsed: only show the current week
+        allWeekRows[i].style.display = i === currentWeek ? "flex" : "none";
       } else {
-        allWeekRows[i].style.display = "none";
+        // expanded: show all weeks
+        allWeekRows[i].style.display = "flex";
       }
     }
 
-    // rotates arrow 180deg if the calendar is collapsed, and 0deg otherwise
+    // rotates arrow 180deg when calendar is collapsed, otherwise 0deg
     const arrow = document.querySelector("#collapseButton img");
     if (arrow) {
-      arrow.style.transform = isCollapsed ? "rotate(180deg)" : "rotate(0deg)";
+      arrow.style.transform = calendarCollapsed
+        ? "rotate(180deg)"
+        : "rotate(0deg)";
     }
   });
 }
