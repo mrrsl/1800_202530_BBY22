@@ -5,7 +5,6 @@
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
     <link rel="stylesheet" href="/styles/loginpages.css" />
 
-    </script>
   </head>
   <body>
     <div class="loginsection">
@@ -28,43 +27,6 @@
       </p>
     </div>
 
-    <script type="module">
-      import {
-        firebaseAuth as auth,
-        firebaseDb as db
-      } from "/lib/FirebaseInstances.js";
-
-      import {
-        createUser
-      } from "/lib/Database.js";
-
-      import {
-        logout
-      } from "/lib/Authentication.js";
-
-      import {
-        signInWithEmailAndPassword
-      } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
-      const form = document.querySelector(".loginbox");
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const username = form.querySelector("input[type='text']").value;
-        const email = form.querySelector("input[type='email']").value;
-        const password = form.querySelector("input[type='password']").value;
-
-        logout();
-
-        try {
-          let newUserCred = await createUser(username, email, password);
-          window.location.href = "sofiascalendar.html";
-          
-        } catch (error) {
-          alert("Sign up failed! " + error.message);
-        }
-      });
-    </script>
+    <script type="module" src="./js/signuppage.js"></script>
   </body>
 </html>

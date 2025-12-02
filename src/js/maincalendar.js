@@ -1,9 +1,8 @@
-/* -- ALL OF THE FIREBASE IMPORTS --*/
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+} from "firebase/auth";
+
 import {
   getFirestore,
   collection,
@@ -14,17 +13,7 @@ import {
   deleteDoc,
   updateDoc,
   increment,
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCvHPZ7Bq3GbQXbnlxnJE8INAWKfTCcNqA",
-  authDomain: "team-77dac.firebaseapp.com",
-  projectId: "team-77dac",
-  storageBucket: "team-77dac.firebasestorage.app",
-  messagingSenderId: "744151093255",
-  appId: "1:744151093255:web:7aa5c0093a097249df1aa2",
-  measurementId: "G-5H2SQNQ0RR",
-};
+} from "firebase/firestore";
 
 /** Project Libraries */
 
@@ -32,10 +21,6 @@ import {
   firebaseAuth as auth,
   firebaseDb as db,
 } from "/lib/FirebaseInstances.js";
-
-/* const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app); */
 
 // represents the ID of the user logged in; assume nobody is logged in, so set it to null
 let USERS_CURRENT_ID = null;

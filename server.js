@@ -1,3 +1,7 @@
+/**
+ * This server is available if you prefer to develop off an Express server rather than Vite's development server.
+ * URLs to local resources that are NOT located in the public directory should use relative paths.
+ */
 import express from "express";
 import path from "path";
 import fs from "fs/promises";
