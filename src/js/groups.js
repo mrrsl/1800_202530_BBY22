@@ -1,9 +1,16 @@
 import {
     firebaseDb as db,
     firebaseAuth as auth
-} from "./lib/FirebaseInstances.js";
+} from "../lib/FirebaseInstances.js";
 
-import { onAuthStateChanged } from "firebase/auth";
+import {
+    getUserGroups
+} from "../lib/GroupTasks.js";
+
+import {
+    onAuthStateChanged
+} from "firebase/auth";
+
 import {
     collection,
     addDoc,

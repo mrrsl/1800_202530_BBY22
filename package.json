@@ -1,12 +1,12 @@
 {
-  "name": "web_template",
+  "name": "planoria",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "(firefox localhost:5173/test/test.html || chrome localhost:5173/tesst/test.html) && vite",
     "dev": "vite .",
-    "build": "vite build"
+    "build": "vite build",
+    "deploy": "vite build && firebase deploy"
   },
   "devDependencies": {
     "vite": "^7.0.0"

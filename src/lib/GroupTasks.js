@@ -19,17 +19,17 @@
 import {
     firebaseDb as db,
     firebaseAuth as auth
-} from "/lib/FirebaseInstances.js";
+} from "./FirebaseInstances.js";
 
 import {
     dateISOString
-} from "/lib/DateUtils.js";
+} from "./DateUtils.js";
 
 import {
     USER_COLLECTION_NAME, GROUP_COLLECTION_NAME,
     validateTaskObj,
     user,
-} from "/lib/Database.js";
+} from "./Database.js";
 
 import {
     doc, getDocs, getDoc,
@@ -37,7 +37,7 @@ import {
     query, documentId, deleteField,
     where, orderBy,
     collection,
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+} from "firebase/firestore";
 
 
 /** Separator for group names and unique tag. */
@@ -310,4 +310,32 @@ export const searchForGroup = function(searchTerm) {
         });
         return results;
     });
+}
+
+/**
+ * Get an array of group docs that the user is a part of.
+ * @param {String | null} userId Defaults to current user ID when set to null.
+ * @return {Array<Object>}
+ */
+export const getUsersGroups = async function(userId) {
+    if (userId == null) userId = firebaseAuth.currentUser.uid;
+
+    const groupsRef = collection(db, GROUP_COLLECTION_NAME);
+    let groups = [];
+
+    let allGroups = await getDocs(groupsRef);
+    allGroups.forEach(doc => {
+
+        const groupData = doc.data();
+
+        for (const memberInfo of groupData.members) {
+            if (memberInfo.uid == userId) {
+                groups.push(groupData);
+                break;
+            }
+        }
+    });
+
+    return groups;
+
 }
