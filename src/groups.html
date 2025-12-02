@@ -1,5 +1,7 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf8">
     <style>
       /* standardizing as many colors as possible so it's easier to customize */
       :root {
@@ -19,29 +21,6 @@
         text-align: center;
         font-family: var(--header-font);
         font-size: 30pt;
-      }
-
-      header {
-        background-image: url("./img/lightcoloredbackdrop.png");
-        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
-        padding: 2.5rem 0 0.5rem 0;
-      }
-
-      #backarrow {
-        position: absolute;
-        top: 4rem;
-        left: 2rem;
-        z-index: 10;
-        width: 2rem;
-        height: auto;
-      }
-
-      /* styles the settings icon in the header; Unfortunately, I had to use position: absolute to prevent the header from overflowing (note: the settings icon is styled using flexbox on the other pages)  */
-      .settingsIcon {
-        position: absolute;
-        top: 3.8rem;
-        right: 2.5rem;
-        z-index: 10;
       }
 
       a {
@@ -96,7 +75,7 @@
         font-family: var(--body-font, sans-serif);
         border: 2px solid #d2c2cb;
         border-radius: 25px;
-        background-image: url("./img/searchicon.png"); /* sets the icon as a bg image in order to display it*/
+        background-image: url("/img/searchicon.png"); /* sets the icon as a bg image in order to display it*/
         background-repeat: no-repeat;
         background-size: 60px 60px;
         background-position: 0.8rem center;
@@ -350,19 +329,22 @@
         border-radius: 50px;
       }
     </style>
+
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+
+    <link href="/styles/header.css" rel="stylesheet"/>
   </head>
 
   <body>
     <!-- HEADER AREA -->
     <header>
-      <h1 id="plannerName">Groups</h1>
       <div id="backarrow" onclick="window.history.back()">
-        <img src="../img/up-arrow.png" width="110px" />
+        <img src="/img/up-arrow.png" width="110px" />
       </div>
+      <h1 id="plannerName">Groups</h1>
       <a href="sofiassettings.html" class="settingsicon">
-        <img src="../img/settingsgear.png" width="70px" />
+        <img src="/img/settingsgear.png" width="70px" />
       </a>
     </header>
 
@@ -379,44 +361,46 @@
 
     <!-- FRIEND GROUPS -->
     <div class="groupSection">
-      <div class="bubblebox">
-        <div class="groupname">Study Buddies :P</div>
-        <div class="aboutgroup">
-          <img src="../img/studybuddies.jpg" class="coverphoto" />
-          <div class="groupinfo">
-            <div class="groupmembers">
-              <img src="../img/lachesis.jfif" alt="Sofia" class="pfp" />
-              <img src="../img/zakarya.jpg" alt="Zakarya" class="pfp" />
-              <img src="../img/rawan.jpg" alt="Rawan" class="pfp" />
-              <button class="taskbutton">+ Add Task</button>
-            </div>
-            <div class="recentgrouptask">
-              Most recent task: Comp 1113 study session
+      <template>
+        <div class="bubblebox">
+          <div class="groupname">Study Buddies :P</div>
+          <div class="aboutgroup">
+            <img src="/img/studybuddies.jpg" class="coverphoto" />
+            <div class="groupinfo">
+              <div class="groupmembers">
+                <img src="/img/lachesis.jfif" alt="Sofia" class="pfp" />
+                <img src="/img/zakarya.jpg" alt="Zakarya" class="pfp" />
+                <img src="/img/rawan.jpg" alt="Rawan" class="pfp" />
+                <button class="taskbutton">+ Add Task</button>
+              </div>
+              <div class="recentgrouptask">
+                Most recent task: Comp 1113 study session
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="bubblebox">
-        <div class="groupname">1800 Group</div>
-        <div class="aboutgroup">
-          <img src="../img/comp1800.jpg" class="coverphoto" />
-          <div class="groupinfo">
-            <div class="groupmembers">
-              <img src="../img/default1.jpg" alt="Morris" class="pfp" />
-              <img src="../img/default2.jpg" alt="Sofia" class="pfp" />
-              <img src="../img/default3.jpg" alt="Kian" class="pfp" />
-              <button class="taskbutton">+ Add Task</button>
-            </div>
-            <div class="recentgrouptask">
-              Most recent task: Work on Sprint 4 Together
+        <div class="bubblebox">
+          <div class="groupname">1800 Group</div>
+          <div class="aboutgroup">
+            <img src="/img/comp1800.jpg" class="coverphoto" />
+            <div class="groupinfo">
+              <div class="groupmembers">
+                <img src="/img/default1.jpg" alt="Morris" class="pfp" />
+                <img src="/img/default2.jpg" alt="Sofia" class="pfp" />
+                <img src="/img/default3.jpg" alt="Kian" class="pfp" />
+                <button class="taskbutton">+ Add Task</button>
+              </div>
+              <div class="recentgrouptask">
+                Most recent task: Work on Sprint 4 Together
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
     <div class="plusIconCOntainer">
-      <img src="../img/newgroup.png" class="newgroupicon" />
+      <img src="/img/newgroup.png" class="newgroupicon" />
     </div>
 
     <!-- BOTTOM NAVBAR -->
@@ -424,19 +408,19 @@
       <ul>
         <li>
           <a href="friends.html"
-            ><img src="../img/friendsicon.png" alt="Friends"
+            ><img src="/img/friendsicon.png" alt="Friends"
           /></a>
           <span>Friends</span>
         </li>
         <li>
           <a href="sofiascalendar.html"
-            ><img src="../img/scheduleicon.png" alt="Schedule"
+            ><img src="/img/scheduleicon.png" alt="Schedule"
           /></a>
           <span>Schedule</span>
         </li>
       </ul>
     </div>
 
-    <script type="module" src="/js/groups.js"></script>
+    <script type="module" src="./js/groups.js"></script>
   </body>
 </html>

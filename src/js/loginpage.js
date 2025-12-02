@@ -5,7 +5,7 @@ import {
 } from "firebase/auth";
 import {
     firebaseInstance as appInstance,
-} from "./lib/FirebaseInstances.js";
+} from "../lib/FirebaseInstances.js";
 
 const auth = getAuth(appInstance);
 /* --- FOR LOGGING IN --- */

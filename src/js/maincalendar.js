@@ -20,7 +20,7 @@ import {
 import {
   firebaseAuth as auth,
   firebaseDb as db,
-} from "/lib/FirebaseInstances.js";
+} from "../lib/FirebaseInstances.js";
 
 // represents the ID of the user logged in; assume nobody is logged in, so set it to null
 let USERS_CURRENT_ID = null;

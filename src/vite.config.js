@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src/");
-const publicLocation = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
+const projectRoot = path.join(process.cwd(), "src");
+const publicLocation = path.resolve(projectRoot, "..", "public");
+const disLocation = path.resolve(projectRoot, "..", "dist");
 
 export default defineConfig({
     root: projectRoot,
@@ -21,7 +21,8 @@ export default defineConfig({
                 groupweeklyview: path.join(projectRoot, "groupweeklyview.html"),
                 sofiasnewedit: path.join(projectRoot, "sofiasnewedit.html"),
                 sofiasnewgroupedit: path.join(projectRoot, "sofiasnewgroupedit.html"),
-                sofiasnewweeklyview: path.join(projectRoot, "sofiasnewweeklyview.html")
+                sofiasnewweeklyview: path.join(projectRoot, "sofiasnewweeklyview.html"),
+                groups: path.join(projectRoot, "groups.html")
             }
         },
         outDir: "../dist"

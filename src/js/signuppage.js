@@ -1,11 +1,11 @@
 
 import {
     createUser
-} from "./lib/Database.js";
+} from "../lib/Database.js";
 
 import {
     logout
-} from "./lib/Authentication.js";
+} from "../lib/Authentication.js";
 const form = document.querySelector(".loginbox");
 
 form.addEventListener("submit", async (event) => {
