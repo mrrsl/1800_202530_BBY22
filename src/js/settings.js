@@ -2,12 +2,17 @@ import {
     firebaseDb as db,
     firebaseAuth as auth
 } from "../lib/FirebaseInstances.js";
+
 import {
     doc,
     getDoc,
     updateDoc,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+
+import {
+    onAuthStateChanged,
+    signOut
+} from "firebase/auth";
 
 const nameInput = document.getElementById("usernameInput");
 const emailInput = document.getElementById("emailInput");
@@ -19,15 +24,21 @@ const defaultAccentColor = "#fff5fa";
 nameInput.disabled = true;
 emailInput.disabled = true;
 
+logoutButton.addEventListener("click", logoutHandler);
+
 function setPlaceholder(el, text) {
     if (!el) return;
     el.placeholder = text ?? "";
 }
 
+function logoutHandler(event) {
+    signOut(auth)
+        .then(v => window.location.href = "/loginpage.html");
+}
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        console.log("No user logged in");
-        return;
+        window.location.href = "loginpage.html";
     }
 
     const userDocRef = doc(db, "users", user.uid);

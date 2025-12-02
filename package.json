@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "vite .",
-    "build": "vite build",
-    "deploy": "vite build && firebase deploy"
+    "dev": "vite ./src",
+    "build": "vite build ./src",
+    "deploy": "vite build ./src && firebase deploy"
   },
   "devDependencies": {
     "vite": "^7.0.0"

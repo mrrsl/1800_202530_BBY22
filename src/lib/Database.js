@@ -16,7 +16,6 @@ import {
 } from "firebase/auth";
 
 export const USER_COLLECTION_NAME = "users";
-export const PREF_COLLECTION_NAME = "preferences";
 export const PERSONAL_COLLECTION_NAME = "personal-tasks";
 export const GROUP_COLLECTION_NAME = "groups";
 
@@ -52,11 +51,13 @@ export const user = async function(idString) {
  * Retrieve current user's app settings and pass the data to another function.
  * @return {Promise<DocumentData>}
  */
-export const userPreferences = async function(idString) {
-    
-    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
-    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
-    return docFetch(docRef, "User Preferences document not found");
+export const userPreferences = async function() {
+    const userData = await user();
+    return {
+        bodyFont: userData.bodyFontChoice,
+        headerFont: userData.headerFontChoice,
+        accentColor: userData.accentColor,
+    }
 }
 
 /**
@@ -65,15 +66,15 @@ export const userPreferences = async function(idString) {
  * @returns 
  */
 export const setUserPreferences = async function(prefObj) {
-    const uid = firebaseAuth.currentUser.uid;
-    let docRef = doc(firebaseDb, PREF_COLLECTION_NAME, uid);
-    let currentPrefs = await getDoc(docRef);
-    if (currentPrefs.exists()) currentPrefs = currentPrefs.data();
-
-    for (let field of Object.keys(prefObj)) {
-        currentPrefs[field] = prefObj[field];
+    const userPrefs = userPreferences();
+    const userRef = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid);
+    
+    for (const field of Object.keys(userPrefs)) {
+        if (prefObj.hasOwnProperty(field))
+            userPrefs[field] = prefObj[field];
     }
-    return setDoc(docRef, currentPrefs);
+
+    return updateDoc(userRef, userPrefs);
 }
 /**
  * Retrieve an array of UID's that the user has added as a friend

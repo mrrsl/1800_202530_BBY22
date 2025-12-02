@@ -23,29 +23,6 @@
         font-size: 30pt;
       }
 
-      header {
-        background-image: url("/img/lightcoloredbackdrop.png");
-        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
-        padding: 2.5rem 0 0.5rem 0;
-      }
-
-      #backarrow {
-        position: absolute;
-        top: 4rem;
-        left: 2rem;
-        z-index: 10;
-        width: 2rem;
-        height: auto;
-      }
-
-      /* styles the settings icon in the header; Unfortunately, I had to use position: absolute to prevent the header from overflowing (note: the settings icon is styled using flexbox on the other pages)  */
-      .settingsIcon {
-        position: absolute;
-        top: 3.8rem;
-        right: 2.5rem;
-        z-index: 10;
-      }
-
       a {
         text-decoration: none;
         color: inherit;
@@ -352,17 +329,20 @@
         border-radius: 50px;
       }
     </style>
+
     <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet" />
+
+    <link href="/styles/header.css" rel="stylesheet"/>
   </head>
 
   <body>
     <!-- HEADER AREA -->
     <header>
-      <h1 id="plannerName">Groups</h1>
       <div id="backarrow" onclick="window.history.back()">
         <img src="/img/up-arrow.png" width="110px" />
       </div>
+      <h1 id="plannerName">Groups</h1>
       <a href="sofiassettings.html" class="settingsicon">
         <img src="/img/settingsgear.png" width="70px" />
       </a>

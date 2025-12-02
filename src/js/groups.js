@@ -31,6 +31,7 @@ const newgroupicon = document.querySelector(".newgroupicon");
 
 // LOADS IN THE USER'S GROUPS
 async function loadGroups(user) {
+    groupsection.replaceChildren();
     const groups = await getUsersGroups(user.uid);
     if (groups.length > 0) {
         for (const group of groups) {
@@ -119,10 +120,8 @@ function populateGroupList(groupInfo) {
         .addEventListener("click", async function (buttonclick) {
             buttonclick.stopPropagation(); // prevents group bubble trigger
             
-            removeFromGroup(groupInfo.name, auth.currentUser.uid);
-
-            // reloads the groups list so that the UI updates
-            loadGroups(auth.currentUser.uid);
+            removeFromGroup(groupInfo.name, auth.currentUser.uid)
+                .then(v => loadGroups(auth.currentUser.uid));
         });
 
     // when you click on the group box itself, redirect to the group weekly view page

@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src/");
-const publicLocation = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
+const projectRoot = path.join(process.cwd(), "src");
+const publicLocation = path.resolve(projectRoot, "..", "public");
+const disLocation = path.resolve(projectRoot, "..", "dist");
 
 export default defineConfig({
     root: projectRoot,

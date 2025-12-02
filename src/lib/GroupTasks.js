@@ -12,8 +12,6 @@
  *          ]
  *      }
  * ]
- * 
- * 
  */
 
 import {
@@ -138,21 +136,21 @@ export const getGroupMembers = async function(groupId) {
 
     }).then(async memberList => {
 
-        let memberList = [];
+        let memberOutput = [];
 
         for (const member of memberList) {
             const memberRef = doc(db, USER_COLLECTION_NAME, member.uid);
             let memberDoc = await getDoc(memberRef);
             if (memberDoc.exists()) {
                 const memberData = memberDoc.data()
-                memberList.push({
+                memberOutput.push({
                     username: memberData.username,
                     email: memberData.email,
                     profilePic: memberData.profilePic
                 })
             }
         }
-        return memberList;
+        return memberOutput;
     });
 }
 
@@ -201,34 +199,36 @@ export const getGroupTasks = async function(groupId) {
 /**
  * Mark the group task as completed by the current user. If all group members have completed it,
  * delete the task.
- * @param {Object} taskObj 
+ * @param {String} taskObj 
  * @param {String} groupId 
  * @param {String | null} user Default to current user if unspecified. 
  * @return {Promise} Return the result of removeGroupTask if everyone completed it
  */
-export const completeGroupTask = async function(taskObj, groupId, user) {
+export const completeGroupTask = async function(taskId, groupId, user) {
     if (user == null)
         user = auth.currentUser.uid;
     if (groupId == null)
         throw new Error("Need group name");
 
-    const taskId = dateISOString(taskObj.dateISO) + "-" + task.title;
     const taskRef = doc(db, GROUP_COLLECTION_NAME, groupId, "tasks", taskId);
     const groupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
 
     return getDoc(taskRef).then(async snap => {
 
         if (snap.exists()) {
+            let taskData = snap.data();
             let group = await getDoc(groupRef);
             group = new Set(group.data().members);
-            let completed = snap.data().completed;
-            completed.push(user);
-            let completedSet = new Set(completed);
+            
+            if (taskData.completed == null) taskData.completed = [];
+
+            taskData.completed.push(user);
+            let completedSet = new Set(taskData.completed);
 
             if (group.difference(completedSet).size == 0) {
                 return removeGroupTask(taskObj, groupId);
             } else {
-                return updateDoc(taskRef, {completed: completed});
+                return updateDoc(taskRef, {completed: taskData.completed});
             }
 
         } else {
