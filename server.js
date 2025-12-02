@@ -10,7 +10,7 @@ const server = express();
 
 server.get("/", (req, res) => {
     res.header("Allow-Access-Control-Origin", "*")
-        .type("html").sendFile(path.resolve("./src/landingpage.html"));
+        .type("html").sendFile(path.resolve("./src/index.html"));
 });
 
 // serve html files
