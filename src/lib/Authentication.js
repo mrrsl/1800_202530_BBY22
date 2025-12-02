@@ -1,14 +1,14 @@
 import {
     firebaseAuth as auth
-} from "/lib/FirebaseInstances.js";
+} from "./FirebaseInstances.js";
 
 import {
     signOut
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+} from "firebase/auth";
 
 import {
     user
-} from "/lib/Database.js";
+} from "./Database.js";
 
 /**
  * Sign out utility to elide explicit auth import.

@@ -4,22 +4,23 @@ import {
 } from "../lib/FirebaseInstances.js";
 
 import {
-    getUserGroups
+    getUsersGroups,
+    createGroup,
+    addGroupMember,
+    removeFromGroup
 } from "../lib/GroupTasks.js";
+
+import {
+    getFriends
+} from "../lib/FriendsAndGroups.js";
 
 import {
     onAuthStateChanged
 } from "firebase/auth";
 
 import {
-    collection,
-    addDoc,
-    getDocs,
     doc,
     getDoc,
-    setDoc,
-    query,
-    where,
 } from "firebase/firestore";
 
 // section where all user groups are displayed
@@ -30,55 +31,30 @@ const newgroupicon = document.querySelector(".newgroupicon");
 
 // LOADS IN THE USER'S GROUPS
 async function loadGroups(user) {
-    // points to the groups collection
-    const groupscollection = collection(db, "groups");
-
-    // gets each of the group docs
-    const snapshot = await getDocs(groupscollection);
-
-    // clears placeholder group boxes off of the page
-    groupsection.innerHTML = "";
-
-    // loops through each group doc & reads all fields: name, members, cover photo
-    snapshot.forEach(function (docSnap) {
-        const groupInfo = docSnap.data();
-
-        // checks to see if the user logged in is one of the members
-        var isUserInGroup = false;
-
-        // only runs the loop if there's a list of members
-        if (groupInfo.members) {
-            for (let i = 0; i < groupInfo.members.length; i++) {
-                var groupmember = groupInfo.members[i];
-                if (groupmember.uid === user.uid) {
-                    isUserInGroup = true;
-                    break;
-                }
-            }
+    const groups = await getUsersGroups(user.uid);
+    if (groups.length > 0) {
+        for (const group of groups) {
+            populateGroupList(group);
         }
-
-        if (isUserInGroup) {
-            populateGroupList(groupInfo.members || []);
-        }
-    });
+    }
 }
 
 /**
- * Populates the list of groups the user is part of
+ * Populates the list of groups the user is part of.
+ * @param {Object} members 
  */
-function populateGroupList(members) {
+function populateGroupList(groupInfo) {
     // creates a new div for each group
     const div = document.createElement("div");
     div.className = "bubblebox";
 
     var membersHTML = "";
 
-    for (let i = 0; i < members.length; i++) {
-        var currentmember = members[i];
+    for (const currentmember of groupInfo.members) {
         // use their profile picture if they have one, otherwise, use default img
         var pfp = currentmember.profilePic
             ? currentmember.profilePic
-            : "../img/default.png";
+            : "/img/default.png";
 
         // use their username if possible or default to uid
         var name = currentmember.username
@@ -104,7 +80,7 @@ function populateGroupList(members) {
     div.innerHTML =
         "<div class='groupname'>" +
         groupInfo.name +
-        "<img src='../img/leavegroup.png' class='leavegroupicon' style='float:right;' />" +
+        "<img src='/img/leavegroup.png' class='leavegroupicon' style='float:right;' />" +
         "</div>" +
         "<div class='aboutgroup'>" +
         "<img src='" +
@@ -134,7 +110,7 @@ function populateGroupList(members) {
         .addEventListener("click", function (buttonclick) {
             buttonclick.stopPropagation(); // prevents any triggers from clicking on the group bubble
             window.location.href =
-                "sofiasnewgroupedit.html?groupId=" + docSnap.id;
+                "sofiasnewgroupedit.html?groupId=" + groupInfo.name;
         });
 
     // removes a user from a group when leave icon is clicked
@@ -142,95 +118,22 @@ function populateGroupList(members) {
         .querySelector(".leavegroupicon")
         .addEventListener("click", async function (buttonclick) {
             buttonclick.stopPropagation(); // prevents group bubble trigger
-            const groupDocRef = doc(db, "groups", docSnap.id);
-
-            // builds a new members array without the current user
-            var newmembers = []; // starts with an empty list
-
-            if (groupInfo.members) {
-                for (let i = 0; i < groupInfo.members.length; i++) {
-                    var groupmember = groupInfo.members[i];
-                    // only keep this person if their uid doens't match the current user's uid
-                    if (groupmember.uid !== user.uid) {
-                        newmembers.push(groupmember);
-                    }
-                }
-            }
-
-            // saves the updated group doc back to firestore
-            await setDoc(groupDocRef, {
-                name: groupInfo.name,
-                coverPhoto: groupInfo.coverPhoto,
-                members: newmembers,
-            });
+            
+            removeFromGroup(groupInfo.name, auth.currentUser.uid);
 
             // reloads the groups list so that the UI updates
-            loadGroups(user);
+            loadGroups(auth.currentUser.uid);
         });
 
     // when you click on the group box itself, redirect to the group weekly view page
     div.addEventListener("click", function (buttonclick) {
         if (buttonclick.target.closest(".taskbutton")) return; // ignore any clicks on the add task button
         window.location.href =
-            "groupweeklyview.html?groupId=" + docSnap.id;
+            "groupweeklyview.html?groupId=" + groupInfo.name;
     });
 
     // add the group box to the actual groups page
     groupsection.appendChild(div);
-}
-
-// GETTING THE USER'S FRIENDS FROM FIRESTORE
-async function getFriends(currentUser) {
-    const frienshipscollection = collection(db, "friendships"); // points to friendships collection
-
-    // note: in the database, friendship docs are structured so that userA represents one person's uid and userB is the other friend's uid
-
-    // finds friendships where the current user is userA
-    const whereUserIsA = await getDocs(
-        query(frienshipscollection, where("userA", "==", currentUser.uid))
-    );
-
-    // friendships where the current user is userB
-    const whereUserIsB = await getDocs(
-        query(frienshipscollection, where("userB", "==", currentUser.uid))
-    );
-
-    // an empty list for all the uids of this user's friends
-    const friendsIDS = [];
-
-    // for every friendship where the user logged in is userA, add the other person, userB's uid to the list
-    whereUserIsA.forEach(function (friendshipDoc) {
-        friendsIDS.push(friendshipDoc.data().userB);
-    });
-
-    // vise-versa
-    whereUserIsB.forEach(function (friendshipDoc) {
-        friendsIDS.push(friendshipDoc.data().userA);
-    });
-
-    // empty list for storing friend profiles (turned into html later on)
-    const friendslist = [];
-
-    // loops through each friend's uid from our earlier list
-    for (let i = 0; i < friendsIDS.length; i++) {
-        var friendID = friendsIDS[i];
-
-        // gets a snapshot of their profile
-        const friendProfileSnap = await getDoc(doc(db, "users", friendID));
-
-        // if their profile exists in firestore, add their info to the friendslist
-        if (friendProfileSnap.exists()) {
-            var friendInfo = friendProfileSnap.data(); // read all their profile data
-
-            friendslist.push({
-                uid: friendID,
-                username: friendInfo.username || friendID, // username or default to uid
-                profilePic: friendInfo.profilePic || "../img/defaultprofile.png", // pfp or default img
-            });
-        }
-    }
-
-    return friendslist; // returns the full list of friends to display across different pages
 }
 
 // THE POPUP/OVERLAY FOR CREATING A NEW GROUP
@@ -325,7 +228,7 @@ async function shownewgroupPopup(user, friendslist) {
 
         // creates the icon beside each friend option
         const plusfriendicon = document.createElement("img");
-        plusfriendicon.src = "../img/addtogroup.png";
+        plusfriendicon.src = "/img/addtogroup.png";
         plusfriendicon.className = "addperson";
         link.appendChild(plusfriendicon);
 
@@ -402,29 +305,15 @@ async function shownewgroupPopup(user, friendslist) {
             alert("Sorry! You have to enter a group name");
             return;
         }
-
-        // the logged-in user
-        const loggedinuser = {
-            uid: user.uid,
-            username: currentuserdata.username || user.displayName || "You",
-            profilePic: currentuserdata.profilePic || "/img/defaultprofile.png",
-        };
-
-        // combines the user with the list of chosen friends
-        const totalgroupmembers = [loggedinuser].concat(chosenfriends);
-
-        // saves the new group to firestore
-        await addDoc(collection(db, "groups"), {
-            name: groupname,
-            coverPhoto: coverPhoto || "/img/defaultgroup.jpg",
-            members: totalgroupmembers,
-        });
-
-        // closes the popup
-        document.body.removeChild(outerpopup);
-
-        // reloads all of the groups
-        loadGroups(user);
+        
+        // creating and adding both return promises so keep the callback chaining here
+        createGroup(groupname, coverPhoto)
+            .then(v => addGroupMember(groupname, user.uid))
+            .catch(e => alert("Error creating group: " + e))
+            .then(v => {
+                document.body.removeChild(outerpopup);
+                loadGroups(user);
+            });
     });
 }
 
@@ -449,7 +338,7 @@ const searchbar = document.querySelector(".searchbar");
 
 if (searchbar) {
     searchbar.addEventListener("input", () => {
-        const searchedkeyword = searchbar.value.toLowerCase(); // standardizes the text typed in to all lowercase
+        const searchedkeyword = searchbar.value.toLowerCase();
 
         // loops through each group bubble on the page, grabs the group name from each
         document.querySelectorAll(".bubblebox").forEach((box) => {

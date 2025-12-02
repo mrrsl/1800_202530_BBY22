@@ -21,7 +21,8 @@ export default defineConfig({
                 groupweeklyview: path.join(projectRoot, "groupweeklyview.html"),
                 sofiasnewedit: path.join(projectRoot, "sofiasnewedit.html"),
                 sofiasnewgroupedit: path.join(projectRoot, "sofiasnewgroupedit.html"),
-                sofiasnewweeklyview: path.join(projectRoot, "sofiasnewweeklyview.html")
+                sofiasnewweeklyview: path.join(projectRoot, "sofiasnewweeklyview.html"),
+                groups: path.join(projectRoot, "groups.html")
             }
         },
         outDir: "../dist"

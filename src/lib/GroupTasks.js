@@ -34,7 +34,7 @@ import {
 import {
     doc, getDocs, getDoc,
     setDoc, deleteDoc, updateDoc,
-    query, documentId, deleteField,
+    query, documentId,
     where, orderBy,
     collection,
 } from "firebase/firestore";
@@ -43,46 +43,64 @@ import {
 /** Separator for group names and unique tag. */
 export const SEP = '\u00A0';
 
+/** Collection name for group tasks. */
+const GROUP_TASK_COLLECTION = "tasks";
+
 /**
- * Adds the current user to a group with the specified name.
+ * Adds a user to a group with the specified name.
  * @param {String} groupId
  * @param {String | null} userId Null to default to current user.
  */
 export const addGroupMember = async function(groupId, userId) {
     if (userId == null)
-        userId = firebaseAuth.currentUser.uid;
-
+        userId = auth.currentUser.uid;
     const groupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
     const userRef = doc(db, USER_COLLECTION_NAME, userId);
     
-    getDoc(groupRef).then(async snap => {
+    return getDoc(groupRef).then(async snap => {
 
         if (snap.exists()) {
-            return user();
+            const groupData = snap.data();
+            // Check to avoid duplicate entry for the user
+            for (const member of groupData.members) {
+                if (member.uid == userId) return;
+            }
+
+            const userDoc = await getDoc(userRef);
+            const userData = userDoc.data()
+
+            groupData.members.push({
+                uid: userDoc.id,
+                username: userData.username ?? userDoc.id,
+                profilePic: userData.profilePic ?? "/img/defaultprofile.png"
+            });
+
+            return updateDoc(groupRef, { members: groupData.members });
         } else {
             throw new Error(`Group with name ${groupId} does not exist.`);
         }
 
-    }).then(async data => {
-
-        let groupsArray = data.groups;
-        groupsArray.push(groupId);
-        return updateDoc(userRef, {groups: groupsArray});
-        
     });
 }
 
 /**
  * Creates a group with the given group name.
- * @param {} groupId Group document ID.
+ * @param {String} groupId Group document ID.
+ * @param {String} coverPhoto Hotlinked image URL.
  * @returns {Promise<void> | Promise<DocumentData>} Resolves to void if a new group was created.
  */
-export const createGroup = async function(groupId) {
+export const createGroup = async function(groupId, coverPhoto) {
+    if (groupId == null)
+        throw new Error("No group name given");
+    if (coverPhoto == null || coverPhoto.length == 0)
+        coverPhoto = "/img/defaultprofile.png";
+
     const groupCollection = collection(db, GROUP_COLLECTION_NAME);
     const existingGroups = await getDocs(groupCollection);
     const defaultGroupDoc = {
         members: [],
-        completed: 0
+        completed: 0,
+        coverPhoto: coverPhoto
     };    
 
     // Ensure unique group ids for the task within a group
@@ -109,7 +127,6 @@ export const getGroupMembers = async function(groupId) {
         throw new Error("null argument passed");
 
     const groupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
-    const usersRef = collection(db, USER_COLLECTION_NAME);
 
     return getDoc(groupRef).then(async snap => {
 
@@ -121,19 +138,21 @@ export const getGroupMembers = async function(groupId) {
 
     }).then(async memberList => {
 
-        const memberQuery = query(usersRef,
-            where(documentId, "in", memberList),
-            orderBy(groupId, "desc")
-        );
-        const memberDocs = await getDocs(memberQuery);
-        return memberDocs.docs.map(doc => {
-            return {
-                id: doc.id,
-                name: doc.data().username,
-                email: doc.data().email
-            };
-        });
+        let memberList = [];
 
+        for (const member of memberList) {
+            const memberRef = doc(db, USER_COLLECTION_NAME, member.uid);
+            let memberDoc = await getDoc(memberRef);
+            if (memberDoc.exists()) {
+                const memberData = memberDoc.data()
+                memberList.push({
+                    username: memberData.username,
+                    email: memberData.email,
+                    profilePic: memberData.profilePic
+                })
+            }
+        }
+        return memberList;
     });
 }
 
@@ -145,11 +164,11 @@ export const getGroupMembers = async function(groupId) {
 export const addTaskToGroup = async function(groupId, task) {
 
     validateTaskObj(task);
-    let taskId = task.dateISO + "-" + task.title;
+    let taskId = task.dateISO + SEP + task.title;
     task.createdAt = Date.now();
 
     let groupDocRef = doc(db, GROUP_COLLECTION_NAME, groupId);
-    let targetTaskDoc = doc(db, GROUP_COLLECTION_NAME, groupId, taskId);
+    let targetTaskDoc = doc(db, GROUP_COLLECTION_NAME, groupId, GROUP_TASK_COLLECTION, taskId);
 
     return getDoc(groupDocRef).then(async snap => {
 
@@ -254,35 +273,26 @@ export const removeGroupTask = async function(taskObj, groupId) {
  */
 export const removeFromGroup = async function(groupId, userId) {
     if (userId == null) userId = auth.currentUser.uid;
-    
-    return user(userId).then(async data => {
+    if (groupId == null) return;
 
-        if (data.group) {
-            const groupRef = doc(db, GROUP_COLLECTION_NAME, data.group);
-            return getDoc(groupRef);
-        } else {
-            throw new Error("No Group");
-        }
+    const groupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
 
-    }).then(async groupSnap => {
+    return getDoc(groupRef).then(async snap => {
 
-        if (groupSnap.exists()) {
-            let groupData = groupSnap.data();
+        if (snap.exists()) {
+            let memberList = snap.data().members;
 
-            for (let a = 0; a < groupData.members.length; a++) {
-                if (groupData.members[a] == userId) {
-                    groupData.members = groupData.members.splice(a);
-                    // Delete the group document if no members are left
-                    if (groupData.members.length == 0) {
-                        return deleteDoc(groupSnap.ref);
-                    } else {
-                        return updateDoc(groupSnap.ref, {members: groupData.members});
+            for (let a = 0; a < memberList.length; a++) {
+
+                if (memberList[a].uid == userId) {
+                    memberList.splice(a);
+                    if (memberList.length > 0)
+                        return updateDoc(groupRef, {members: memberList});
+                    else {
+                        return deleteDoc(groupRef);
                     }
                 }
             }
-            return;
-        } else {
-            throw new Error("Invalid group name - " + groupSnap.id);
         }
     });
 }
@@ -291,7 +301,7 @@ export const removeFromGroup = async function(groupId, userId) {
  * Searches the group collection for a group document with the given ID.
  * @param {String} searchTerm 
  */
-export const searchForGroup = function(searchTerm) {
+export const searchForGroup = async function(searchTerm) {
     const groupsRef = collection(db, GROUP_COLLECTION_NAME);
     const rgx = new RegExp(searchTerm);
 
@@ -318,18 +328,18 @@ export const searchForGroup = function(searchTerm) {
  * @return {Array<Object>}
  */
 export const getUsersGroups = async function(userId) {
-    if (userId == null) userId = firebaseAuth.currentUser.uid;
+    if (userId == null) userId = auth.currentUser.uid;
 
     const groupsRef = collection(db, GROUP_COLLECTION_NAME);
     let groups = [];
 
     let allGroups = await getDocs(groupsRef);
     allGroups.forEach(doc => {
-
         const groupData = doc.data();
 
         for (const memberInfo of groupData.members) {
             if (memberInfo.uid == userId) {
+                groupData.name = doc.id;
                 groups.push(groupData);
                 break;
             }

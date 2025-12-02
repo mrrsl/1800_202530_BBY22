@@ -3,17 +3,17 @@
  * directly call Firestore functions like {@link getDoc} or hardcode Firestore paths.
  */
 
-import { firebaseDb, firebaseAuth } from "/lib/FirebaseInstances.js";
-import { dateISOString } from "/lib/DateUtils.js";
+import { firebaseDb, firebaseAuth } from "./FirebaseInstances.js";
+import { dateISOString } from "./DateUtils.js";
 
 import {
     getDoc, getDocs, doc, setDoc, addDoc,
     collection,
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+} from "firebase/firestore";
 
 import {
     createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+} from "firebase/auth";
 
 export const USER_COLLECTION_NAME = "users";
 export const PREF_COLLECTION_NAME = "preferences";
@@ -367,10 +367,11 @@ export const setUsername = function (username) {
 
 /**
  * Checks that a task object to be written into Firestore has the required fields.
- * @param {Object} task 
+ * @param {Object} task
+ * @throws Task argument or the desc fields cannot be null
  */
 export const validateTaskObj = function(task) {
-    if (task.title == null || task.desc == null) {
+    if (task == null || task.desc == null) {
         throw new Error("Task Object is incomplete.");
     }
 

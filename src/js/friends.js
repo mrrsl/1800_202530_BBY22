@@ -15,9 +15,12 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 import {
+    addGroupMember
+} from "../lib/GroupTasks.js";
+
+import {
     addFriend,
     removeFriend,
-    addFriendToGroup,
     getUserGroups,
 } from "../lib/FriendsAndGroups.js";
 
@@ -46,7 +49,7 @@ function createFriendBox(
 
     // creates an image for each friend's pfp
     const profileimg = document.createElement("img");
-    profileimg.src = userinfo.profilePic || "../img/defaultprofile.png";
+    profileimg.src = userinfo.profilePic || "/img/defaultprofile.png";
     profileimg.className = "profilepic";
     friendbox.appendChild(profileimg);
 
@@ -86,7 +89,7 @@ function createFriendBox(
     if (!forCurrentUser && showCompletedTasks) {
         // creates the add to group icon
         const addToGroupicon = document.createElement("img");
-        addToGroupicon.src = "../img/addtogroup.png";
+        addToGroupicon.src = "/img/addtogroup.png";
         addToGroupicon.className = "addToGroup";
         addToGroupicon.addEventListener(
             "click",
@@ -96,7 +99,7 @@ function createFriendBox(
 
         // creates & adds the unfriend icon to the box
         const unfriendicon = document.createElement("img");
-        unfriendicon.src = "../img/unfriend.png";
+        unfriendicon.src = "/img/unfriend.png";
         unfriendicon.className = "unfriend";
         unfriendicon.addEventListener("click", async () => {
             await removeFriend(auth.currentUser.uid, uid); // uses the helper function (from friendsandgroups.js)
@@ -260,7 +263,7 @@ async function showaddtogroupPopup(user, friendUid) {
         addbutton.textContent = "Add";
         addbutton.className = "addbutton"
         addbutton.addEventListener("click", async () => {
-            await addFriendToGroup(friendUid, group.id); // uses the helper function from friends & groups.js
+            await addGroupMember(group.id, friendUid);
             hiddenPopup.style.display = "none"; // hides the popup box after adding a friend to a group
         });
         option.appendChild(addbutton); // adds the button to each group option

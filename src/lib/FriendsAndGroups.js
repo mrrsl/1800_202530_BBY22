@@ -6,11 +6,11 @@ import {
 import {
     doc,
     getDoc,
-    updateDoc,
+    query,
+    where,
     collection,
     getDocs,
     addDoc,
-    arrayUnion,
     deleteDoc,
 } from "firebase/firestore";
 
@@ -53,35 +53,6 @@ export async function removeFriend(currentuserid, frienduid) {
     }
 }
 
-// Add a friend to a group by updating the group's members list
-export async function addFriendToGroup(frienduid, groupuid) {
-    const groupdocref = doc(db, "groups", groupuid);
-    const groupdoc = await getDoc(groupdocref);
-
-    if (!groupdoc.exists()) {
-        return;
-    }
-
-    const frienddocref = doc(db, "users", frienduid);
-    const frienddoc = await getDoc(frienddocref);
-
-    if (!frienddoc.exists()) {
-        return;
-    }
-
-    const frienddata = frienddoc.data();
-
-    const newmember = {
-        uid: frienduid,
-        username: frienddata.username || frienduid,
-        profilePic: frienddata.profilePic || "../img/defaultprofile.png",
-    };
-
-    await updateDoc(groupdocref, {
-        members: arrayUnion(newmember),
-    });
-}
-
 // Get all groups that include the current user
 export async function getUserGroups(signedinuser) {
     const userid = signedinuser.uid;
@@ -103,4 +74,60 @@ export async function getUserGroups(signedinuser) {
     }
 
     return usergroups;
+}
+/**
+ * Get info for all users the current user is friends with.
+ * @param {String} currentUser 
+ * @returns {Array} Array with objects of structure {uid, username, profile pic}.
+ */
+export const getFriends = async function(currentUser) {
+    const frienshipscollection = collection(db, "friendships"); // points to friendships collection
+
+    // note: in the database, friendship docs are structured so that userA represents one person's uid and userB is the other friend's uid
+
+    // finds friendships where the current user is userA
+    const whereUserIsA = await getDocs(
+        query(frienshipscollection, where("userA", "==", currentUser.uid))
+    );
+
+    // friendships where the current user is userB
+    const whereUserIsB = await getDocs(
+        query(frienshipscollection, where("userB", "==", currentUser.uid))
+    );
+
+    // an empty list for all the uids of this user's friends
+    const friendsIDS = new Set();
+
+    // for every friendship where the user logged in is userA, add the other person, userB's uid to the list
+    whereUserIsA.forEach(function (friendshipDoc) {
+        friendsIDS.add(friendshipDoc.data().userB);
+    });
+
+    // vise-versa
+    whereUserIsB.forEach(function (friendshipDoc) {
+        friendsIDS.add(friendshipDoc.data().userA);
+    });
+
+    // empty list for storing friend profiles (turned into html later on)
+    const friendslist = [];
+
+    // loops through each friend's uid from our earlier list
+    for (const friendID of friendsIDS) {
+
+        // gets a snapshot of their profile
+        const friendProfileSnap = await getDoc(doc(db, "users", friendID));
+
+        // if their profile exists in firestore, add their info to the friendslist
+        if (friendProfileSnap.exists()) {
+            var friendInfo = friendProfileSnap.data(); // read all their profile data
+
+            friendslist.push({
+                uid: friendID,
+                username: friendInfo.username || friendID, // username or default to uid
+                profilePic: friendInfo.profilePic || "/img/defaultprofile.png", // pfp or default img
+            });
+        }
+    }
+
+    return friendslist; // returns the full list of friends to display across different pages
 }
