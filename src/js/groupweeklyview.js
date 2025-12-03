@@ -1,6 +1,11 @@
 import {
-    firebaseDb as db
+    firebaseDb as db,
+    firebaseAuth as auth
 } from "../lib/FirebaseInstances.js";
+
+import {
+    user as getUser
+} from "../lib/Database.js";
 
 import {
     getDocs,
@@ -8,9 +13,34 @@ import {
     doc,
     getDoc,
     query,
-    where
+    where,
+    onAuthStateChanged
 } from "firebase/firestore";
 
+// NEW CHANGES HERE!! EXACTLY THE SAME AS THE ONE FOR THE OTHER WEEKLY VIEW; UPDATES HARDCODED DATES
+// updates each weekdate
+function updateWeekDates() {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+
+    const weekdaySections = document.querySelectorAll(".weekday");
+
+    weekdaySections.forEach((section, index) => {
+        const thisDay = new Date(startOfWeek);
+        thisDay.setDate(startOfWeek.getDate() + index);
+        const months = [
+            "Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec"
+        ];
+        const formatted = months[thisDay.getMonth()] + " " + thisDay.getDate();
+
+        const dateElement = section.querySelector(".date");
+        if (dateElement) {
+            dateElement.textContent = formatted;
+        }
+    });
+}
 
 /* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
 function getWeekday(taskdate) {
@@ -83,7 +113,7 @@ async function loadWeeklyGroupTasks(groupId) {
         const priority = (task.priority || "").toLowerCase();
         if (priority === "high" && urgentList) {
             const urgentBubble = document.createElement("div");
-            urgentBubble.className = "urgentbubble";
+            urgentBubble.className = "urgensecondtbubble";
             urgentBubble.textContent = task.title;
             urgentList.appendChild(urgentBubble);
         }
@@ -110,4 +140,29 @@ async function setupGroupWeeklyView() {
     loadWeeklyGroupTasks(groupId);
 }
 
-window.onload = setupGroupWeeklyView;
+window.onload = () => {
+    setupGroupWeeklyView();
+    updateWeekDates();
+};
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+
+    const data = await getUser(user.uid);
+
+    if (data.accentColor) {
+        document.documentElement.style.setProperty("--second-accent", data.accentColor);
+        document.documentElement.style.setProperty("--accent", data.accentColor);
+    }
+
+    const header = document.querySelector("header");
+    if (header) {
+        if (data.useSolidHeader) {
+            header.style.backgroundImage = "none";
+            header.style.backgroundColor = data.accentColor || "var(--accent)";
+        } else {
+            header.style.backgroundImage = "linear-gradient(180deg, #fbf7f8, rgba(251,247,248,0.75))";
+            header.style.backgroundColor = "";
+        }
+    }
+});
