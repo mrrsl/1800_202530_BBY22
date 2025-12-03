@@ -77,7 +77,26 @@ export const addGroupMember = async function(groupId, userId) {
         } else {
             throw new Error(`Group with name ${groupId} does not exist.`);
         }
+    });
+}
 
+/**
+ * Add multiple members at once to group.
+ * @param {String} groupId 
+ * @param {Array<Object>} memberList Members will have fields uid, username, and profilePic
+ * @remark Front end code uses member objects rather than straight UIDs so we'll use member objects here as the argument.
+ */
+export const addGroupMembers = async function(groupId, memberList) {
+    if (groupId == null) 
+        throw new Error("Need group name");
+    
+    const groupDoc = doc(db, GROUP_COLLECTION_NAME, groupId);
+
+    return getDoc(groupDoc).then(async snap => {
+        if (snap.exists()) return snap.data();
+    }).then(async groupInfo => {
+        groupInfo.members = groupInfo.members.concat(memberList);
+        return updateDoc(groupDoc, { members: groupInfo.members });
     });
 }
 
@@ -91,7 +110,7 @@ export const createGroup = async function(groupId, coverPhoto) {
     if (groupId == null)
         throw new Error("No group name given");
     if (coverPhoto == null || coverPhoto.length == 0)
-        coverPhoto = "/img/defaultprofile.png";
+        coverPhoto = "/img/defaultgroup.jpg";
 
     const groupCollection = collection(db, GROUP_COLLECTION_NAME);
     const existingGroups = await getDocs(groupCollection);
@@ -106,9 +125,7 @@ export const createGroup = async function(groupId, coverPhoto) {
     
     if (existingNameSet.has(groupId)) {
         const existingGroupRef = doc(db, GROUP_COLLECTION_NAME, groupId);
-        return getDoc(existingGroupRef).then(snap => {
-            return snap.data();
-        });
+        return getDoc(existingGroupRef).then(snap => snap.data());
     } else {
         const groupDocRef = doc(db, GROUP_COLLECTION_NAME, groupId);
         return setDoc(groupDocRef, defaultGroupDoc);
@@ -336,7 +353,6 @@ export const getUsersGroups = async function(userId) {
     let allGroups = await getDocs(groupsRef);
     allGroups.forEach(doc => {
         const groupData = doc.data();
-
         for (const memberInfo of groupData.members) {
             if (memberInfo.uid == userId) {
                 groupData.name = doc.id;
@@ -345,7 +361,5 @@ export const getUsersGroups = async function(userId) {
             }
         }
     });
-
     return groups;
-
 }

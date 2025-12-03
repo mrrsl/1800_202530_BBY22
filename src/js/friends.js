@@ -114,6 +114,7 @@ function createFriendBox(
         friendbox.appendChild(unfriendicon);
     }
     friendbox.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
         await showFriendProfile(uid);
     })
 
@@ -259,7 +260,8 @@ async function showaddtogroupPopup(user, friendUid) {
         const addbutton = document.createElement("button");
         addbutton.textContent = "Add";
         addbutton.className = "addbutton"
-        addbutton.addEventListener("click", async () => {
+        addbutton.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
             await addGroupMember(group.id, friendUid);
             hiddenPopup.style.display = "none"; // hides the popup box after adding a friend to a group
         });
@@ -272,7 +274,7 @@ async function showaddtogroupPopup(user, friendUid) {
 
     // hides the popup box when the x button is clicked
     hiddenPopup.querySelector(".closebutton").onclick = () => {
-        hiddenPopup.style.display = "none";
+
     };
 }
 

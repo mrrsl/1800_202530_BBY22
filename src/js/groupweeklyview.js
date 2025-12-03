@@ -100,10 +100,10 @@ async function setupGroupWeeklyView() {
     const groupsnapshot = await getDoc(groupdoc);
     if (groupsnapshot.exists()) { // checks if the group doc exists
         const groupinfo = groupsnapshot.data(); // if it does, read all the fields inside of the doc
-        const heading = document.querySelector(".topheading");
+        const heading = document.querySelector(".tnopheading");
         // changes the heading of each weekly calenar to correspond to the group's name
         if (heading) {
-            heading.textContent = groupinfo.name + " — This Week";
+            heading.textContent = groupId + " — This Week";
         }
     }
 

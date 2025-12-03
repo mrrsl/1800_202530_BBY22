@@ -7,6 +7,7 @@ import {
     getUsersGroups,
     createGroup,
     addGroupMember,
+    addGroupMembers,
     removeFromGroup
 } from "../lib/GroupTasks.js";
 
@@ -36,12 +37,13 @@ const newgroupicon = document.querySelector(".newgroupicon");
 // LOADS IN THE USER'S GROUPS
 async function loadGroups(user) {
     groupsection.replaceChildren();
-    const groups = await getUsersGroups(user.uid);
-    if (groups.length > 0) {
-        for (const group of groups) {
-            populateGroupList(group);
-        }
-    }
+    getUsersGroups(user.uid).then(groups =>{
+        if (groups.length > 0) {
+            for (const group of groups) {
+                populateGroupList(group);
+            }
+        };
+    });
 }
 
 /**
@@ -66,7 +68,7 @@ function populateGroupList(groupInfo) {
             ? currentmember.username
             : members.uid;
         name = name.split(" ")[0];
-        
+
         // adds a span with each group member's name & pfp to the group box
         membersHTML +=
             "<span class='member'>" +
@@ -309,14 +311,15 @@ async function shownewgroupPopup(user, friendslist) {
             alert("Sorry! You have to enter a group name");
             return;
         }
-        debugger;
         if (coverPhoto.includes("dropbox"))
             coverPhoto = coverPhoto.replace("dl=0", "raw=1");
 
         // creating and adding both return promises so keep the callback chaining here
         createGroup(groupname, coverPhoto)
-            .then(v => addGroupMember(groupname, user.uid))
-            .catch(e => alert("Error creating group: " + e))
+            .then(async v => {
+                await addGroupMember(groupname, user.uid);
+                addGroupMembers(groupname, chosenfriends);
+            }).catch(e => alert("Error creating group: " + e))
             .then(v => {
                 document.body.removeChild(outerpopup);
                 loadGroups(user);
