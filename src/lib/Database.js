@@ -20,15 +20,6 @@ export const PERSONAL_COLLECTION_NAME = "personal-tasks";
 export const GROUP_COLLECTION_NAME = "groups";
 
 /**
- * Default app settings.
- */
-const DEFAULT_PREFERENCES = {
-  bodyFont: "Inria Serif",
-  titleFont: "Oooh Baby",
-  accentColor: "#fff5fa",
-};
-
-/**
  * Retrieve current user's document entry and pass the data to another function.
  * @param {String | null} idString Optional ID string, defaults to current user.
  * @return {Promise<Object>} Object containing username, email, createdAt, etc.
@@ -369,6 +360,5 @@ export const validateTaskObj = function(task) {
 
     if (task.dateISO == null) {
         task.dateISO = dateISOString(task.createdAt);
-    }
-    
+    }    
 }

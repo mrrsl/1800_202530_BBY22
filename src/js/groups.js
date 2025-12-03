@@ -15,6 +15,10 @@ import {
 } from "../lib/FriendsAndGroups.js";
 
 import {
+    loadPreferences
+} from "../lib/Helpers.js";
+
+import {
     onAuthStateChanged
 } from "firebase/auth";
 
@@ -296,7 +300,7 @@ async function shownewgroupPopup(user, friendslist) {
             .getElementById("groupnameInput")
             .value.trim();
 
-        const coverPhoto = document
+        let coverPhoto = document
             .getElementById("groupCoverInput")
             .value.trim();
 
@@ -305,6 +309,9 @@ async function shownewgroupPopup(user, friendslist) {
             return;
         }
         
+        if (coverPhoto.includes("dropbox.com"))
+            coverPhoto = coverPhoto.replace("dl=8", "raw=1");
+
         // creating and adding both return promises so keep the callback chaining here
         createGroup(groupname, coverPhoto)
             .then(v => addGroupMember(groupname, user.uid))
@@ -316,11 +323,10 @@ async function shownewgroupPopup(user, friendslist) {
     });
 }
 
-// checks user's login status
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
 
-    // loads groups onto the page & gets friends list from firestore if logged in
+    await loadPreferences();
     loadGroups(user);
     const friendslist = await getFriends(user);
 
