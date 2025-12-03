@@ -6,8 +6,6 @@ import {
 import {
     collection,
     getDocs,
-    doc,
-    getDoc,
     query,
     where,
 } from "firebase/firestore";
@@ -24,115 +22,121 @@ import {
     getUserGroups,
 } from "../lib/FriendsAndGroups.js";
 
+import {
+    user as getUser
+} from "../lib/Database.js";
+
+import {
+    loadPreferences
+} from "../lib/Helpers.js";
+
 // search box
 const searchbox = document.querySelector(".searchbar");
 
 // the container for all friend boxes
 const allfriendscontainer = document.querySelector(".friendscontainer");
 
-/* FOR CREATING A SINGLE FRIEND'S BOX
- * params:
- * - userinfo: all of the user's info from firestore; name, email, pfp
- * - uid: the user's id
- * - forCurrentUser: represents whether or not this box is for the user currently logged in
- * - showCompletedTasks: true if we should show the total # of completed tasks for that user (neceessary for the search bar)
- * */
+/**
+ * Generates a box containing a friend's information.
+ * @param {String} userinfo all of the user's info from firestore; name, email, pfp
+ * @param {String} uid the user's id
+ * @param {boolean} forCurrentUser represents whether or not this box is for the user currently logged in
+ * @param {boolean} showCompletedTasks true if we should show the total # of completed tasks for that user (neceessary for the search bar)
+ */
 function createFriendBox(
     userinfo,
     uid,
     forCurrentUser = false,
     showCompletedTasks = true
 ) {
-    // creates the outer container for the friend box
+    /** Outer container. */
     const friendbox = document.createElement("div");
     friendbox.className = "friendbox";
 
-    // creates an image for each friend's pfp
+    /** Profile PFP. */
     const profileimg = document.createElement("img");
     profileimg.src = userinfo.profilePic || "/img/defaultprofile.png";
     profileimg.className = "profilepic";
     friendbox.appendChild(profileimg);
 
-    // creates the container for each friend's name & email
+    /** Email and Username wrappers. */
     const friendinfo = document.createElement("div");
     friendinfo.className = "friendinfo";
 
-    // creates a div for each friend's name (including your own, so that you can compare task stats)
+    /** Name text. */
     const friendname = document.createElement("div");
     friendname.className = "friendname";
-    friendname.textContent = forCurrentUser // if the box happens to be for the current user
-        ? userinfo.username || "You" // it should either display either 'you' or their actual username
-        : userinfo.username || "";
-    friendinfo.appendChild(friendname); // add the name into the container
+    friendname.textContent = userinfo.username;
+    friendinfo.appendChild(friendname);
 
-    // creates another container exclusively for email
+    /** Email text. */
     const email = document.createElement("div");
     email.className = "friendemail";
     email.textContent = userinfo.email || ""; // only shows the email if it can find one
     friendinfo.appendChild(email);
 
-    // adds the entire information section/container into the main friend box
     friendbox.appendChild(friendinfo);
 
     // note: showCompletedTasks is only false for search results (since you shouldn't be able to see the # of completed tasks for someone who isn't a friend)
     if (showCompletedTasks) {
-        // creates a container for the # of completed tasks
+        /** Competed task text. */
         const completedtasks = document.createElement("div");
         completedtasks.className = "leaderboardtasks";
         completedtasks.textContent =
-            (userinfo.tasksCompleted || 0) + " tasks completed this week";
+            (userinfo.tasksCompleted || 0) + " tasks completed";
         friendbox.appendChild(completedtasks);
     }
 
     // only shows the add to group & unfriend icons if the box isn't for the current user and if we're in the friends list
     // note: showCompletedTasks is always true in the friends list (we should always be able to see the leaderboard for friends)
     if (!forCurrentUser && showCompletedTasks) {
-        // creates the add to group icon
+        /** Add-group icon. */
         const addToGroupicon = document.createElement("img");
         addToGroupicon.src = "/img/addtogroup.png";
         addToGroupicon.className = "addToGroup";
-        addToGroupicon.addEventListener(
-            "click",
-            () => showaddtogroupPopup(auth.currentUser, uid) // when clicked, opens up the add to group popup
-        );
+        addToGroupicon.addEventListener( "click", (ev) => {
+            ev.stopPropagation();
+            showaddtogroupPopup(auth.currentUser, uid);
+        });
         friendbox.appendChild(addToGroupicon);
 
-        // creates & adds the unfriend icon to the box
+        /** Unfriend icon. */
         const unfriendicon = document.createElement("img");
         unfriendicon.src = "/img/unfriend.png";
         unfriendicon.className = "unfriend";
-        unfriendicon.addEventListener("click", async () => {
-            await removeFriend(auth.currentUser.uid, uid); // uses the helper function (from friendsandgroups.js)
-            loadfriendslist(auth.currentUser); // refreshes the friends list on click
+        unfriendicon.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
+            await removeFriend(auth.currentUser.uid, uid);
+            loadfriendslist(auth.currentUser);
         });
         friendbox.appendChild(unfriendicon);
     }
+    friendbox.addEventListener("click", async (ev) => {
+        await showFriendProfile(uid);
+    })
 
-    return friendbox; // returns a fully finished friends box, but doesn't add it to the page just yet
+    return friendbox;
 }
 
-// LOADS IN THE USER'S FRIENDS LIST
+/**
+ * Loads the logged-in user's friend list.
+ * @param {User} user 
+ */
 async function loadfriendslist(user) {
-    allfriendscontainer.innerHTML = ""; // removes placeholder friends
-
-    const loggedinuser = await getDoc(doc(db, "users", user.uid));
+    allfriendscontainer.innerHTML = "";
+    const loggedinuser = await getUser(user.uid);
 
     // shows the logged in user at the top of the friends list
-    if (loggedinuser.exists()) {
-        const loggedInUsersInfo = loggedinuser.data();
-        // creates a friend box for the user currently logged in
+    if (loggedinuser != null) {
+        /** Friend element for the currently logged in user. */
         const loggedInUsersBox = createFriendBox(
-            loggedInUsersInfo,
+            loggedinuser,
             user.uid,
             true,
             true
         );
-
-        // adds the user's box to the top of the list
         allfriendscontainer.appendChild(loggedInUsersBox);
     }
-
-    // references the friendships collection
     const friendshipscollection = collection(db, "friendships");
 
     /**
@@ -150,31 +154,23 @@ async function loadfriendslist(user) {
     // for storing all ids of the user's friends
     const friendIDS = [];
 
-    // loops through friendships where the current user is userA
     for (let i = 0; i < friendshipsWhereUserIsA.docs.length; i++) {
-        const friendshipDoc = friendshipsWhereUserIsA.docs[i]; // gets each doc
-        const friendshipInfo = friendshipDoc.data(); // gets the fields for each friendship
-
-        // adds the other person (userB's) ID to the list of friend ids
+        const friendshipDoc = friendshipsWhereUserIsA.docs[i];
+        const friendshipInfo = friendshipDoc.data(); 
         friendIDS.push(friendshipInfo.userB);
     }
 
-    // the same thing, but with userB
     for (let i = 0; i < friendshipsWhereUserIsB.docs.length; i++) {
         const friendshipDoc = friendshipsWhereUserIsB.docs[i];
         const friendshipInfo = friendshipDoc.data();
         friendIDS.push(friendshipInfo.userA);
     }
 
-    // goes through the list of friend IDS
     for (let i = 0; i < friendIDS.length; i++) {
         const friendID = friendIDS[i];
-        // gets that friend's doc
-        const friendDoc = await getDoc(doc(db, "users", friendID));
+        const friendInfo = await getUser(friendID);
 
-        if (friendDoc.exists()) {
-            const friendInfo = friendDoc.data(); // gets the data fields from their doc; username, pfp, email
-            // builds the friends box & adds it to the list
+        if (friendInfo != null) {
             const friendBox = createFriendBox(
                 friendInfo,
                 friendID,
@@ -188,18 +184,16 @@ async function loadfriendslist(user) {
 
 // FOR THE SEARCH BAR
 searchbox.addEventListener("input", async () => {
-    // gets the text typed in, removes any extra whitespace, makes it case-insensitive
+    /** Lowercase search-input value. */
     const searchedtext = searchbox.value.trim().toLowerCase();
 
-    // finds & removes all old elements with the searchresult class
+    // Clear previous search
     document
         .querySelectorAll(".searchresult")
         .forEach((oldresult) => oldresult.remove());
 
-    // doesn't return anything if the searchbox was empty
     if (!searchedtext) return;
 
-    // gets all of the users from firestore
     const allusers = await getDocs(collection(db, "users"));
 
     // loops through each person
@@ -232,13 +226,15 @@ searchbox.addEventListener("input", async () => {
         });
 
         friendbox.appendChild(addfriendbutton);
-
-        // adds the friend box that we just created to the top of the page so it looks like a search result
         allfriendscontainer.prepend(friendbox);
     });
 });
 
-// SHOWS THE HIDDEN HTML POPUP FOR ADDING A FRIEND TO A GROUP
+/**
+ * Renders hidden HTML popup for adding a friend to a group.
+ * @param {User} user 
+ * @param {String} friendUid 
+ */
 async function showaddtogroupPopup(user, friendUid) {
     const usersGroups = await getUserGroups(user); // gets all groups for the logged in user
 
@@ -279,8 +275,116 @@ async function showaddtogroupPopup(user, friendUid) {
     };
 }
 
-// loads in the friends list only if they're logged in
-onAuthStateChanged(auth, (user) => {
-    if (user) loadfriendslist(user);
-    else return;
+// BRAND NEW SECTION HERE: The Profile Popups W/ Completed Group Tasks
+async function showFriendProfile(frienduid) {
+    const overlay = document.getElementById("profilebubble");
+    const friendname = document.getElementById("profilename");
+    const friendpfp = document.getElementById("friendpfp");
+    const sharedtaskslist = document.getElementById("sharedtasklist");
+
+    // clears out any old tasks
+    sharedtaskslist.innerHTML = "";
+
+    // loads in that friend's user doc from firestore
+    const friendref = doc(db, "users", frienduid);
+    const friendrecord = await getDoc(friendref);
+    // stops if the friend's doc doesn't exist
+    if (!friendrecord.exists()) return;
+    const frienddata = friendrecord.data();
+
+    // fills in the box will all of their info
+    friendname.textContent = frienddata.username || "unknown";
+    friendpfp.src = frienddata.profilePic || "../img/defaultprofile.png";
+
+    // checks the user's id to see what groups they're a part of
+    const currentuser = auth.currentUser;
+    if (!currentuser) return;
+
+    // loops through each group to find the ones that both them and the friend are in
+    const groupsfound = await getDocs(collection(db, "groups"));
+
+    // keeps track of whether or not any tasks were added, used to show an empty message if there are none
+    let addedanytasks = false;
+
+    // goes through each group and checks if people are members
+    for (let i = 0; i < groupsfound.docs.length; i++) {
+        const groupdoc = groupsfound.docs[i];
+        const groupdata = groupdoc.data();
+
+        // if for some reason, there is a group with no members, just default to an empty array
+        const membersarray = Array.isArray(groupdata.members) ? groupdata.members : [];
+
+        // loops through each group member
+        let currentuserinthisgroup = false;
+        let friendinthisgroup = false;
+        for (let j = 0; j < membersarray.length; j++) {
+            const member = membersarray[j];
+            if (member && member.uid === currentuser.uid) currentuserinthisgroup = true;
+            if (member && member.uid === frienduid) friendinthisgroup = true;
+            if (currentuserinthisgroup && friendinthisgroup) break; // stops early if we've found both of them
+        }
+
+        // if either person is not in the group, then skip that group altogether
+        if (!currentuserinthisgroup || !friendinthisgroup) continue;
+
+        // points to the new subcollection with completed tasks for the group
+        const completedtasks = collection(db, "groups", groupdoc.id, "completedTasks");
+        const completedtasksresult = await getDocs(completedtasks);
+
+        // loops through each completed task
+        for (let k = 0; k < completedtasksresult.docs.length; k++) {
+            const taskdoc = completedtasksresult.docs[k];
+            const taskdata = taskdoc.data();
+
+            // only shows tasks that are marked as done and completed by this specific friend
+            if (taskdata && taskdata.done && taskdata.completedBy === frienduid) {
+                const listitem = document.createElement("li");
+
+                const groupbadge = document.createElement("span");
+                groupbadge.className = "taskaccentbox";
+                groupbadge.textContent = groupdata.name || "group";
+
+                const tasktitle = document.createElement("span");
+                tasktitle.className = "taskname";
+                tasktitle.textContent = taskdata.title || "task with no title!";
+
+                listitem.appendChild(groupbadge);
+                listitem.appendChild(tasktitle);
+                sharedtaskslist.appendChild(listitem);
+
+                if (sharedtaskslist.children.length >= 5) {
+                    await Promise.all(
+                        completedtasksresult.docs.map(d =>
+                            deleteDoc(doc(db, "groups", groupdoc.id, "completedTasks", d.id))
+                        )
+                    );
+                    sharedtaskslist.innerHTML = "";
+                    sharedtaskslist.classList.add("empty");
+                }
+                addedanytasks = true;
+            }
+        }
+    }
+
+    // shows an empty placeholder if no tasks were added
+    if (!addedanytasks) {
+        sharedtaskslist.classList.add("empty");
+    } else {
+        sharedtaskslist.classList.remove("empty");
+    }
+
+    // shows the popup box
+    overlay.style.display = "flex";
+
+    // the close button
+    overlay.querySelector(".closebutton").onclick = () => {
+        overlay.style.display = "none";
+    };
+}
+
+onAuthStateChanged(auth,async (user) => {
+    if (user) {
+        loadPreferences();
+        loadfriendslist(user);
+    } else return;
 });

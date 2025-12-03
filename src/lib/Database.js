@@ -22,7 +22,7 @@ export const GROUP_COLLECTION_NAME = "groups";
 /**
  * Retrieve current user's document entry and pass the data to another function.
  * @param {String | null} idString Optional ID string, defaults to current user.
- * @return {Promise<Object>} Object containing username, email, createdAt, etc.
+ * @return {Promise<Object | null>} Object containing username, email, createdAt, etc.
  */
 export const user = async function(idString) {
     let uid = (idString)? idString: firebaseAuth.currentUser.uid;
@@ -33,7 +33,7 @@ export const user = async function(idString) {
             result.uid = idString;
             return result;
         } else {
-            throw new Error("User document not found");
+            return null;
         }
     })
 }

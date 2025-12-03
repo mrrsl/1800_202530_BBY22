@@ -53,7 +53,9 @@ export async function removeFriend(currentuserid, frienduid) {
     }
 }
 
-// Get all groups that include the current user
+/**
+ * Get all groups that include the current user.
+ */
 export async function getUserGroups(signedinuser) {
     const userid = signedinuser.uid;
     const groupscollection = collection(db, "groups");
