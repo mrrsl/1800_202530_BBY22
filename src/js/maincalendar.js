@@ -4,7 +4,6 @@ import {
 } from "firebase/auth";
 
 import {
-  getFirestore,
   collection,
   doc,
   setDoc,
@@ -26,6 +25,9 @@ import {
 let USERS_CURRENT_ID = null;
 // the current date selected, set to today by default
 let selecteddate = new Date();
+
+const weeklyviewAnchor = document.getElementById("weeklyview-anchor");
+weeklyviewAnchor.addEventListener("click", weeklyViewPilot);
 
 /* --- HELPER FUNCTION FOR CONVERTING DATES TO YYYY-MM-DD FORMAT --- */
 function formatDate(dateObj) {
@@ -503,6 +505,15 @@ window.onload = function () {
     }
   };
 };
+
+/**
+ * Click handler to get to the weekly view.
+ * @param {MouseEvent} event 
+ */
+function weeklyViewPilot(event) {
+  const dateString = `${selecteddate.getFullYear()}-${selecteddate.getMonth()}-${selecteddate.getDate()}`;
+  window.location.href ="sofiasnewweeklyview.html?date=" + dateString;
+}
 
 /* --- USER AUTHENTICATION FEATURES --- */
 onAuthStateChanged(auth, function (User) {

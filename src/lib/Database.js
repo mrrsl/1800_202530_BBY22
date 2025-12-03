@@ -301,25 +301,14 @@ export const createUser = async function(name, email, pw) {
         return uid;
     } else {
         let userDocFields = {
-            name: name,
+            username: name,
             email: email,
             createdAt: new Date(),
             friends: []
         };
         await setDoc(userDocRef, userDocFields);
-        defaultEntry(uid);
         return uid;
     }
-}
-
-/**
- * Populates Firestore with default data for the logged in user, if the documents do not exist.
- * @param {String} idString UID string.
- * @return {void}
- */
-export const defaultEntry = async function (idString) {
-    let prefRefs = doc(firebaseDb, PREF_COLLECTION_NAME, idString);
-    return setDoc(prefRefs, DEFAULT_PREFERENCES);
 }
 
 /**

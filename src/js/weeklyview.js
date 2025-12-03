@@ -14,6 +14,14 @@ import {
   where
 } from "firebase/firestore";
 
+function getDateFromUrlParam() {
+  if (window.location.search.length < 2) return new Date();
+  // Search includes the ?
+  let query = window.location.search.substring(1);
+  query = query.split("=");
+  return new Date(query[1]);
+}
+
 /* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
 // figures out the weekday name associated with a date
 function getWeekday(taskdate) {
@@ -90,7 +98,7 @@ function clearTasks() {
 /* --- LOADS IN AND DISPLAYS NEW TASKS ONLY FOR THE CURRENT WEEK (SEPARATES HIGH-PRIORITY FROM LOW-PRIORITY TASKS) --- */
 async function loadWeeklyTasks(userId) {
     // uses today's date to figure out the bounds of the current week
-    const today = new Date();
+    const today = getDateFromUrlParam();
 
     // creates a copy of today's date and sets it back to sunday of this week
     /* ex. let's say today is november 21st; then today.getDate() = 21 

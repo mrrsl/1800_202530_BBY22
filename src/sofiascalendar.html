@@ -319,10 +319,8 @@
       }
     </style>
 
-    <link href="https://fonts.cdnfonts.com/css/oooh-baby" rel="stylesheet"/>
-    <link href="https://fonts.cdnfonts.com/css/inria-serif" rel="stylesheet"/>
-
-    <link href="/styles/header.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/fonts.css"/>
+    <link rel="stylesheet" href="/styles/header.css"/>
   </head>
   <body>
     <!-- HEADER AREA -->
@@ -336,12 +334,12 @@
           ><img src="/img/settingsgear.png" width="70px"
         /></a>
         <div class="calendarmenu">
-          <a href="#" class="calendaricon"
+          <div class="calendaricon"
             ><img src="/img/calendaricon.png" width="70px"
-          /></a>
+          /></div>
           <div class="dropdownmenuoptions">
             <div class="options">
-              <a href="sofiasnewweeklyview.html">Weekly View</a>
+              <a id="weeklyview-anchor" href="sofiasnewweeklyview.html">Weekly View</a>
             </div>
           </div>
         </div>
@@ -351,8 +349,7 @@
     <!-- TITLE AND SUBTITLE -->
     <h1 id="title">
       <button id="previousarrow">◀</button>
-      <!-- (tried to use a material icon
-      here, but I have no idea how to change its size within the button) -->
+      <!-- Stopgap with text arrows since material icons are difficult to size -->
       <span id="mainmonthlabel"></span>
       <button id="nextarrow">▶</button>
     </h1>
