@@ -14,6 +14,10 @@ import {
     signOut
 } from "firebase/auth";
 
+import {
+    loadPreferences
+} from "../lib/Helpers.js";
+
 const nameInput = document.getElementById("usernameInput");
 const emailInput = document.getElementById("emailInput");
 const logoutButton = document.getElementById("logoutbutton");
@@ -42,113 +46,126 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     const userDocRef = doc(db, "users", user.uid);
-
+    const userdoc = await getDoc(userDocRef);
     // Load Firestore doc and profile data
-    try {
-        const snap = await getDoc(userDocRef);
-        if (snap.exists()) {
-            const data = snap.data();
 
-            // Profile Picture
-            if (data?.profilePic) {
-                document.getElementById("profilePic").src = data.profilePic;
-            }
+    if (userdoc.exists()) {
+        const data = userdoc.data();
 
-            // USERNAME (changed from name → username)
-            if (
-                typeof data?.username === "string" &&
-                data.username.trim() !== ""
-            ) {
-                nameInput.value = data.username;
-                setPlaceholder(nameInput, data.username);
-            }
-
-            // EMAIL
-            if (typeof data?.email === "string" && data.email.trim() !== "") {
-                emailInput.value = data.email;
-                setPlaceholder(emailInput, data.email);
-            }
+        // PROFILE PICTURE
+        if (data.profilePic) {
+            document.getElementById("profilePic").src = data.profilePic;
         }
-    } catch (err) {
-        console.error("Error fetching user doc:", err);
+        loadPreferences();
     }
 
-    // Fallbacks
-    const authEmail = user.email || null;
-
-    if (!nameInput.value) {
-        setPlaceholder(nameInput, "Choose a username");
-    }
-
-    if (!emailInput.value && authEmail) {
-        emailInput.value = authEmail;
-        setPlaceholder(emailInput, authEmail);
-    } else {
-        setPlaceholder(
-            emailInput,
-            emailInput.placeholder || authEmail || "you@example.com"
-        );
-    }
-
-    // Save profile picture
-    document
-        .getElementById("savepic")
-        .addEventListener("click", async () => {
-            const newpicinput = document
+    // SAVE BUTTON FOR THE PFP
+    const savePicBtn = document.getElementById("savepic");
+    if (savePicBtn) {
+        savePicBtn.addEventListener("click", async () => {
+            let newpicinput = document
                 .getElementById("newpicinput")
                 .value.trim();
-            if (!newpicinput) return;
-
-            try {
+            if (newpicinput) {
+                if (newpicinput.includes("dropbox.com")) {
+                    newpicinput = newpicinput.replace("dl=0", "raw=1");
+                }
                 await updateDoc(userDocRef, { profilePic: newpicinput });
                 document.getElementById("profilePic").src = newpicinput;
-                alert("Profile picture updated!");
-            } catch (err) {
-                console.error("Failed to update profile picture:", err);
-                alert("Failed to update profile picture.");
+                alert("profile picture updated!");
             }
         });
+    }
 
-    // Edit button enables inputs
-    editButton.addEventListener("click", () => {
-        nameInput.disabled = false;
-        emailInput.disabled = false;
-        nameInput.focus();
+    // FONT BUTTONS
+    async function setFontChoice(variableName, fieldName, fontFamily) {
+        document.documentElement.style.setProperty(variableName, fontFamily);
+        await updateDoc(userDocRef, { [fieldName]: fontFamily });
+    }
+
+    const fontmappings = [
+        {
+            id: "fontOptionOne",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Cormorant Garamond", sans-serif',
+        },
+        {
+            id: "fontOptionTwo",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Quicksand Book", sans-serif',
+        },
+        {
+            id: "fontOptionThree",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Oooh Baby", sans-serif',
+        },
+        {
+            id: "fontOptionFour",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Delius", sans-serif',
+        },
+        {
+            id: "fontOptionFive",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Fuzzy Bubbles", sans-serif',
+        },
+        {
+            id: "fontOptionSix",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"Emilys Candy", sans-serif',
+        },
+        {
+            id: "fontOptionSeven",
+            variable: "--header-font",
+            field: "headerFont",
+            value: '"DynaPuff", sans-serif',
+        },
+    ];
+
+    fontmappings.forEach(({ id, variable, field, value }) => {
+        const button = document.getElementById(id);
+        if (button) {
+            button.addEventListener("click", () =>
+                setFontChoice(variable, field, value)
+            );
+        }
     });
 
-    // Save button writes USERNAME + EMAIL to Firestore
-    document
-        .getElementById("savebutton")
-        .addEventListener("click", async () => {
-            const username = nameInput.value.trim();
-            const email = emailInput.value.trim();
+    // FOR SETTING THE CUSTOM ACCENT COLOR
+    const accentPicker = document.getElementById("accentColor");
+    const restorebutton = document.getElementById("restoreColor");
 
-            const updates = {};
-            if (username) updates.username = username; // ✅ changed
-            if (email) updates.email = email;
-
-            if (Object.keys(updates).length === 0) {
-                console.log("No fields to update.");
-            } else {
-                try {
-                    await updateDoc(userDocRef, updates);
-                } catch (err) {
-                    console.error("Failed to update user document:", err);
-                    alert("Failed to save profile info.");
-                }
-            }
-
-            nameInput.disabled = true;
-            emailInput.disabled = true;
-
-            // Update UI
-            if (updates.username) {
-                nameInput.value = updates.username;
-                setPlaceholder(nameInput, updates.username);
-            }
-            if (updates.email) {
-                emailInput.value = updates.email;
-                setPlaceholder(emailInput, updates.email);
-            }
+    if (accentPicker) {
+        accentPicker.addEventListener("input", async (e) => {
+            const newColor = e.target.value;
+            document.documentElement.style.setProperty(
+                "--accent-color",
+                newColor
+            );
+            await updateDoc(userDocRef, {
+                accentColor: newColor,
+                useSolidHeader: true,
+            });
         });
+    }
+
+    if (restorebutton) {
+        restorebutton.addEventListener("click", async () => {
+            const defaultColor = "#fff5fa";
+            document.documentElement.style.setProperty(
+                "--accent-color",
+                defaultColor
+            );
+            await updateDoc(userDocRef, {
+                accentColor: defaultColor,
+                useSolidHeader: false,
+            });
+        });
+    }
 });

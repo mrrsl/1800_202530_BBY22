@@ -6,6 +6,7 @@ import {
 import {
     doc,
     getDoc,
+    deleteDoc,
     collection,
     getDocs,
     query,
@@ -385,7 +386,7 @@ async function showFriendProfile(frienduid) {
     };
 }
 
-onAuthStateChanged(auth,async (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         loadPreferences();
         loadfriendslist(user);

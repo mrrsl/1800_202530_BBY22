@@ -14,22 +14,6 @@
         font-size: 30pt;
         padding-bottom: 120px; /* makes sure everything is cleared from the bottom navbar*/
       }
-
-      header {
-        background-image: url("/img/lightcoloredbackdrop.png");
-        box-shadow: 0 0 60px rgba(78, 22, 45, 0.3);
-        padding: 2.5rem 0 0.5rem 0; /* top right bottom left padding*/
-      }
-
-      #backarrow {
-        position: absolute;
-        top: 4rem;
-        left: 2rem;
-        z-index: 10;
-        width: 2rem;
-        height: auto;
-      }
-
       /* styles the bottom navbar */
       .bottomnav {
         position: fixed;
@@ -124,9 +108,7 @@
       }
 
       /* styles the logout button */
-      #logoutbutton,
-      #editbutton,
-      #savebutton {
+      #logoutbutton {
         border: 2px solid #4a2b30;
         border-radius: 20px;
         font-size: 30pt;
@@ -231,6 +213,27 @@
         font-family: "Oooh Baby", sans-serif;
         font-size: 28pt;
       }
+      /* STYLED ALL OF THE OTHER NEW FONT OPTION BUTTONS */
+
+      #fontOptionFour {
+        font-family: "Delius", sans-serif;
+        font-size: 28pt;
+      }
+
+      #fontOptionFive {
+        font-family: "Fuzzy Bubbles", sans-serif;
+        font-size: 28pt;
+      }
+
+      #fontOptionSix {
+        font-family: "Emilys Candy", sans-serif;
+        font-size: 28pt;
+      }
+
+      #fontOptionSeven {
+        font-family: "DynaPuff", sans-serif;
+        font-size: 28pt;
+      }
 
       .profilepicwrapper {
         display: flex;
@@ -291,6 +294,7 @@
       }
     </style>
     <link rel="stylesheet" href="/styles/fonts.css" />
+    <link rel="stylesheet" href="/styles/heaer.css" />
   </head>
 
   <body>
@@ -363,6 +367,10 @@
         <button class="fontbutton" id="fontOptionOne">Fancy</button>
         <button class="fontbutton" id="fontOptionTwo">Mono</button>
         <button class="fontbutton" id="fontOptionThree">Default</button>
+        <button class="fontbutton" id="fontOptionFour">Delius</button>
+        <button class="fontbutton" id="fontOptionFive">Fuzzy</button>
+        <button class="fontbutton" id="fontOptionSix">Candy</button>
+        <button class="fontbutton" id="fontOptionSeven">Pop</button>
       </div>
     </div>
 
