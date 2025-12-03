@@ -4,6 +4,8 @@ import {
 } from "../lib/FirebaseInstances.js";
 
 import {
+    doc,
+    getDoc,
     collection,
     getDocs,
     query,
@@ -200,12 +202,11 @@ searchbox.addEventListener("input", async () => {
     allusers.forEach((userdoc) => {
         // gets the fields for each user
         const userinfo = userdoc.data();
-
         // converts each username to lowercase
         const username = userinfo.username.toLowerCase();
 
         if (!username.includes(searchedtext)) return; // if the username doesn't match the text you searched up in the searchbox, then skip this user
-        if (auth.currentUser && userdoc.id === auth.currentUser.uid) return; // skip yourself (don't want to show yourself in the search results)
+        if (auth.currentUser && userdoc.id === auth.currentUser.uid) return;
 
         // creates a friend box for the user that matches the search result;
         // params are: the user's data, their id, not the current user, don't show leaderboard tasks

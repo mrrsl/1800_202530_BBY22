@@ -65,7 +65,8 @@ function populateGroupList(groupInfo) {
         var name = currentmember.username
             ? currentmember.username
             : members.uid;
-
+        name = name.split(" ")[0];
+        
         // adds a span with each group member's name & pfp to the group box
         membersHTML +=
             "<span class='member'>" +
@@ -195,7 +196,7 @@ async function shownewgroupPopup(user, friendslist) {
     coverimgInput.type = "text";
     coverimgInput.id = "groupCoverInput";
     coverimgInput.placeholder =
-        "Paste an Imgur Link! ex. https://i.imgur.com/...";
+        "Paste an image hotlink";
     coverimgInputBox.appendChild(coverimgInput);
     innercontainer.appendChild(coverimgInputBox);
 
@@ -308,9 +309,9 @@ async function shownewgroupPopup(user, friendslist) {
             alert("Sorry! You have to enter a group name");
             return;
         }
-        
-        if (coverPhoto.includes("dropbox.com"))
-            coverPhoto = coverPhoto.replace("dl=8", "raw=1");
+        debugger;
+        if (coverPhoto.includes("dropbox"))
+            coverPhoto = coverPhoto.replace("dl=0", "raw=1");
 
         // creating and adding both return promises so keep the callback chaining here
         createGroup(groupname, coverPhoto)
