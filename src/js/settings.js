@@ -44,9 +44,6 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "loginpage.html";
     }
 
-    nameInput.disabled = false;
-    emailInput.disabled = false;
-
     const userDocRef = doc(db, "users", user.uid);
     const userdoc = await getDoc(userDocRef);
     // Load Firestore doc and profile data

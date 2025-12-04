@@ -342,24 +342,29 @@ export const searchForGroup = async function(searchTerm) {
 /**
  * Get an array of group docs that the user is a part of.
  * @param {String | null} userId Defaults to current user ID when set to null.
- * @return {Array<Object>}
+ * @return {Promise<Array<Object>>}
  */
 export const getUsersGroups = async function(userId) {
     if (userId == null) userId = auth.currentUser.uid;
 
     const groupsRef = collection(db, GROUP_COLLECTION_NAME);
-    let groups = [];
+    
 
-    let allGroups = await getDocs(groupsRef);
-    allGroups.forEach(doc => {
-        const groupData = doc.data();
-        for (const memberInfo of groupData.members) {
-            if (memberInfo.uid == userId) {
-                groupData.name = doc.id;
-                groups.push(groupData);
-                break;
+    return getDocs(groupsRef).then(async allGroups => {
+
+        let groups = [];
+        allGroups.forEach(doc => {
+
+            const groupData = doc.data();
+            for (const memberInfo of groupData.members) {
+                if (memberInfo.uid == userId) {
+                    groupData.name = doc.id;
+                    groups.push(groupData);
+                    break;
+                }
             }
-        }
+        });
+        return groups
+
     });
-    return groups;
 }

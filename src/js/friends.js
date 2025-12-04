@@ -16,7 +16,8 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 import {
-    addGroupMember
+    addGroupMember,
+    getUsersGroups
 } from "../lib/GroupTasks.js";
 
 import {
@@ -239,7 +240,7 @@ searchbox.addEventListener("input", async () => {
  * @param {String} friendUid 
  */
 async function showaddtogroupPopup(user, friendUid) {
-    const usersGroups = await getUserGroups(user); // gets all groups for the logged in user
+    const usersGroups = await getUsersGroups(user.id); // gets all groups for the logged in user
 
     const hiddenPopup = document.getElementById("hiddengroupbox");
     const hiddenOptionContainer = document.getElementById("groupOptions");
@@ -263,7 +264,7 @@ async function showaddtogroupPopup(user, friendUid) {
         addbutton.className = "addbutton"
         addbutton.addEventListener("click", async (ev) => {
             ev.stopPropagation();
-            await addGroupMember(group.id, friendUid);
+            await addGroupMember(group.name, friendUid);
             hiddenPopup.style.display = "none"; // hides the popup box after adding a friend to a group
         });
         option.appendChild(addbutton); // adds the button to each group option
@@ -275,7 +276,7 @@ async function showaddtogroupPopup(user, friendUid) {
 
     // hides the popup box when the x button is clicked
     hiddenPopup.querySelector(".closebutton").onclick = () => {
-
+        hiddenPopup.style.display = "none";
     };
 }
 
