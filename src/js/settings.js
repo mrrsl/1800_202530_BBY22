@@ -23,7 +23,6 @@ const emailInput = document.getElementById("emailInput");
 const logoutButton = document.getElementById("logoutbutton");
 const editButton = document.getElementById("editbutton");
 const colorPicker = document.getElementById("accentColor");
-const defaultAccentColor = "#fff5fa";
 
 nameInput.disabled = true;
 emailInput.disabled = true;
@@ -45,6 +44,9 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "loginpage.html";
     }
 
+    nameInput.disabled = false;
+    emailInput.disabled = false;
+
     const userDocRef = doc(db, "users", user.uid);
     const userdoc = await getDoc(userDocRef);
     // Load Firestore doc and profile data
@@ -53,8 +55,17 @@ onAuthStateChanged(auth, async (user) => {
         const data = userdoc.data();
 
         // PROFILE PICTURE
-        if (data.profilePic) {
+        if (data?.profilePic) {
             document.getElementById("profilePic").src = data.profilePic;
+        }
+        if (typeof data?.username === "string" && data.username.trim() !== "") {
+            nameInput.value = data.username;
+            setPlaceholder(nameInput, data.username);
+        }
+
+        if (typeof data?.email === "string" && data.email.trim() !== "") {
+            emailInput.value = data.email;
+            setPlaceholder(emailInput, data.email);
         }
         loadPreferences();
     }
@@ -82,6 +93,45 @@ onAuthStateChanged(auth, async (user) => {
         document.documentElement.style.setProperty(variableName, fontFamily);
         await updateDoc(userDocRef, { [fieldName]: fontFamily });
     }
+
+    editButton.addEventListener("click", () => {
+        nameInput.disabled = false;
+        emailInput.disabled = false;
+        nameInput.focus();
+    });
+
+    // Save button writes USERNAME + EMAIL to Firestore
+    document
+        .getElementById("savebutton")
+        .addEventListener("click", async () => {
+            const username = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const updates = {};
+            if (username) updates.username = username; // ✅ changed
+            if (email) updates.email = email;
+            if (Object.keys(updates).length === 0) {
+                console.log("No fields to update.");
+            } else {
+                try {
+                    await updateDoc(userDocRef, updates);
+                } catch (err) {
+                    console.error("Failed to update user document:", err);
+                    alert("Failed to save profile info.");
+                }
+            }
+            nameInput.disabled = true;
+            emailInput.disabled = true;
+
+            // Update UI
+            if (updates.username) {
+                nameInput.value = updates.username;
+                setPlaceholder(nameInput, updates.username);
+            }
+            if (updates.email) {
+                emailInput.value = updates.email;
+                setPlaceholder(emailInput, updates.email);
+            }
+        });
 
     const fontmappings = [
         {

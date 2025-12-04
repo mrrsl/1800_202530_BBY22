@@ -14,8 +14,11 @@ import {
     getDoc,
     query,
     where,
-    onAuthStateChanged
 } from "firebase/firestore";
+
+import {
+    onAuthStateChanged
+} from "firebase/auth";
 
 // NEW CHANGES HERE!! EXACTLY THE SAME AS THE ONE FOR THE OTHER WEEKLY VIEW; UPDATES HARDCODED DATES
 // updates each weekdate
@@ -140,29 +143,4 @@ async function setupGroupWeeklyView() {
     loadWeeklyGroupTasks(groupId);
 }
 
-window.onload = () => {
-    setupGroupWeeklyView();
-    updateWeekDates();
-};
-
-onAuthStateChanged(auth, async (user) => {
-    if (!user) return;
-
-    const data = await getUser(user.uid);
-
-    if (data.accentColor) {
-        document.documentElement.style.setProperty("--second-accent", data.accentColor);
-        document.documentElement.style.setProperty("--accent", data.accentColor);
-    }
-
-    const header = document.querySelector("header");
-    if (header) {
-        if (data.useSolidHeader) {
-            header.style.backgroundImage = "none";
-            header.style.backgroundColor = data.accentColor || "var(--accent)";
-        } else {
-            header.style.backgroundImage = "linear-gradient(180deg, #fbf7f8, rgba(251,247,248,0.75))";
-            header.style.backgroundColor = "";
-        }
-    }
-});
+window.onload = setupGroupWeeklyView();

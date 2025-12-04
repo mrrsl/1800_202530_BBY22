@@ -108,11 +108,11 @@
       }
 
       /* styles the logout button */
-      #logoutbutton {
+      #logoutbutton, #editbutton, #savebutton {
         border: 2px solid #4a2b30;
         border-radius: 20px;
         font-size: 30pt;
-        text-align: left;
+        text-align: center;
         font-family: var(--body-font);
         margin-top: 0.5em;
         width: 190px;
@@ -294,15 +294,17 @@
       }
     </style>
     <link rel="stylesheet" href="/styles/fonts.css" />
-    <link rel="stylesheet" href="/styles/heaer.css" />
+    <link rel="stylesheet" href="/styles/header.css" />
   </head>
 
   <body>
     <header>
-      <h1 id="plannerName">Settings</h1>
+
       <div id="backarrow" onclick="window.history.back()">
         <img src="/img/up-arrow.png" width="110px" />
       </div>
+      <h1 id="plannerName">Settings</h1>
+      <div></div>
     </header>
 
     <!-- PFP SECTION -->
