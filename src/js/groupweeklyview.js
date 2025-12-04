@@ -127,13 +127,15 @@ async function loadWeeklyGroupTasks(groupId) {
 async function setupGroupWeeklyView() {
     const url = new URLSearchParams(window.location.search); // gets the group id from url
     const groupId = url.get("groupId");
-    if (!groupId) return; // ends function if no group id is present
+
+    if (!groupId) return; 
 
     const groupdoc = doc(db, "groups", groupId);
     const groupsnapshot = await getDoc(groupdoc);
+
     if (groupsnapshot.exists()) { // checks if the group doc exists
         const groupinfo = groupsnapshot.data(); // if it does, read all the fields inside of the doc
-        const heading = document.querySelector(".tnopheading");
+        const heading = document.querySelector(".topheading");
         // changes the heading of each weekly calenar to correspond to the group's name
         if (heading) {
             heading.textContent = groupId + " — This Week";
@@ -143,4 +145,28 @@ async function setupGroupWeeklyView() {
     loadWeeklyGroupTasks(groupId);
 }
 
-window.onload = setupGroupWeeklyView();
+window.onload = function() {
+    setupGroupWeeklyView();
+    updateWeekDates();
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    const data = await getUser(user.uid);
+    debugger;
+    if (data.accentColor) {
+        document.documentElement.style.setProperty("--second-accent", data.accentColor);
+        document.documentElement.style.setProperty("--accent", data.accentColor);
+    }
+
+    const header = document.querySelector("header");
+    if (header) {
+        if (data.useSolidHeader) {
+        header.style.backgroundImage = "none";
+        header.style.backgroundColor = data.accentColor || "var(--accent)";
+        } else {
+        header.style.backgroundImage = "linear-gradient(180deg, #fbf7f8, rgba(251,247,248,0.75))";
+        header.style.backgroundColor = "";
+        }
+    }
+});

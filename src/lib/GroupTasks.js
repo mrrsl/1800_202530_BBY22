@@ -20,10 +20,6 @@ import {
 } from "./FirebaseInstances.js";
 
 import {
-    dateISOString
-} from "./DateUtils.js";
-
-import {
     USER_COLLECTION_NAME, GROUP_COLLECTION_NAME,
     validateTaskObj,
     user,
@@ -32,8 +28,8 @@ import {
 import {
     doc, getDocs, getDoc,
     setDoc, deleteDoc, updateDoc,
-    query, documentId,
-    where, orderBy,
+    query,
+    where,
     collection,
 } from "firebase/firestore";
 

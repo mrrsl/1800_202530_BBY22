@@ -1,5 +1,4 @@
 import {
-  getAuth,
   onAuthStateChanged,
 } from "firebase/auth";
 
@@ -21,10 +20,15 @@ import {
 } from "../lib/FirebaseInstances.js";
 
 let USERS_CURRENT_ID = null;
-// the current date selected, set to today by default
+
+/** Current selected date. */
 let selecteddate = new Date();
 
-/* --- HELPER FUNCTION FOR CONVERTING DATES TO YYYY-MM-DD FORMAT --- */
+/**
+ * Generates a string in YYYY-MM-DD format.
+ * @param {Date} dateObj 
+ * @returns {String}
+ */
 function formatDate(dateObj) {
   // gets year
   let year = dateObj.getFullYear();
@@ -45,15 +49,25 @@ function formatDate(dateObj) {
     daystring = "0" + daystring;
   }
 
-  return year + "-" + monthstring + "-" + daystring; //yyyy-mm-dd
+  return year + "-" + monthstring + "-" + daystring;
 }
 
-/* --- CREATES DOC IDS IN THIS FORMAT: 20251112-Homework --- */
+/**
+ * Creates docIds in this format: `20251112-Homework`.
+ * @param {String} formattedDate Date in the form `YYYY-MM-DD`.
+ * @param {String} title Text to append to the packed date string.
+ * @return {String}
+ */
 function makeUniqueDocId(formattedDate, title) {
   return formattedDate.replaceAll("-", "") + title;
 }
 
-/* --- HELPER FUNCTION TO CALCULATE # OF DAYS IN MONTH --- */
+/**
+ * Get the number of days within a month.
+ * @param {Number} indexofmonth Result of `Date.getMonth()`.
+ * @param {Number} year Used for leap year calculations.
+ * @return {Number} Number in the range `[28 - 31]`.
+ */
 function daysInMonth(indexofmonth, year) {
   // whenever the day number is 0, javascript interprets it as the final day of the last month
   // 2025, 3, 0 means the 0th day of april, aka march 31st
@@ -67,13 +81,19 @@ let taskInput;
 let calendarContainer;
 let collapseButton;
 
-/* --- FOR CREATING NEW TASK ITEMS --- */
-/* changed the original function so that task creation only happens in a single spot;
-   before, addTask() was making new list items, but it didn't include the 
-   redirect to the edit page or priority borders, and loadTasksForTheDay was only making
-   task items for loaded tasks, so there was a lot of repeated code;
-   this also fixed the reload bug when editing tasks
-*/
+// FOR CREATING NEW TASK ITEMS
+/**
+ * Creates a new task and records it in the Firestore.
+ * @param {String} taskId Document name for the task in Firestore.
+ * @param {Object} taskinfo Document data from the task.
+ * @param {DOcumentReference} tasklocation Reference to the task document in Firestore. 
+ *
+ * @remark Changed the original function so that task creation only happens in a single spot.
+ * Before, `addTask()` was making new list items, but it didn't include the 
+ * redirect to the edit page or priority borders, and loadTasksForTheDay was only making
+ * task items for loaded tasks, so there was a lot of repeated code.
+ * This also fixed the reload bug when editing tasks.
+ */
 function createTask(taskId, taskinfo, tasklocation = null) {
   const taskItem = document.createElement("li");
 
@@ -104,7 +124,7 @@ function createTask(taskId, taskinfo, tasklocation = null) {
     taskItem.appendChild(groupicon);
   }
 
-  // creates delete button, attaches it to task
+  /** Delete button. */
   const deletebutton = document.createElement("button");
   deletebutton.textContent = "X";
   taskItem.appendChild(deletebutton);
@@ -128,7 +148,6 @@ function createTask(taskId, taskinfo, tasklocation = null) {
     await deleteDoc(taskRef);
   }
 
-  // CHANGES MADE HERE TO ACCOMODATE THE NEW FEATURE (FOR COMPLETED GROUP TASKS)
   deletebutton.onclick = async () => {
     if (tasklocation) {
       await completeAndDeleteTask(tasklocation);
@@ -167,8 +186,10 @@ function createTask(taskId, taskinfo, tasklocation = null) {
   taskList.appendChild(taskItem);
 }
 
-/* --- LOADING TASKS FOR A SPECIFIC DAY --- */
-// removed task creation section which is now handled by createTask()
+/**
+ * Loads task for the given date.
+ * @param {String} currentday Date string in the form `YYYY-MM-DD`.
+ */
 async function loadTasksForTheDay(currentday) {
   // stops if no user is logged in
   if (!USERS_CURRENT_ID) return;
@@ -249,12 +270,13 @@ async function loadTasksForTheDay(currentday) {
       }
     }
   }
-
-  // refreshes the limit note
   updateNote();
 }
 
-/* --- ADDS A BRAND NEW TASK TO THE LIST (Modified Version) --- */
+/**
+ * Adds a brand new task to the rendered task list and Firestore.
+ * @param {String} taskTitle 
+ */
 function addNewTask(taskTitle) {
   // stops after the 20 task limit
   if (taskList.children.length >= 20) return;

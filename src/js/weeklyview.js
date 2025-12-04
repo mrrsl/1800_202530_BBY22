@@ -4,6 +4,10 @@ import {
 } from "../lib/FirebaseInstances.js";
 
 import {
+	user as getUser
+} from "../lib/Database.js";
+
+import {
 		onAuthStateChanged
 } from "firebase/auth";
 
@@ -11,7 +15,8 @@ import {
 		getDocs,
 		collection,
 		query,
-		where
+		where,
+		Timestamp
 } from "firebase/firestore";
 
 function getDateFromUrlParam() {
@@ -48,8 +53,11 @@ function updateWeekDates() {
 	});
 }
 
-/* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
-// figures out the weekday name associated with a date
+/**
+ * Gets the name for the day of the week from the given task date.
+ * @param {Timestamp} taskdate Timestamp stored in Firestore.
+ * @returns {String} Name of the day of the week (eg. Monday).
+ */
 function getWeekday(taskdate) {
 		var date;
 
@@ -82,7 +90,10 @@ function getWeekday(taskdate) {
 		return weekdaynames[date.getDay()]; // gets weekday number from the date, uses it as an index to get the weekday name
 }
 
-/* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE  --- */
+/**
+ * Render tasks on individual weekday bubbles.
+ * @param {Object} task Data returned form a task document.
+ */
 function showTask(task) {
 		var weekday;
 		// if the task already has a firestore ISO date (yyyy-mm-dd) use that
@@ -111,7 +122,9 @@ function showTask(task) {
 		taskcontainer.appendChild(bubble); // add bubble to the weekday box
 }
 
-/* --- CLEARS ALL TASK BUBBLES OFF OF THE PAGE --- */
+/**
+ * Clear tasks bubbles off the page.
+ */
 function clearTasks() {
 		var bubbles = document.querySelectorAll(".taskbubble"); // selects all of the task bubbles on the page
 		for (var i = 0; i < bubbles.length; i++) { // runs a for loop that removes them one by one
@@ -119,97 +132,98 @@ function clearTasks() {
 		}
 }
 
-/* --- LOADS IN AND DISPLAYS NEW TASKS ONLY FOR THE CURRENT WEEK (SEPARATES HIGH-PRIORITY FROM LOW-PRIORITY TASKS) --- */
+/** 
+ * Loads in and displays new tasks only for the current week (separates high-priority from low-priority).
+ * @param {String} userId
+ */
 async function loadWeeklyTasks(userId) {
-		// uses today's date to figure out the bounds of the current week
-		const today = getDateFromUrlParam();
+	// uses today's date to figure out the bounds of the current week
+	const today = getDateFromUrlParam();
 
-		// creates a copy of today's date and sets it back to sunday of this week
-		/* ex. let's say today is november 21st; then today.getDate() = 21 
-				today.getDay() would give you 5 (because we start counting at index 0 from sunday)
-				21-5 = 16, which represents sunday, november 16th
-		*/
-		const startofweek = new Date(today);
-		startofweek.setDate(today.getDate() - today.getDay());
+	// creates a copy of today's date and sets it back to sunday of this week
+	/* ex. let's say today is november 21st; then today.getDate() = 21 
+		today.getDay() would give you 5 (because we start counting at index 0 from sunday)
+		21-5 = 16, which represents sunday, november 16th
+	*/
+	const startofweek = new Date(today);
+	startofweek.setDate(today.getDate() - today.getDay());
 
-		/* copies over sunday's date: november 16th, into endofweek
-				so it becomes 16 + 6 = 22, therefore the end of the week would be saturday, november 22nd
-		*/
-		const endofweek = new Date(startofweek);
-		endofweek.setDate(startofweek.getDate() + 6);
+	/* copies over sunday's date: november 16th, into endofweek
+		so it becomes 16 + 6 = 22, therefore the end of the week would be saturday, november 22nd
+	*/
+	const endofweek = new Date(startofweek);
+	endofweek.setDate(startofweek.getDate() + 6);
 
-		// slices the first 10 characters of the yyyy-mm-dd string to get both dates in this form
-		const startISO = startofweek.toISOString().slice(0, 10);
-		const endISO   = endofweek.toISOString().slice(0, 10);
+	// slices the first 10 characters of the yyyy-mm-dd string to get both dates in this form
+	const startISO = startofweek.toISOString().slice(0, 10);
+	const endISO   = endofweek.toISOString().slice(0, 10);
 
-		// gets all tasks from firestore between the dates of sunday and saturday 
-		const thisweektasks = query(
-				collection(db, "personal-tasks", userId, "tasks"),
-				where("dateISO", ">=", startISO),
-				where("dateISO", "<=", endISO)
-		);
-		const snapshot = await getDocs(thisweektasks);
+	// gets all tasks from firestore between the dates of sunday and saturday 
+	const thisweektasks = query(
+		collection(db, "personal-tasks", userId, "tasks"),
+		where("dateISO", ">=", startISO),
+		where("dateISO", "<=", endISO)
+	);
+	const snapshot = await getDocs(thisweektasks);
 
-		// clears out any old task bubbles
-		clearTasks();
+	// clears out any old task bubbles
+	clearTasks();
 
-		// finds and clears any leftover tasks in the high priority bubble section
-		const urgentList = document.querySelector('.urgentbubblelist');
-		if (urgentList) urgentList.innerHTML = '';
+	// finds and clears any leftover tasks in the high priority bubble section
+	const urgentList = document.querySelector('.urgentbubblelist');
+	if (urgentList) urgentList.innerHTML = '';
 
 		// loops through each of the task docs from Firestore
-		for (let i = 0; i < snapshot.docs.length; i++) {
-				const tasksnapshot = snapshot.docs[i];
-				const task = tasksnapshot.data();
+	for (let i = 0; i < snapshot.docs.length; i++) {
+		const tasksnapshot = snapshot.docs[i];
+		const task = tasksnapshot.data();
 
-				// shows regular tasks in their correct weekly bubble
-				showTask(task);
+		// shows regular tasks in their correct weekly bubble
+		showTask(task);
 
-				// standardizes the priority task value to a lowercase string
-				const priority = (task.priority || '').toString().toLowerCase();
+		// standardizes the priority task value to a lowercase string
+		const priority = (task.priority || '').toString().toLowerCase();
 
-				// if it's high priority, create a new bubble to add to the priority section
-				if (priority === 'high' && urgentList) {
-						const urgentBubble = document.createElement('div');
-						urgentBubble.className = 'urgentbubble';
-						urgentBubble.textContent = task.title; // adds the name of the task into the task bubble
-						urgentList.appendChild(urgentBubble);
-				}
+		// if it's high priority, create a new bubble to add to the priority section
+		if (priority === 'high' && urgentList) {
+			const urgentBubble = document.createElement('div');
+			urgentBubble.className = 'urgentbubble';
+			urgentBubble.textContent = task.title; // adds the name of the task into the task bubble
+			urgentList.appendChild(urgentBubble);
 		}
+	}
 }
 
 /* --- GETS THE LOGGED IN USER'S TASKS --- */
 function setupWeeklyView() {
-		onAuthStateChanged(auth, function (user) {
-				if (user) {
-						loadWeeklyTasks(user.uid);
-				}
-		});
+	onAuthStateChanged(auth, function (user) {
+		if (user) {
+			loadWeeklyTasks(user.uid);
+		}
+	});
 }
 
 onAuthStateChanged(auth, async (user) => {
-		if (!user) return;
+	if (!user) return;
+	
+	loadWeeklyTasks(user.uid);
+	const data = await getUser(user.uid);
+	debugger;
+	if (data.accentColor) {
+		document.documentElement.style.setProperty("--second-accent", data.accentColor);
+		document.documentElement.style.setProperty("--accent", data.accentColor);
+	}
 
-		const data = await getUser(user.uid);
-
-		if (data.accentColor) {
-				document.documentElement.style.setProperty("--second-accent", data.accentColor);
-				document.documentElement.style.setProperty("--accent", data.accentColor);
+	const header = document.querySelector("header");
+	if (header) {
+		if (data.useSolidHeader) {
+			header.style.backgroundImage = "none";
+			header.style.backgroundColor = data.accentColor || "var(--accent)";
+		} else {
+			header.style.backgroundImage = "linear-gradient(180deg, #fbf7f8, rgba(251,247,248,0.75))";
+			header.style.backgroundColor = "";
 		}
+	}
 
-		const header = document.querySelector("header");
-		if (header) {
-				if (data.useSolidHeader) {
-						header.style.backgroundImage = "none";
-						header.style.backgroundColor = data.accentColor || "var(--accent)";
-				} else {
-						header.style.backgroundImage = "linear-gradient(180deg, #fbf7f8, rgba(251,247,248,0.75))";
-						header.style.backgroundColor = "";
-				}
-		}
-});
-
-window.onload = () => {
-	setupWeeklyView();
 	updateWeekDates();
-};
+});
