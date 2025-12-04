@@ -31,6 +31,7 @@ import {
     query,
     where,
     collection,
+    QuerySnapshot,
 } from "firebase/firestore";
 
 
@@ -194,7 +195,7 @@ export const addTaskToGroup = async function(groupId, task) {
 /**
  * Get all tasks from a given group and return it as keyed table.
  * @param {String} groupId 
- * @return {Promise<Array<DocumentSnapshot>>}
+ * @return {Promise<Array<Object>>}
  */
 export const getGroupTasks = async function(groupId) {
     const collectionRef = collection(db, GROUP_COLLECTION_NAME, groupId, "tasks");
@@ -210,12 +211,30 @@ export const getGroupTasks = async function(groupId) {
 }
 
 /**
+ * Get all completed tasks from a group and return it as a keyed table.
+ * @param {String} groupId
+ * @return {Promise<Array<Object>>}
+ */
+export const getGroupCompleted = async function (groupId) {
+    const completedRef = collection(db, GROUP_COLLECTION_NAME, groupId, "completedTasks");
+
+    return getDocs(completedRef).then(async querySnap => {
+        let taskTable = {};
+        for (const doc of querySnap.docs) {
+            taskTable[doc.id] = doc.data();
+        }
+        return taskTable;
+    });
+}
+
+/**
  * Mark the group task as completed by the current user. If all group members have completed it,
  * delete the task.
  * @param {String} taskObj 
  * @param {String} groupId 
  * @param {String | null} user Default to current user if unspecified. 
- * @return {Promise} Return the result of removeGroupTask if everyone completed it
+ * @return {Promise} Return the result of removeGroupTask if everyone completed it.
+ * @deprecated
  */
 export const completeGroupTask = async function(taskId, groupId, user) {
     if (user == null)
@@ -345,7 +364,6 @@ export const getUsersGroups = async function(userId) {
 
     const groupsRef = collection(db, GROUP_COLLECTION_NAME);
     
-
     return getDocs(groupsRef).then(async allGroups => {
 
         let groups = [];
@@ -361,6 +379,42 @@ export const getUsersGroups = async function(userId) {
             }
         });
         return groups
-
     });
+}
+
+/**
+ * Gets the number of tasks completed within the threshold.
+ * @param {String | QuerySnapshot<DocumentData, DocumentData>} group Either a groupId or the actual query result for the group's finished tasks
+ * @param {Number?} dayThreshold Number of days to go back, defaults to 7.
+ * @return {String | Promise<String>} Synchronously returns a string if a `QuerySnapshot` is passed. A group ID will result in a promise
+ */
+export const getRecentCompletions = function(group, dayThreshold = 7) {
+    const daysInMs = dayThreshold * 24 * 60 * 60 * 1000;
+    const now = new Date();
+
+    if (group == null) throw new Error("Invalid Group");
+    if (group.docs) {
+        // Assume query snapshot from here
+        let count = 0;
+        for (const doc of group.docs) {
+            let completion = doc.data().completedAt.toDate();
+            if (now.getTime() - completion.getTime() <= daysInMs) {
+                count++;
+            }
+        }
+        return count;
+
+    } else {
+        return getGroupCompleted(group).then(async data => {
+
+            let count = 0;
+            for (const taskId of Object.keys(data)) {
+                const completedDate = data[taskId].completedAt.toDate();
+                if (now.getTime() - completedDate.getTime() < daysInMs) {
+                    count++;
+                }
+            }
+            return count;
+        });
+    }
 }

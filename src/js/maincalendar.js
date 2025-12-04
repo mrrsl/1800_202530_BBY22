@@ -179,7 +179,7 @@ function createTask(taskId, taskinfo, tasklocation = null) {
     taskItem.onclick = (e) => {
       if (e.target.closest("button")) return; // stops if the click was on the delete button
       window.location.href =
-        "sofiasnewedit.html?taskId=" + encodeURIComponent(taskId);
+        "edit.html?taskId=" + encodeURIComponent(taskId);
     };
   }
   // adds new task to the list

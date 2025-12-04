@@ -23,7 +23,6 @@ import {
 import {
     addFriend,
     removeFriend,
-    getUserGroups,
 } from "../lib/FriendsAndGroups.js";
 
 import {
@@ -290,12 +289,7 @@ async function showFriendProfile(frienduid) {
     // clears out any old tasks
     sharedtaskslist.innerHTML = "";
 
-    // loads in that friend's user doc from firestore
-    const friendref = doc(db, "users", frienduid);
-    const friendrecord = await getDoc(friendref);
-    // stops if the friend's doc doesn't exist
-    if (!friendrecord.exists()) return;
-    const frienddata = friendrecord.data();
+    const frienddata = await getUser(frienduid);
 
     // fills in the box will all of their info
     friendname.textContent = frienddata.username || "unknown";

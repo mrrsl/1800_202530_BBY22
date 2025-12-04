@@ -15,13 +15,13 @@ export default defineConfig({
                 index: path.join(projectRoot, "index.html"),
                 login: path.join(projectRoot, "loginpage.html"),
                 signup: path.join(projectRoot, "signuppage.html"),
-                sofiascalendar: path.join(projectRoot, "sofiascalendar.html"),
+                sofiascalendar: path.join(projectRoot, "calendar.html"),
                 friends: path.join(projectRoot, "friends.html"),
-                sofiassettings: path.join(projectRoot, "sofiassettings.html"),
+                settings: path.join(projectRoot, "settings.html"),
                 groupweeklyview: path.join(projectRoot, "groupweeklyview.html"),
-                sofiasnewedit: path.join(projectRoot, "sofiasnewedit.html"),
-                sofiasnewgroupedit: path.join(projectRoot, "sofiasnewgroupedit.html"),
-                sofiasnewweeklyview: path.join(projectRoot, "sofiasnewweeklyview.html"),
+                edit: path.join(projectRoot, "edit.html"),
+                groupedit: path.join(projectRoot, "groupedit.html"),
+                weeklyview: path.join(projectRoot, "weeklyview.html"),
                 groups: path.join(projectRoot, "groups.html")
             }
         },

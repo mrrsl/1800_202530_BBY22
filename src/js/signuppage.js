@@ -19,7 +19,7 @@ form.addEventListener("submit", async (event) => {
 
     try {
         let newUserCred = await createUser(username, email, password);
-        window.location.href = "sofiascalendar.html";
+        window.location.href = "calendar.html";
 
     } catch (error) {
         alert("Sign up failed! " + error.message);

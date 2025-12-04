@@ -153,7 +153,7 @@ window.onload = function() {
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
     const data = await getUser(user.uid);
-    debugger;
+    
     if (data.accentColor) {
         document.documentElement.style.setProperty("--second-accent", data.accentColor);
         document.documentElement.style.setProperty("--accent", data.accentColor);

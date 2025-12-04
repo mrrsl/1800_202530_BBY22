@@ -208,7 +208,7 @@ onAuthStateChanged(auth, async (user) => {
 	
 	loadWeeklyTasks(user.uid);
 	const data = await getUser(user.uid);
-	debugger;
+	
 	if (data.accentColor) {
 		document.documentElement.style.setProperty("--second-accent", data.accentColor);
 		document.documentElement.style.setProperty("--accent", data.accentColor);

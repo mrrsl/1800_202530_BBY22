@@ -31,6 +31,6 @@ form.addEventListener("submit", async (event) => {
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.location.href = "/sofiascalendar.html";
+        window.location.href = "/calendar.html";
     }
 });

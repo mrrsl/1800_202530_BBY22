@@ -58,5 +58,5 @@ document.getElementById("save").onclick = async () => {
     // saves the new task into firestore
     await setDoc(taskdocref, newtaskdata);
 
-    window.location.href = "sofiascalendar.html"; // redirects back to the calendar page
+    window.location.href = "calendar.html"; // redirects back to the calendar page
 };

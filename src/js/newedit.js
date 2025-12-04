@@ -104,7 +104,7 @@ auth.onAuthStateChanged(async (user) => {
         }
 
         // redirects back to the main calendar page after saving
-        window.location.href = "sofiascalendar.html";
+        window.location.href = "calendar.html";
     };
 });
 
@@ -119,6 +119,6 @@ document
         const taskRef = doc(db, "personal-tasks", user.uid, "tasks", taskId);
         // goes back to the calendar page after deleting
         await deleteDoc(taskRef);
-        window.location.href = "sofiascalendar.html";
+        window.location.href = "calendar.html";
     }
 );

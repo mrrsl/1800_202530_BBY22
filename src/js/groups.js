@@ -8,7 +8,8 @@ import {
     createGroup,
     addGroupMember,
     addGroupMembers,
-    removeFromGroup
+    removeFromGroup,
+    getRecentCompletions,
 } from "../lib/GroupTasks.js";
 
 import {
@@ -85,7 +86,7 @@ function populateGroupList(groupInfo) {
         : "/img/defaultgroup.jpg";
 
     // builds the html for each individual group box
-    div.innerHTML =
+     div.innerHTML =
         "<div class='groupname'>" +
         groupInfo.name +
         "<img src='/img/leavegroup.png' class='leavegroupicon' style='float:right;' />" +
@@ -99,10 +100,14 @@ function populateGroupList(groupInfo) {
         membersHTML +
         "<button class='taskbutton'>+ Add Task</button>" +
         "</div>" +
-        "<div class='recentgrouptask'>Most recent task: placeholder</div>" +
+        `<div class='recentgrouptask'>Get working</div>` +
         "</div>" +
         "</div>";
-
+    
+    getRecentCompletions(groupInfo.name).then(count => {
+        const completionText = div.querySelector(`.recentgrouptask`);
+        completionText.textContent = `Tasks done this week: ${count}`;
+    });
     // adds flex wrap to the group boxes after a certain # of friends bc it causes the layout to break
     const groupmembers = div.querySelector(".groupmembers");
     const pfps = groupmembers.querySelectorAll(".pfp");
@@ -118,7 +123,7 @@ function populateGroupList(groupInfo) {
         .addEventListener("click", function (buttonclick) {
             buttonclick.stopPropagation(); // prevents any triggers from clicking on the group bubble
             window.location.href =
-                "sofiasnewgroupedit.html?groupId=" + groupInfo.name;
+                "groupedit.html?groupId=" + groupInfo.name;
         });
 
     // removes a user from a group when leave icon is clicked
