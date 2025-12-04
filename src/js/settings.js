@@ -11,7 +11,8 @@ import {
 
 import {
     onAuthStateChanged,
-    signOut
+    signOut,
+    updateEmail
 } from "firebase/auth";
 
 import {
@@ -110,6 +111,7 @@ onAuthStateChanged(auth, async (user) => {
                 console.log("No fields to update.");
             } else {
                 try {
+                    await updateEmail(auth.currentUser, email);
                     await updateDoc(userDocRef, updates);
                 } catch (err) {
                     console.error("Failed to update user document:", err);
