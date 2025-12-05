@@ -166,41 +166,24 @@ async function loadWeeklyTasks(userId) {
 	);
 	const snapshot = await getDocs(thisweektasks);
 
-	// clears out any old task bubbles
 	clearTasks();
 
 	// finds and clears any leftover tasks in the high priority bubble section
 	const urgentList = document.querySelector('.urgentbubblelist');
 	if (urgentList) urgentList.innerHTML = '';
 
-		// loops through each of the task docs from Firestore
-	for (let i = 0; i < snapshot.docs.length; i++) {
-		const tasksnapshot = snapshot.docs[i];
+	for (const tasksnapshot of snapshot.docs) {
 		const task = tasksnapshot.data();
-
-		// shows regular tasks in their correct weekly bubble
 		showTask(task);
-
-		// standardizes the priority task value to a lowercase string
 		const priority = (task.priority || '').toString().toLowerCase();
 
-		// if it's high priority, create a new bubble to add to the priority section
 		if (priority === 'high' && urgentList) {
 			const urgentBubble = document.createElement('div');
 			urgentBubble.className = 'urgentbubble';
-			urgentBubble.textContent = task.title; // adds the name of the task into the task bubble
+			urgentBubble.textContent = task.title;
 			urgentList.appendChild(urgentBubble);
 		}
 	}
-}
-
-/* --- GETS THE LOGGED IN USER'S TASKS --- */
-function setupWeeklyView() {
-	onAuthStateChanged(auth, function (user) {
-		if (user) {
-			loadWeeklyTasks(user.uid);
-		}
-	});
 }
 
 onAuthStateChanged(auth, async (user) => {
