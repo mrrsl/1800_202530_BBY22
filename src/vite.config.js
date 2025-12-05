@@ -3,8 +3,6 @@ import path from 'path';
 
 const projectRoot = path.join(process.cwd(), "src");
 const publicLocation = path.resolve(projectRoot, "..", "public");
-const disLocation = path.resolve(projectRoot, "..", "dist");
-
 export default defineConfig({
     root: projectRoot,
     publicDir: publicLocation,

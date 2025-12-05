@@ -3,14 +3,15 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const appConfig = {
-    apiKey: "AIzaSyC1X3eQaWxuFZt-Jrrzxl_X7RPzD1ooRd8",
-    authDomain: "calendar-app-eeda4.firebaseapp.com",
-    projectId: "calendar-app-eeda4",
-    storageBucket: "calendar-app-eeda4.firebasestorage.app",
-    messagingSenderId: "135200443171",
-    appId: "1:135200443171:web:d842dc61da8fcae97d5a96",
-    measurementId: "G-B0DBRK6MM2"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_MESSAGE_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_MEASUREMENT_ID
 };
+
 /**
  * Reference to the Firebase app instance.
  */
