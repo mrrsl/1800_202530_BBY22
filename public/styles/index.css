@@ -1,80 +1,186 @@
-@import "tailwindcss";
-/*
-Media queries at the bottom. Keep layout visibility properties within them.
-*/
+:root {
+    --accent-color: #fff5fa;
+    --header-font: "Oooh Baby", sans-serif;
+    --body-font: "Inria Serif", sans-serif;
+    --deep-rose: #4e162d;
+    --soft-shadow: rgba(78, 22, 45, 0.1);
+    --button-shadow: rgba(97, 9, 9, 0.555);
+}
+
 body {
-    background-image: url('/images/backgrounds/graphpaper.webp');
-    background-size: 200px auto;
-    background-repeat: repeat;
+    margin: 0;
+    padding: 0;
+    font-family: var(--body-font);
+    background: url("/img/lowopacitygrid.png") no-repeat center center;
+    background-size: cover;
+    background-blend-mode: lighten;
+    color: var(--deep-rose);
+    text-align: center;
+    animation: lightgradientshift 20s ease-in-out infinite;
+    animation-delay: 2s;
+    animation-play-state: alternate;
 }
-.indie-flower-regular {
-  font-family: "Indie Flower", cursive;
-  font-weight: 400;
-  font-style: normal;
+
+@keyframes lightgradientshift {
+    0% {
+        background-position: 0% 50%;
+        background-size: cover;
+    }
+    50% {
+        background-position: 100% 50%;
+        background-size: cover;
+    }
+    100% {
+        background-position: 0% 50%;
+        background-size: cover;
+    }
 }
-.drawn-border {
-    border-image-source: url('/images/graphite.jpg');
-    border-image-width: 2px;
-    border-image-repeat: repeat;
-    border-image-slice: 20%;
+
+.fadesection {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+    position: relative;
+    z-index: 1;
 }
-div#hero-text {
-    font-size: 56px;
-    margin-bottom: -50px;
+
+.fadesection.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
-.button-text {
-    font-family:'Patrick Hand';
-    font-size: 28px;
-    fill: rgba(20, 20, 20, .9);
+
+.herosection {
+    padding: 10vh 5vw 10vh 5vw;
 }
-.content-text-heading-left {
-    font-family: 'Patrick Hand';
-    color:rgba(20, 20, 20, .9);
-    font-size: 30px;
-    border-image: radial-gradient(ellipse at left, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
-    border-top-style: none;
-    border-bottom-style: outset;
-    border-left-style: none;
-    border-right-style: none;
-    border-width: 2px;
+
+#appname {
+    color: black;
+    font-family: var(--header-font);
+    font-size: 15vw;
+    margin-bottom: 2vh;
+    text-shadow: 0 0 60px rgba(37, 4, 15, 0.692);
 }
-.content-text-heading-right {
-    text-align: right;
-    font-family: 'Patrick Hand';
-    color:rgba(20, 20, 20, .9);
-    font-size: 30px;
-    border-image: radial-gradient(ellipse at right, rgb(2, 0, 100) 0, #DFDFDF 100%) 1;
-    border-top-style: none;
-    border-bottom-style: outset;
-    border-left-style: none;
-    border-right-style: none;
-    border-width: 2px;
+
+#appintro {
+    font-size: 5vw;
+    max-width: 800px;
+    margin: 0 auto 5vh auto;
+    line-height: 1.3;
 }
-.content-body {
-    font-family: 'Coming Soon';
-    font-size: 20px;
+
+#startbutton {
+    font-size: 5vw;
+    padding: 1rem 3rem;
+    border-radius: 3rem;
+    border: none;
+    background-color: var(--accent-color);
+    box-shadow: 0 0 40px var(--button-shadow);
+    font-family: var(--body-font);
 }
-.content-img{
-    padding: 8px;
+
+a {
+    text-decoration: none;
+    color: #290a16;
 }
-.content-img > img {
-    width: 100%;
-    height: auto;
+
+.quotesection {
+    margin-top: -5vh;
+    padding: 6vh 5vw;
+    background-color: hsla(337, 32%, 92%, 0.164);
+    backdrop-filter: blur(30px);
+    border-radius: 25px;
+    box-shadow: 0 8px 30px var(--soft-shadow);
+    width: 90%;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
 }
-#login-frame {
-    position: fixed;
-    top: 0%;
-    left: 0%;
-    background-color: rgb(50,50,50,.60);
+
+#twainquote {
+    font-family: var(--header-font);
+    font-size: 6vw;
+    line-height: 1.3;
 }
-#login-window {
-    background-image: url('/images/backgrounds/graphpaper.webp');
-    background-size: 100px auto;
+
+.firstsection {
+    display: flex;
+    max-width: 750px;
+    margin: -5vh auto 0 auto;
+    background-color: hsla(300, 17%, 90%, 0.747);
+    border-radius: 25px;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3vh;
+    padding: 5vh 5vw;
+    width: 90%;
+    box-shadow: 0 8px 30px var(--soft-shadow);
 }
-#login-window input[type="text"], #login-window input[type="password"] {
-    border-style: solid;
-    border-radius: 5px;
-    border-color:#DFDFDF;
-    border-width: 4px;
-    background-color: aliceblue;
+
+.sharesection {
+    display: flex;
+    max-width: 750px;
+    margin: -5vh auto 0 auto;
+    background-color: hsla(300, 10%, 78%, 0.5);
+    border-radius: 25px;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3vh;
+    padding: 5vh 5vw;
+    width: 90%;
+    box-shadow: 0 8px 30px var(--soft-shadow);
+}
+
+.tasksection {
+    display: flex;
+    max-width: 750px;
+    margin: -5vh auto 0 auto;
+    background-color: hsla(272, 7%, 61%, 0.37);
+    border-radius: 25px;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3vh;
+    padding: 5vh 5vw;
+    width: 90%;
+    box-shadow: 0 8px 30px var(--soft-shadow);
+}
+
+.brushsectioncontent .sharesectioncontent .tasksectioncontent {
+    display: flex;
+    align-items: center;
+    gap: 2vw;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/*styling is also identical for each of these sections, but decided to separate it for clarity */
+.brushsectionmessage {
+    font-size: 40pt;
+    max-width: 700px;
+    line-height: 1.4;
+    text-align: center;
+    margin-top: 0;
+}
+
+.sharesectionmessage {
+    font-size: 40pt;
+    max-width: 700px;
+    line-height: 1.4;
+    text-align: center;
+    margin-top: 0;
+}
+
+.tasksectionmessage {
+    font-size: 40pt;
+    max-width: 700px;
+    line-height: 1.4;
+    text-align: center;
+    margin-top: 0;
+}
+
+#sectiontitle {
+    font-size: 41pt;
+    margin: 2px;
+    color: black;
+    margin-bottom: 1vh;
+    font-family: "Noto Serif", serif;
 }
