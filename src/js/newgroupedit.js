@@ -7,56 +7,48 @@ import {
     setDoc,
 } from "firebase/firestore";
 
-
-
-// pulls out the group id from the url string after the ?
 const urlparams = new URLSearchParams(window.location.search);
+/** Name of the group parsed from the URL parameter. */
 const groupId = urlparams.get("groupId");
 
-// finds all of the priority buttons on the page
+/** Buttons for setting task priority level. */
 const prioritybuttons = document.querySelectorAll(".prioritylevel");
+
 prioritybuttons.forEach((button) => {
-    // when a priority button is clicked
     button.addEventListener("click", () => {
-        // remove the inUse class from all buttons
         prioritybuttons.forEach((b) => b.classList.remove("inUse"));
-        // add the inUse class to the clicked button
         button.classList.add("inUse");
     });
 });
 
-// when the save button is clicked create a new group task
+// Event handler for the save button. Will create a new task and delete the old task if the date is changed.
 document.getElementById("save").onclick = async () => {
     const tasktitleinput =
-        document.querySelector(".inputbubble input").value; // get the task title from the input box
-    const taskdateinput = document.getElementById("dateoftask").value; // get the task date from the date input box
+        document.querySelector(".inputbubble input").value;
+    const taskdateinput = document.getElementById("dateoftask").value;
 
-    if (!taskdateinput || !tasktitleinput) return; // stop if input fields are left empty
+    if (!taskdateinput || !tasktitleinput) return;
 
-    // builds a unique id for the task using date + title
+    /** Pending task Firestore ID. */
     const newtaskid = taskdateinput.replaceAll("-", "") + tasktitleinput;
-
+    /** Pending task `DocumentReference`. */
     const taskdocref = doc(db, "groups", groupId, "tasks", newtaskid);
-
-    // finds which priority button is currently in use
+    /** Currently selected priority level. */
     const selectedprioritybutton = document.querySelector(
         ".prioritylevel.inUse"
     );
 
-    // if a button is selected, use its id; otherwise default to medium
     const chosenpriority = selectedprioritybutton
         ? selectedprioritybutton.id
         : "medium";
 
-    // prepares the new task object
     const newtaskdata = {
         title: tasktitleinput,
-        dateISO: taskdateinput, // task date in iso format
+        dateISO: taskdateinput,
         priority: chosenpriority,
-        shared: true, // shows this is a group task
+        /** True if task is a group task. */
+        shared: true
     };
-    // saves the new task into firestore
     await setDoc(taskdocref, newtaskdata);
-
-    window.location.href = "calendar.html"; // redirects back to the calendar page
-};
+    window.location.href = "calendar.html";
+}

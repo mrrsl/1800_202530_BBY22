@@ -1,0 +1,304 @@
+:root {
+    --fontcolor: #4e162d;
+    --paper: #ffffff;
+    --timelinespine: #eeeeee;
+    --accent: #fff5fa;
+    --shadow: rgba(78, 22, 45, 0.12);
+    --bubble: #f2d9e6;
+    --urgent: #fbe3eb;
+    --urgent-bubble-color: #f4c9d3;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: #fbf7f8;
+    font-family: "Inria Serif", serif;
+    color: var(--fontcolor);
+}
+
+header {
+    padding: 1.2rem 1rem 0.6rem 1rem;
+    position: sticky;
+    top: 0;
+    display: flex; /* makes sure everything is stacked vertically and to the left in the top header */
+    flex-direction: column;
+    align-items: flex-start;
+    background: linear-gradient(180deg, #fbf7f8, rgba(251, 247, 248, 0.75));
+    backdrop-filter: blur(6px);
+    z-index: 10;
+    padding: 1rem;
+}
+
+/* for text text within the top header */
+.topheading {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.quote {
+    font-size: 3.8vw;
+    opacity: 0.7;
+    margin-top: 0.2rem;
+}
+
+.topheading {
+    font-size: 6.2vw;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* for the weekly timeline */
+.weeklytimeline {
+    position: relative;
+    margin: 1rem 0 5.5rem 0;
+    padding-left: 16vw;
+    padding-bottom: 8rem; /* IMPORTANT: adds extra padding at the bottom of the timeline so that it's not blocked by the urgent section */
+}
+
+/* creates the light gray timeline spine */
+.weeklytimeline::before {
+    content: "";
+    position: absolute;
+    left: 8vw;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px;
+    background: var(--timelinespine);
+}
+
+/* gray date bubbles located on the side */
+.daybubble {
+    position: absolute;
+    left: -15vw; /* please excuse the - value */
+    top: 1.2rem;
+    width: 8vw;
+    height: 8vw;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.6vw;
+    font-weight: 700;
+    color: #362830;
+    border-radius: 50%;
+    background: #eaeaea;
+    box-shadow: 0 2px 6px var(--shadow);
+    display: flex;
+}
+
+/* for each of the weekday cards*/
+.weekday {
+    position: relative;
+    margin: 1rem 1rem;
+}
+
+.weekdaycards {
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 0 8px 26px var(--shadow);
+    overflow: hidden;
+}
+
+/* adds a layering/paper stack effect */
+.weekdaycards::after {
+    content: "";
+    position: absolute;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 6px 16px var(--shadow);
+    left: 10px;
+    right: 10px;
+    bottom: -6px;
+    height: 10px;
+    border-radius: 14px;
+    z-index: -1;
+}
+
+/* the header section for each weekday*/
+.daytitleheader {
+    padding: 0.8rem 1rem;
+    background: var(--accent);
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+}
+
+/* the heading for the name of the day */
+.nameofday {
+    font-size: 4.8vw;
+    font-weight: 700;
+    color: #2a0d18;
+}
+
+/* small date displayed beside name of day */
+.date {
+    font-size: 3.8vw;
+    opacity: 0.7;
+}
+
+/* creates a faint gradient on the header for the first weekday */
+.weekday.today .daytitleheader {
+    background: var(--accent);
+    position: relative;
+}
+
+/* creates the task grid */
+.tasks {
+    padding: 0.8rem 1rem 1rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+/* bubbles!! (for both the urgent section and for each of the weekdays) */
+.taskbubble {
+    background: linear-gradient(135deg, var(--bubble), #ffeef7);
+    color: #290a16;
+    padding: 0.6rem 0.8rem;
+    border-radius: 18px;
+    font-size: 3.8vw;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.urgentbubble {
+    border-radius: 16px;
+    font-size: 3.6vw;
+    box-shadow: 0 2px 6px var(--shadow);
+    background: var(--urgent-bubble-color);
+    color: #2a0d18;
+    padding: 0.5rem 0.8rem;
+}
+
+/* the empty add new task section on thursday */
+.emptyBubble {
+    border-radius: 14px;
+    font-size: 3.8vw;
+    border: 1px dashed rgba(78, 22, 45, 0.18);
+    grid-column: 1 / -1;
+    background: #faf5f8;
+    color: #7a5a68;
+    padding: 0.7rem 0.9rem;
+    text-align: center;
+}
+
+/* styling for the entire urgent section stuck to the bottom of the screen */
+footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.9rem 1rem env(safe-area-inset-bottom);
+    background: linear-gradient(
+        180deg,
+        rgba(251, 247, 248, 0.2),
+        #cfa2ad 80% /* responsible for shading in bg */
+    );
+    backdrop-filter: blur(40px); /* size of bg shading */
+}
+
+.urgentzone {
+    background: var(--urgent);
+    border-radius: 18px;
+    box-shadow: 0 8px 26px var(--shadow);
+    padding: 0.9rem;
+}
+
+.urgentheading {
+    font-size: 4.4vw;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+}
+
+.urgentbubblelist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+/* does a cool little wiggle animation when you click on the bubbles :P*/
+@keyframes wiggle {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(9deg);
+    }
+    75% {
+        transform: rotate(-6deg);
+    }
+}
+
+.taskbubble:active {
+    animation: wiggle 0.3s ease;
+}
+
+/* creates the gradient for the timeline's spine */
+.weeklytimeline::before {
+    background: linear-gradient(
+        to bottom,
+        rgba(238, 238, 238, 0.8),
+        rgba(70, 69, 69, 0.8)
+    );
+}
+
+/* creates the translation effect on the high priority bubbles 
+when you first load in */
+@keyframes slideup {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.urgentbubble {
+    animation: slideup 0.6s ease-out;
+}
+
+/* creates the pulsing animation for the urgent section */
+@keyframes heartbeatpulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 6px rgba(32, 2, 16, 0.575);
+    }
+    30% {
+        transform: scale(1.05);
+        box-shadow: 0 0 12px rgba(165, 7, 67, 0.76);
+    }
+    60% {
+        transform: scale(1);
+        box-shadow: 0 0 6px rgb(119, 73, 92);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 6px rgb(56, 2, 20);
+    }
+}
+
+/* makes it so that the pulse animation only loops 3 times */
+.urgentzone {
+    animation: heartbeatpulse 2s ease-in-out;
+    animation-iteration-count: 3;
+}
+
+@keyframes bubblepop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.taskbubble {
+    animation: bubblepop 0.4s ease;
+}
