@@ -341,7 +341,7 @@ async function showFriendProfile(frienduid) {
 
                 const groupbadge = document.createElement("span");
                 groupbadge.className = "taskaccentbox";
-                groupbadge.textContent = groupdata.name || "group";
+                groupbadge.textContent = groupdoc.id || "group";
 
                 const tasktitle = document.createElement("span");
                 tasktitle.className = "taskname";

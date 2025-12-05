@@ -21,16 +21,21 @@ export const GROUP_COLLECTION_NAME = "groups";
 
 /**
  * Retrieve current user's document entry and pass the data to another function.
- * @param {String | null} idString Optional ID string, defaults to current user.
+ * @param {String | DocumentReference | null} userArg Optional ID string or `DocumentReference` for a user. Defaults to the current user if null.
  * @return {Promise<Object | null>} Object containing username, email, createdAt, etc.
  */
-export const user = async function(idString) {
-    let uid = (idString)? idString: firebaseAuth.currentUser.uid;
-    let docRef = doc(firebaseDb, USER_COLLECTION_NAME, uid);
-    return getDoc(docRef).then(async snap => {
+export const user = async function(userArg) {
+    if (userArg == null) {
+        userArg = doc(firebaseDb, USER_COLLECTION_NAME, firebaseAuth.currentUser.uid)
+    }
+    if (userArg.constructor.name != "_DocumentReference") {
+        debugger;
+        userArg = doc(firebaseDb, USER_COLLECTION_NAME, userArg);
+    }
+    return getDoc(userArg).then(async snap => {
         if (snap.exists()) {
             let result = snap.data();
-            result.uid = idString;
+            result.uid = userArg.id;
             return result;
         } else {
             return null;
