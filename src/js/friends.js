@@ -33,7 +33,7 @@ import {
     loadPreferences
 } from "../lib/Helpers.js";
 
-// search box
+/** Search box. */
 const searchbox = document.querySelector(".searchbar");
 
 // the container for all friend boxes
@@ -190,8 +190,6 @@ async function loadfriendslist(user) {
 searchbox.addEventListener("input", async () => {
     /** Lowercase search-input value. */
     const searchedtext = searchbox.value.trim().toLowerCase();
-
-    // Clear previous search
     document
         .querySelectorAll(".searchresult")
         .forEach((oldresult) => oldresult.remove());
