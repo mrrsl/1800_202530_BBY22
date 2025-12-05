@@ -1,0 +1,327 @@
+/* standardizing as many colors as possible so it's easier to customize */
+:root {
+    --accent-color: #fff5fa; /* default accent color */
+    --header-font: "Oooh Baby", sans-serif;
+    --body-font: "Inria Serif", sans-serif;
+    --secondary-font-color: #4e162d;
+    --highlight-color: #f0cfe0;
+    --border-color: #d2c2cb;
+    --shadow-color: rgba(59, 16, 34, 0.384);
+    --box-shadow: rgba(78, 22, 45, 0.12);
+}
+
+body {
+    background-color: #fbf7f8;
+    background-blend-mode: lighten;
+    text-align: center;
+    font-family: var(--header-font);
+    font-size: 30pt;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* styles the group of two buttons located at the top of the friends page */
+.socialbuttonsgroup {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+
+/* styles each individual friends button */
+.friendsbutton {
+    padding: 0.8rem 0.9rem;
+    font-size: 29pt;
+    font-family: var(--body-font, sans-serif);
+    background-color: #e0d6dc;
+    border: none;
+    border-radius: 8px;
+    letter-spacing: -1px;
+}
+
+/* styles friend & group buttons */
+.friendsbutton {
+    padding: 1.4rem 1.8rem;
+    font-size: 31pt;
+    border: 2px solid #d2c2cb;
+    border-radius: 18px;
+    background: #fff5fa;
+    box-shadow: 0 6px 14px rgba(78, 2, 34, 0.726);
+}
+
+/* styles the container for the search bar */
+.searchbarcontainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.searchbar {
+    box-sizing: border-box;
+    width: 90%;
+    padding: 1rem 2rem 0.6rem 5rem; /* some of this padding is responsible for maintaining the distance between the icon and the placeholder text */
+    font-size: 29pt;
+    background-color: #fdf9fb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    outline: none;
+    font-family: var(--body-font, sans-serif);
+    border: 2px solid #d2c2cb;
+    border-radius: 25px;
+    background-image: url("/img/searchicon.png"); /* sets the icon as a bg image in order to display it*/
+    background-repeat: no-repeat;
+    background-size: 60px 60px;
+    background-position: 0.8rem center;
+}
+
+.groupSection {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    margin: 2rem auto;
+    width: 90%;
+    max-width: 900px;
+    padding-bottom: 8rem;
+}
+
+/* standard style for all group bubbles */
+.bubblebox {
+    border: 2px solid var(--border-color);
+    border-radius: 24px;
+    background: white;
+    padding: 2rem;
+    box-shadow: 0 6px 14px var(--box-shadow);
+    margin: 0.5rem 0;
+    position: relative; /* newly added to accomodate the leave group icon */
+}
+
+.leavegroupicon {
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    top: 10px;
+    right: 13px;
+}
+
+.bubblebox {
+    position: relative; /* for positioning the leave icon */
+}
+
+/* only styles the heading for each group */
+.groupname {
+    font-size: 42pt;
+    margin-bottom: 1rem;
+    text-align: left;
+    font-weight: bold;
+}
+
+/* makes the cover photo and column sit next to each other in each group box */
+.aboutgroup {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+/* for the cover image of each group */
+.coverPhoto {
+    width: 200px;
+    height: 200px;
+    border-radius: 18px;
+    border: 3px solid var(--highlight-color);
+    object-fit: contain;
+}
+
+/* the entire main column beside the group image*/
+.groupinfo {
+    flex: 1;
+    text-align: left;
+}
+
+/* only styles the ROW with the pfp & add task button section */
+.groupmembers {
+    font-size: 28pt;
+    font-family: var(--body-font);
+    gap: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    max-width: 400px; /* enough space for ~5 icons */
+}
+
+.pfp {
+    border: 2px solid var(--highlight-color);
+    margin-right: 0.8rem;
+    border-radius: 69%;
+    box-shadow: 4px 8px 30px var(--shadow-color);
+    width: 70px;
+    height: 70px;
+}
+
+/* only for the small add task button (might change this to an icon later? not yet sure) */
+.taskbutton {
+    font-family: var(--body-font);
+    background: var(--accent-color);
+    font-weight: 600;
+    padding: 0.8rem 1.2rem;
+    font-size: 24pt;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    border-radius: 16px;
+    color: var(--secondary-font-color);
+}
+
+.recentgrouptask {
+    font-family: var(--body-font);
+    background: var(--accent-color);
+    display: inline-block;
+    font-size: 25pt;
+    font-weight: 600;
+    color: var(--secondary-font-color);
+    border-radius: 16px;
+    border: 2px solid var(--border-color);
+    padding: 1rem 1.5rem;
+}
+
+/* styles the new group icon in the bottom right corner */
+.plusIconContainer {
+    position: fixed;
+    bottom: 6rem;
+    right: 1.5rem;
+    z-index: 1000; /* just in case */
+}
+
+.newgroupicon {
+    width: 120px;
+    height: 120px;
+}
+
+/* styles the bottom navbar */
+.bottomnav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--accent-color);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    padding: 1rem 0;
+}
+
+.bottomnav ul {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bottomnav li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--body-font);
+    font-size: 25pt;
+    color: #362830;
+}
+
+.bottomnav img {
+    width: 100px;
+    height: auto;
+    margin-bottom: 0.5rem;
+}
+
+.overlaybox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(
+        0,
+        0,
+        0,
+        0.5
+    ); /* makes the actual background (so behind the new group container darker!!) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+/* styles both the outside & inside container for the popup */
+.overlaybox .groupeditcontainer {
+    font-family: var(--header-font);
+    background: #fff;
+    border: 2px solid var(--border-color);
+    border-radius: 50px;
+    padding: 100px;
+    width: 600px;
+    max-width: 90%;
+    box-shadow: 0 6px 40px rgb(0, 0, 0); /* shadow around main box */
+    position: relative; /* so close button can sit in the top-right */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* the X button */
+.overlaybox .closepopup {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #333;
+}
+
+/* headings in the popup box */
+#mainheadings {
+    font-size: 50pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* input bubbles in the popup box */
+.inputbubble input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 40px;
+    font-size: 30pt;
+    font-family: var(--body-font);
+    border: 1px solid #aaa;
+    border-radius: 30px;
+}
+
+/* styles each friend option in the popup box */
+.friendoptions a {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    font-family: var(--body-font);
+    font-size: 30pt;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+/* profile pics */
+.friendoptions img.pfp {
+    width: 100px;
+    height: 100px;
+    border-radius: 70%;
+}
+
+/* save button inside the popup box */
+.savebutton {
+    background: var(--accent-color);
+    color: #333;
+    font-size: 34pt;
+    font-family: var(--body-font);
+    padding: 30px 30px;
+    width: 300px;
+    border: 7px solid var(--border-color);
+    margin: 20px auto;
+    border-radius: 50px;
+}
