@@ -45,7 +45,11 @@ function updateWeekDates() {
     });
 }
 
-/* --- CONVERTS A DATE INTO A WEEKDAY NAME --- */
+/**
+ * Gets the weekday name from a date
+ * @param {Date} taskdate 
+ * @returns {String}
+ */
 function getWeekday(taskdate) {
 
     const weekdaynames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -69,7 +73,10 @@ function getWeekday(taskdate) {
     return weekdaynames[date.getDay()];
 }
 
-/* --- SHOWS THE TASK ON EACH WEEKDAY BUBBLE --- */
+/**
+ * Populates task info for each task bubble
+ * @param {Object} task Task data retreived from Firestore.
+ */
 function showTask(task) {
     let weekday = task.dateISO ? getWeekday(task.dateISO) : getWeekday(task.date);
     if (!weekday) return;
@@ -81,12 +88,15 @@ function showTask(task) {
     taskcontainer.appendChild(bubble);
 }
 
-/* --- CLEARS ALL TASK BUBBLES OFF OF THE PAGE --- */
+/** Clear page of all task bubbles. */
 function clearTasks() {
     document.querySelectorAll(".taskbubble").forEach(b => b.remove());
 }
 
-/* --- JUST A REFACTOR OF THE PERSONAL WEEKLY VIEW PAGE (ALMOST IDENTICAL) --- */
+/**
+ * Loads group tasks for the current week
+ * @param {String} groupId Group's Firestore group ID.
+ */
 async function loadWeeklyGroupTasks(groupId) {
     const today = new Date();
     const startofweek = new Date(today);
@@ -123,9 +133,9 @@ async function loadWeeklyGroupTasks(groupId) {
     });
 }
 
-/* --- SETUP GROUP WEEKLY VIEW --- */
+/*  Sets up and loads data for rendering on the page. */
 async function setupGroupWeeklyView() {
-    const url = new URLSearchParams(window.location.search); // gets the group id from url
+    const url = new URLSearchParams(window.location.search);
     const groupId = url.get("groupId");
 
     if (!groupId) return; 
@@ -133,8 +143,8 @@ async function setupGroupWeeklyView() {
     const groupdoc = doc(db, "groups", groupId);
     const groupsnapshot = await getDoc(groupdoc);
 
-    if (groupsnapshot.exists()) { // checks if the group doc exists
-        const groupinfo = groupsnapshot.data(); // if it does, read all the fields inside of the doc
+    if (groupsnapshot.exists()) {
+        const groupinfo = groupsnapshot.data();
         const heading = document.querySelector(".topheading");
         // changes the heading of each weekly calenar to correspond to the group's name
         if (heading) {
